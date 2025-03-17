@@ -83,6 +83,8 @@ class SquareToCircle(Scene):
 class BasicAnimations(Scene):
     def construct(self):
         # Basic Polygon
+
+        cnt = 3
         polys = VGroup(
             *[
                 RegularPolygon(
@@ -92,17 +94,42 @@ class BasicAnimations(Scene):
                     color=BLUE,
                     fill_opacity=0.5,
                 )
-                for j in range(5)
+                for j in range(cnt)
             ]
         ).arrange(RIGHT)
-        self.play(DrawBorderThenFill(polys), run_time=2)
+        self.play(DrawBorderThenFill(polys), run_time=1)
+
+        rotates = [
+            Rotate(polys[i], 2 * PI, rate_func=lambda t: t)  # rate_func=linear
+            for i in range(cnt)
+        ]
         self.play(
-            Rotate(polys[0], PI, rate_func=lambda t: t),  # rate_func=linear
-            Rotate(
-                polys[1], PI, rate_func=smooth
-            ),  # default behavior for most animations
-            Rotate(polys[2], PI, rate_func=lambda t: np.sin(t * PI)),
-            Rotate(polys[3], PI, rate_func=there_and_back),
-            Rotate(polys[4], PI, rate_func=lambda t: 1 - abs(1 - 2 * t)),
-            run_time=2,
+            *rotates,
+            run_time=1,
+        )
+
+        self.wait()
+
+        cnt = 2
+        polys_right = VGroup(
+            *[
+                RegularPolygon(
+                    5,
+                    radius=1,
+                    # color=Color.from_hsv((j / 5, 1.0, 1.0)),
+                    color=RED,
+                    fill_opacity=0.5,
+                )
+                for j in range(cnt)
+            ]
+        ).arrange(RIGHT)
+        self.play(DrawBorderThenFill(polys), run_time=1)
+
+        rotates = [
+            Rotate(polys[i], 2 * PI, rate_func=lambda t: t)  # rate_func=linear
+            for i in range(cnt)
+        ]
+        self.play(
+            *rotates,
+            run_time=1,
         )
