@@ -27,7 +27,7 @@ class AddPolygon(Scene):
                     5,
                     radius=1,
                     # color=Color.from_hsv((j / 5, 1.0, 1.0)),
-j                    color=BLUE,
+                    color=BLUE,
                     fill_opacity=0.5,
                 )
                 for j in range(2)
@@ -73,14 +73,11 @@ j                    color=BLUE,
 
         self.wait(0.5)
         # equation
-        equation = Tex(r"3 + 2 = 2 + 3")
+        equation = Tex(r"3 + 2 = 2 + 3").scale(1.5)
         equation.shift(DOWN * 2.5)
 
         self.play(Write(equation))
         self.wait(0.5)
-
-
-from manimlib import *
 
 
 class BarAddition(Scene):
@@ -298,7 +295,7 @@ class ClockAnimation(Scene):
         )
 
         # equation
-        equation = Tex(r"3 + 2 = 2 + 3")
+        equation = Tex(r"3 + 2 = 2 + 3").scale(1.5)
         equation.shift(DOWN * 2.5)
 
         self.play(Write(equation))
@@ -307,63 +304,6 @@ class ClockAnimation(Scene):
 
 class BallDrop(Scene):
     def construct(self):
-        # Create a three-sided box (open top)
-        floor = Line(LEFT * 3, RIGHT * 3, color=WHITE)
-        left_wall = Line(UP * 2, DOWN * 2, color=WHITE)
-        right_wall = Line(UP * 2, DOWN * 2, color=WHITE)
-
-        # Position the walls correctly
-        left_wall.move_to(LEFT * 3 + DOWN * 1)
-        right_wall.move_to(RIGHT * 3 + DOWN * 1)
-        box = VGroup(floor, left_wall, right_wall)
-
-        # Create three balls (circles)
-        balls = VGroup(
-            *[Dot(radius=0.2, color=BLUE).move_to(UP * (3 + i)) for i in range(3)]
-        )
-
-        # Gravity Effect using Updaters
-        gravity = 3  # Acceleration due to gravity
-        damping_factor = 0.7  # Bounce energy loss
-        stop_threshold = 0.05  # Minimum velocity to stop
-
-        for ball in balls:
-            velocity = ValueTracker(0)  # Initial velocity
-            time_tracker = ValueTracker(0)  # Track time
-
-            def update_ball(m, dt, damping_factor=damping_factor):
-                time_tracker.increment_value(dt)
-                v = velocity.get_value() + gravity * dt  # Apply gravity
-                m.shift(DOWN * v * dt)  # Move the ball
-                velocity.set_value(v)
-
-                # Collision with floor (bouncing effect)
-                if m.get_bottom()[1] <= floor.get_center()[1]:
-                    new_v = -1 * damping_factor * v  # Reduce bounce velocity
-                    velocity.set_value(new_v)
-                    m.move_to(
-                        [m.get_x(), floor.get_center()[1] + 0.2, 0]
-                    )  # Keep ball on floor
-
-                    # Gradually reduce damping factor over time
-                    damping_factor *= 0.9  # Reduce bounce strength
-
-                    # Stop updating if the bounce velocity is too low or time exceeds 2 sec
-                    if abs(new_v) < stop_threshold or time_tracker.get_value() > 2:
-                        velocity.set_value(0)  # Stop movement
-                        m.clear_updaters()  # Stop further updates
-
-            ball.add_updater(update_ball)
-
-        # Animate dropping balls
-        self.play(FadeIn(box), FadeIn(balls))
-        self.wait(3)  # Let the balls bounce and settle
-
-        # Stop updates to freeze the scene
-        for ball in balls:
-            ball.clear_updaters()
-
-    def construct2(self):
         # Create a three-sided box (open top)
         floor = Line(LEFT * 3, RIGHT * 3, color=WHITE)
         left_wall = Line(UP * 2, DOWN * 2, color=WHITE)
@@ -483,7 +423,7 @@ class CommutativeAddition(Scene):
         )
         self.wait(0.5)
 
-        equation = Tex(r"a + b = b + a")
+        equation = Tex(r"a + b = b + a").scale(1.5)
         equation.shift(DOWN * 2)
 
         self.play(Write(equation))
@@ -584,15 +524,10 @@ class DistributivePropertyBasic(Scene):
         self.wait()
 
 
-from manim import *
-
-from manim import *
-
-
 class DistributiveProperty(Scene):
     def construct(self):
         # Title
-        title = Tex("2(3+4) = 2 \\cdot 3 + 2 \\cdot 4").shift(UP*1.5+LEFT*0.5)
+        title = Tex("2(3+4) = 2 \\cdot 3 + 2 \\cdot 4").shift(UP * 1.5 + LEFT * 0.5)
 
         box_2_3 = SurroundingRectangle(title[7:10], color=YELLOW)
         box_3_2 = SurroundingRectangle(title[11:14], color=RED)
@@ -609,7 +544,6 @@ class DistributiveProperty(Scene):
                 row_cells.arrange(RIGHT, buff=0.3).shift(DOWN * row * 0.5)
                 grid.add(row_cells)
 
-                
             return grid
 
         # Function to fill specific cells in the grid with circles
@@ -624,7 +558,7 @@ class DistributiveProperty(Scene):
         # LHS Representation
         lhs_grid = create_grid(2, 4)
         fill_circles(lhs_grid, [[3, BLUE], [4, ORANGE]])
-        lhs_grid.shift(LEFT*2)
+        lhs_grid.shift(LEFT * 2)
 
         lhs_boundary = SurroundingRectangle(lhs_grid, color=GREY_A, stroke_width=2)
 
@@ -645,7 +579,7 @@ class DistributiveProperty(Scene):
         rhs_group_3_2 = lhs_group_3_2.copy()
         rhs_group_3 = VGroup(rhs_group_3_1, rhs_group_3_2)
 
-        rhs_group_3_1.shift(RIGHT*3)
+        rhs_group_3_1.shift(RIGHT * 3)
         rhs_group_3_2.next_to(rhs_group_3_1, DOWN, buff=0.2)
 
         rhs3_boundary = SurroundingRectangle(rhs_group_3, color=YELLOW, stroke_width=2)
@@ -662,24 +596,21 @@ class DistributiveProperty(Scene):
         # self.add(rhs_group_3c)
 
         self.play(
-            Transform(lhs_group_3.copy(), rhs_group_3_1), Transform(lhs_group_3c.copy(), rhs_group_3_2),
-            run_time=1.5
+            Transform(lhs_group_3_1.copy(), rhs_group_3_1),
+            Transform(lhs_group_3_2.copy(), rhs_group_3_2),
+            run_time=1.5,
         )
         self.play(
             FadeIn(rhs3_boundary),
             FadeIn(box_2_3),
-
         )
         self.play(
-            Transform(lhs_group_4.copy(), rhs_group_4), Transform(lhs_group_4c.copy(), rhs_group_4c),
-            run_time=1.5
-
+            Transform(lhs_group_4_1.copy(), rhs_group_4_1),
+            Transform(lhs_group_4_2.copy(), rhs_group_4_2),
+            run_time=1.5,
         )
 
-        self.play(
-            FadeIn(rhs4_boundary),
-            FadeIn(box_3_2)
-        )
+        self.play(FadeIn(rhs4_boundary), FadeIn(box_3_2))
 
         self.wait(2)
 
@@ -687,7 +618,7 @@ class DistributiveProperty(Scene):
 class DistributiveArea(Scene):
     def construct(self):
         # Title
-        title = Tex("(3+2) \\cdot (3+2)").shift(UP*3)
+        title = Tex("(3+2) \\cdot (3+2)").shift(UP * 3)
         bc = BLUE
         box_3_3_1 = SurroundingRectangle(title[1], color=bc)
         box_3_3_2 = SurroundingRectangle(title[7], color=bc)
@@ -709,7 +640,6 @@ class DistributiveArea(Scene):
         bar_3 = Rectangle(width=3, height=0.3, color=BLUE, fill_opacity=1)
         bar_2 = Rectangle(width=2, height=0.3, color=GREEN, fill_opacity=1)
 
-
         # Position horizontal bars
         top_3 = bar_3.copy().move_to(LEFT + UP * 2)
         top_2 = bar_2.copy().next_to(top_3, RIGHT, buff=0)
@@ -722,17 +652,20 @@ class DistributiveArea(Scene):
             tick_marks.add(tick)
 
         # Position vertical bars
-        left_3 = top_3.copy().rotate(-PI/2, about_point=corner)
-        left_2 = top_2.copy().rotate(PI/2, about_point=corner).next_to(left_3, DOWN, buff=0)
+        left_3 = top_3.copy().rotate(-PI / 2, about_point=corner)
+        left_2 = (
+            top_2.copy()
+            .rotate(PI / 2, about_point=corner)
+            .next_to(left_3, DOWN, buff=0)
+        )
 
         tick_marks_v = VGroup()
         for i in range(6):  # 0 to 5
             tick = Line(UP * 0.2, DOWN * 0.2, color=GREY_E)
             tick.move_to(top_3.get_left() + RIGHT * i)
-            tick.rotate(-PI/2, about_point=corner)
+            tick.rotate(-PI / 2, about_point=corner)
 
             tick_marks_v.add(tick)
-
 
         self.play(FadeIn(top_3), FadeIn(top_2), FadeIn(tick_marks))
 
@@ -791,7 +724,6 @@ class DistributiveArea(Scene):
             FadeOut(box_3_2_2),
         )
 
-
         self.play(
             FadeIn(label_2x3),
             FadeIn(box_2_3),
@@ -804,7 +736,6 @@ class DistributiveArea(Scene):
             FadeOut(box_2_3_1),
             FadeOut(box_2_3_2),
         )
-
 
         self.play(
             FadeIn(label_2x2),
@@ -825,7 +756,7 @@ class DistributiveArea(Scene):
 class DistributiveArea(Scene):
     def construct(self):
         # Title
-        title = Tex("(3+2) \\cdot (4+1)").shift(UP*3)
+        title = Tex("(3+2) \\cdot (4+1)").shift(UP * 3)
         bc = BLUE
         box_3_3_1 = SurroundingRectangle(title[1], color=bc)
         box_3_3_2 = SurroundingRectangle(title[7], color=bc)
@@ -859,22 +790,25 @@ class DistributiveArea(Scene):
             tick_marks.add(tick)
 
         # Position vertical bars
-        left_3 = top_3.copy().rotate(-PI/2, about_point=corner)
-        left_2 = top_2.copy().rotate(PI/2, about_point=corner).next_to(left_3, DOWN, buff=0)
+        left_3 = top_3.copy().rotate(-PI / 2, about_point=corner)
+        left_2 = (
+            top_2.copy()
+            .rotate(PI / 2, about_point=corner)
+            .next_to(left_3, DOWN, buff=0)
+        )
 
         tick_marks_v = VGroup()
         for i in range(6):  # 0 to 5
             tick = Line(UP * 0.2, DOWN * 0.2, color=GREY_E)
             tick.move_to(top_3.get_left() + RIGHT * i)
-            tick.rotate(-PI/2, about_point=corner)
+            tick.rotate(-PI / 2, about_point=corner)
 
             tick_marks_v.add(tick)
 
         bar_4 = Rectangle(width=4, height=0.3, color=BLUE, fill_opacity=1)
         bar_1 = Rectangle(width=1, height=0.3, color=GREEN, fill_opacity=1)
-        top_4 = bar_4.copy().move_to(corner + RIGHT * 4 /2)
+        top_4 = bar_4.copy().move_to(corner + RIGHT * 4 / 2)
         top_1 = bar_1.copy().next_to(top_4, RIGHT, buff=0)
-
 
         self.play(FadeIn(top_4), FadeIn(top_1), FadeIn(tick_marks))
 
@@ -933,7 +867,6 @@ class DistributiveArea(Scene):
             FadeOut(box_3_2_2),
         )
 
-
         self.play(
             FadeIn(label_2x3),
             FadeIn(box_2_3),
@@ -946,7 +879,6 @@ class DistributiveArea(Scene):
             FadeOut(box_2_3_1),
             FadeOut(box_2_3_2),
         )
-
 
         self.play(
             FadeIn(label_2x2),
@@ -1029,17 +961,16 @@ class GeometricSeries(Scene):
         self.play(FadeIn(eq5))
         self.wait(2)
 
+        self.clear()
 
         equation = Tex("(3+4i)(2+3i) = 6 + 9i + 8i + 12i^2")
         self.play(FadeIn(equation))
         self.wait(2)
 
 
-from manim import *
-
 class DistributiveLawVisualization(Scene):
     def construct(self):
-        # Title
+        # 3+2 * 3+2+1
         title = Tex("(3+2) \cdot (3+2+1)").shift(UP * 3)
         self.play(FadeIn(title))
 
@@ -1058,9 +989,11 @@ class DistributiveLawVisualization(Scene):
         corner = top_3.get_left()
 
         # Position vertical bars
-        left_3 = bar_3.copy().rotate(PI/2, about_point=corner).move_to(corner+DOWN*1.5)
-        left_2 = bar_2.copy().rotate(PI/2).next_to(left_3, DOWN, buff=0)
-        left_1 = bar_1.copy().rotate(PI/2).next_to(left_2, DOWN, buff=0)
+        left_3 = (
+            bar_3.copy().rotate(PI / 2, about_point=corner).move_to(corner + DOWN * 1.5)
+        )
+        left_2 = bar_2.copy().rotate(PI / 2).next_to(left_3, DOWN, buff=0)
+        left_1 = bar_1.copy().rotate(PI / 2).next_to(left_2, DOWN, buff=0)
 
         self.play(FadeIn(top_3), FadeIn(top_2), FadeIn(top_1))
         self.play(FadeIn(left_3), FadeIn(left_2))
@@ -1075,7 +1008,7 @@ class DistributiveLawVisualization(Scene):
         rect_2x1 = Rectangle(width=1, height=2, color=GREEN, fill_opacity=0.5)
 
         # Align rectangles properly
-        rect_3x3.move_to(corner+RIGHT*1.5+DOWN*1.5)
+        rect_3x3.move_to(corner + RIGHT * 1.5 + DOWN * 1.5)
         rect_3x2.next_to(rect_3x3, RIGHT, buff=0, aligned_edge=UP)
         rect_3x1.next_to(rect_3x2, RIGHT, buff=0, aligned_edge=UP)
         rect_2x3.next_to(rect_3x3, DOWN, buff=0, aligned_edge=LEFT)
@@ -1091,11 +1024,10 @@ class DistributiveLawVisualization(Scene):
         self.wait(2)
 
 
-
 class DistributiveLawVisualization(Scene):
     def construct(self):
-        # Title
-        title = Tex("4 \cdot (3 - 2)").shift(UP * 3).scale(1.5)
+        # minus dis
+        title = Tex("4 \\cdot (3 - 2)").shift(UP * 3).scale(1.5)
         self.play(FadeIn(title))
         custom_dark_grey = "#444444"  # Hex color for a darker grey
         # Define colors
@@ -1106,12 +1038,14 @@ class DistributiveLawVisualization(Scene):
         bar_neg_2 = Rectangle(width=2, height=0.3, color=RED, fill_opacity=1)
 
         # Position horizontal bars
-        top_3 = bar_3.copy().move_to(LEFT * 2 + UP * 2)
+        top_3 = bar_3.copy().move_to(LEFT + UP * 2)
         top_neg_2 = bar_neg_2.copy().next_to(top_3, RIGHT, buff=0)
         corner = top_3.get_left()
 
         # Position vertical bars
-        left_4 = Rectangle(width=0.3, height=4, color=GREEN, fill_opacity=1).move_to(corner, aligned_edge=UP)
+        left_4 = Rectangle(width=0.3, height=4, color=GREEN, fill_opacity=1).move_to(
+            corner, aligned_edge=UP
+        )
 
         # self.play(FadeIn(top_3), FadeIn(top_neg_2))
         # self.play(FadeIn(left_4))
@@ -1122,32 +1056,44 @@ class DistributiveLawVisualization(Scene):
         rect_4x2 = Rectangle(width=2, height=4, color=RED, fill_opacity=0.9)
 
         # Align rectangles properly
-        rect_4x3.move_to(corner+RIGHT*1.5+DOWN*2)
+        rect_4x3.move_to(corner + RIGHT * 1.5 + DOWN * 2)
         rect_4x_neg2.next_to(rect_4x3, RIGHT, buff=0, aligned_edge=UP)
-        # rect_4x2.move_to(rect_4x_neg2.get_left(), aligned_edge=RIGHT)
+        rect_4x2_copy = rect_4x2.copy().move_to(
+            rect_4x_neg2.get_left(), aligned_edge=RIGHT
+        )
         # Move the yellow rectangle from the red one to its new position
-
-
 
         self.play(FadeIn(rect_4x3))
 
-        eq1 = Tex("4 \cdot 3").scale(1.5)
-        eq2 = Tex("- 4 \cdot 2").scale(1.5)
-        eq1.shift(DOWN * 3+LEFT*2)
-        eq2.next_to(eq1, RIGHT)
+        eq1 = Tex("4 \\cdot 3").scale(1.5)
+        eq2 = Tex("4 \\cdot 2").scale(1.5)
+        minus = Tex(" - ").scale(1.5)
+        eq3 = Tex(" = 4 \\cdot 1").scale(1.5)
+        eq1.shift(DOWN * 3 + LEFT * 2)
+        eq2.next_to(eq1, RIGHT * 3)
+        eq3.next_to(eq2, RIGHT * 1)
+
+        minus.move_to((eq1.get_right() + eq2.get_left()) / 2)
         self.play(Write(eq1))
         self.wait(0.5)
 
-        self.play(FadeIn(rect_4x_neg2))
+        self.play(FadeIn(rect_4x_neg2), Write(eq2))
 
         # Grey out the negative parts to show subtraction
-        grey_rect_neg2 = rect_4x_neg2.copy().set_color(custom_dark_grey).set_opacity(1)
+        grey_rect_neg2 = rect_4x_neg2.copy().set_color("#333333").set_opacity(1)
 
-
-        self.play(rect_4x2.animate.move_to(rect_4x_neg2.get_left(), aligned_edge=RIGHT), Write(eq2), run_time=2)
+        self.play(
+            # rect_4x2.animate.move_to(rect_4x_neg2.get_left(), aligned_edge=RIGHT),
+            Transform(rect_4x2, rect_4x2_copy),
+            Write(minus),
+            run_time=2,
+        )
         grey_rect_4x2 = rect_4x2.copy().set_color(custom_dark_grey).set_opacity(1)
 
-        self.play(Transform(rect_4x_neg2, grey_rect_neg2),Transform(rect_4x2, grey_rect_4x2))
+        self.play(
+            Transform(rect_4x_neg2, grey_rect_neg2),
+            Transform(rect_4x2, grey_rect_4x2),
+            Write(eq3),
+        )
 
-        # eq
-        # Show the equation step-by-step
+        self.wait()
