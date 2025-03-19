@@ -83,32 +83,40 @@ class AddPolygon(Scene):
 class BarAddition(Scene):
     def construct(self):
         # Create x-axis
-        x_axis = Line(start=LEFT * 2.5, end=RIGHT * 2.5, color=WHITE)
-        x_axis.move_to(UP * 2.5)  # Position above
 
-        # Create tick marks and labels at 0,1,2,3,4,5
-        tick_marks = VGroup()
-        number_labels = VGroup()
-        for i in range(6):  # 0 to 5
-            tick = Line(UP * 0.2, DOWN * 0.2, color=WHITE)
-            tick.move_to(x_axis.get_left() + RIGHT * i)
-            tick_marks.add(tick)
+        x_axis = NumberLine((0, 5, 1), tick_size=0.05)
 
-            if i > 0:  # Avoid placing a "0" label
-                num = Text(str(i)).scale(0.8)
-                num.next_to(tick, DOWN * 0.3)
-                number_labels.add(num)
+        numbers = x_axis.add_numbers(range(0, 6, 1), font_size=23, buff=0.15)
 
-        # Show the x-axis
-        self.play(ShowCreation(x_axis), FadeIn(tick_marks), FadeIn(number_labels))
-        self.wait(0.5)
+        x_axis.shift(UP * 2.8)
+        self.add(x_axis)
+
+        # x_axis = Line(start=LEFT * 2.5, end=RIGHT * 2.5, color=WHITE)
+        # x_axis.move_to(UP * 2.5)  # Position above
+
+        # # Create tick marks and labels at 0,1,2,3,4,5
+        # tick_marks = VGroup()
+        # number_labels = VGroup()
+        # for i in range(6):  # 0 to 5
+        #     tick = Line(UP * 0.2, DOWN * 0.2, color=WHITE)
+        #     tick.move_to(x_axis.get_left() + RIGHT * i)
+        #     tick_marks.add(tick)
+
+        #     if i > 0:  # Avoid placing a "0" label
+        #         num = Tex(str(i)).scale(0.8)
+        #         num.next_to(tick, DOWN * 0.3)
+        #         number_labels.add(num)
+
+        # # Show the x-axis
+        # self.play(ShowCreation(x_axis), FadeIn(tick_marks), FadeIn(number_labels))
+        # self.wait(0.5)
 
         # Create bar of length 3 (Blue) - Align left to tick 0
         bar_3 = Rectangle(height=1, width=3, fill_color=BLUE, fill_opacity=0.8)
-        bar_3.move_to(x_axis.get_left() + RIGHT * 1.5 + DOWN * 1.5)  # Align left to 0
+        bar_3.move_to(x_axis.get_left() + RIGHT * 1.5 + DOWN)  # Align left to 0
 
         # Label "3" above the blue bar
-        label_3 = Text("3").scale(1.2).move_to(bar_3.get_center())
+        label_3 = Tex("3").scale(1.2).move_to(bar_3.get_center())
 
         # Animate showing the "3" bar
         self.play(FadeIn(bar_3), Write(label_3))
@@ -119,7 +127,7 @@ class BarAddition(Scene):
         bar_2.next_to(bar_3, RIGHT, buff=0)  # Place next to blue bar
 
         # Label "2" above the red bar
-        label_2 = Text("2").scale(1.2).move_to(bar_2.get_center())
+        label_2 = Tex("2").scale(1.2).move_to(bar_2.get_center())
 
         # Animate showing the "2" bar
         self.play(FadeIn(bar_2), Write(label_2))
@@ -127,10 +135,10 @@ class BarAddition(Scene):
 
         # Create the final bar of length 5 (Green) - Align left to tick 0
         bar_5 = Rectangle(height=1, width=5, fill_color=GREEN, fill_opacity=0.8)
-        bar_5.move_to(x_axis.get_left() + RIGHT * 2.5 + DOWN * 2.5)  # Align left
+        bar_5.move_to(bar_3.get_left() + RIGHT * 2.5 + DOWN)  # Align left
 
         # Label "3" above the blue bar
-        label_5 = Text("5").scale(1.2).move_to(bar_5.get_center())
+        label_5 = Tex("5").scale(1.2).move_to(bar_5.get_center())
 
         # Animate the transition into the final green bar
         self.play(
@@ -151,7 +159,7 @@ class BarAddition(Scene):
         )
 
         # Label "2" above the red bar
-        label_2 = Text("2").scale(1.2).move_to(bar_2b.get_center())
+        label_2 = Tex("2").scale(1.2).move_to(bar_2b.get_center())
         self.play(Write(label_2))
 
         self.wait(0.5)
@@ -164,7 +172,7 @@ class BarAddition(Scene):
         )
 
         # Label "3" above the blue bar
-        label_3 = Text("3").scale(1.2).move_to(bar_3b.get_center())
+        label_3 = Tex("3").scale(1.2).move_to(bar_3b.get_center())
 
         # Animate showing the "3" bar
         self.play(Write(label_3))
@@ -172,7 +180,7 @@ class BarAddition(Scene):
         self.wait(0.5)
 
         # Show "3 + 2 = 5" text at the bottom
-        equation = Text("3 + 2 = 2 + 3").scale(1.5)
+        equation = Tex("3 + 2 = 2 + 3").scale(1.5)
         equation.next_to(bar_5, DOWN * 3, buff=0.5)
 
         self.play(Write(equation))
