@@ -31,7 +31,7 @@ class AddPolygon(Scene):
                     fill_opacity=0.5,
                 )
                 for j in range(2)
-            ]
+            ],
         ).arrange(RIGHT, buff=0.2)
         # polys_l.shift(3 * LEFT)
         polys_l.shift(UP * 2)
@@ -59,7 +59,7 @@ class AddPolygon(Scene):
                     fill_opacity=0.5,
                 )
                 for j in range(3)
-            ]
+            ],
         ).arrange(RIGHT, buff=0.2)
         polys.shift(0.5 * DOWN)
 
@@ -1105,3 +1105,226 @@ class DistributiveLawVisualization(Scene):
         )
 
         self.wait()
+
+
+class GeometricSeriesVisualization(Scene):
+    def construct(self):
+        # geometric series visual proof2
+        r = 0.8  # Updated ratio value
+        scale_factor = 2  # Rescale the entire image
+
+        # Base lines
+        left_line = Line(
+            [0, 0, 0], [0, 1 * scale_factor, 0], color=WHITE
+        )  # Vertical left line of length 1
+        # left_line.shift(LEFT * 3)
+        bottom_line = Line(
+            [0, 0, 0], [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
+        )  # Bottom line of sum 1 + r + r^2 + ...
+        # bottom_line.shift(LEFT * 3)
+
+        self.play(FadeIn(left_line), FadeIn(bottom_line))
+
+        # Vertical segment lines at positions 1, 1+r, 1+r+r^2, ...
+        x_pos = 1 * scale_factor
+        vertical_lines = []
+        segment_labels = []
+        while x_pos < (1 / (1 - r)) * scale_factor - 0.5:
+            vertical_lines.append(
+                Line(
+                    [x_pos, 0, 0],
+                    [x_pos, r ** (len(vertical_lines) + 1) * scale_factor, 0],
+                    color=WHITE,
+                )
+            )
+            segment_labels.append(
+                Tex(f"r^{len(vertical_lines)}").next_to(
+                    vertical_lines[-1], DOWN, buff=0.2
+                )
+            )
+            x_pos += r ** len(vertical_lines) * scale_factor
+
+        self.play(
+            *[FadeIn(line) for line in vertical_lines],
+            *[FadeIn(label) for label in segment_labels],
+        )
+
+        # Diagonal line from left-top to right-bottom
+        diagonal_line = Line(
+            [0, 1 * scale_factor, 0], [(1 / (1 - r)) * scale_factor, 0, 0], color=WHITE
+        )
+        self.play(FadeIn(diagonal_line))
+
+        # Upper similar triangle
+        upper_triangle = Polygon(
+            [0, 1 * scale_factor, 0],
+            [1 * scale_factor, 1 * scale_factor, 0],
+            [1 * scale_factor, r * scale_factor, 0],
+            color=WHITE,
+        )
+        upper_triangle.set_fill(BLUE, opacity=0.7)
+        self.play(FadeIn(upper_triangle))
+
+        # Lower similar triangle
+        lower_triangle = Polygon(
+            [0, 1 * scale_factor, 0],
+            [0, r * scale_factor, 0],
+            [1 * scale_factor, r * scale_factor, 0],
+            color=WHITE,
+        )
+        lower_triangle.set_fill(RED, opacity=0.7)
+        self.play(FadeIn(lower_triangle))
+
+        # Labels for lengths
+        left_label = Brace(left_line, LEFT)
+        left_text = Tex("1").next_to(left_label, LEFT, buff=0.2)
+
+        top_line = Line([0, 1 * scale_factor], [1 * scale_factor, 1 * scale_factor])
+        top_label = Brace(top_line, UP)
+        top_text = Tex("1").next_to(top_label, UP, buff=0.2)
+
+        small_segment_label = Tex("1 - r").move_to(
+            [(1 * scale_factor + (1 * scale_factor)) / 2, r * scale_factor + 0.1, 0]
+        )
+
+        self.play(
+            FadeIn(left_label),
+            FadeIn(top_label),
+            FadeIn(small_segment_label),
+        )
+
+        self.wait(2)
+
+
+class GeometricSeriesVisualization(Scene):
+    def construct(self):
+        # Geometric series visual proof
+        r = 0.8  # Updated ratio value
+        scale_factor = 2  # Rescale the entire image
+        shift_amount = LEFT * 3  # Shift entire graph to the left
+
+        # Base lines
+        left_line = Line([0, 0, 0], [0, 1 * scale_factor, 0], color=WHITE).shift(
+            shift_amount
+        )
+        bottom_line = Line(
+            [0, 0, 0], [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
+        ).shift(shift_amount)
+
+        self.play(FadeIn(left_line), FadeIn(bottom_line))
+
+        # Vertical segment lines at positions 1, 1+r, 1+r+r^2, ...
+        x_pos = 1 * scale_factor
+        vertical_lines = []
+        segment_labels = []
+        while x_pos < (1 / (1 - r)) * scale_factor - 0.5:
+            line = Line(
+                [x_pos, 0, 0],
+                [x_pos, r ** (len(vertical_lines) + 1) * scale_factor, 0],
+                color=WHITE,
+            ).shift(shift_amount)
+            vertical_lines.append(line)
+
+            len_v = len(vertical_lines)
+            if len_v == 1:
+                len_t = 1
+            elif len_v == 2:
+                len_t = "r"
+            else:
+                len_t = f"r^{len_v-1}"
+            if len_v < 5:
+                segment_labels.append(
+                    Tex(f"{len_t}")
+                    .move_to(
+                        [
+                            (x_pos + x_pos - r ** len(vertical_lines) * scale_factor)
+                            / 2,
+                            -0.2,
+                            0,
+                        ]
+                    )
+                    .shift(shift_amount)
+                )
+            x_pos += r ** len(vertical_lines) * scale_factor
+
+        self.play(
+            *[FadeIn(line) for line in vertical_lines],
+            *[FadeIn(label) for label in segment_labels],
+        )
+
+        # Diagonal line from left-top to right-bottom
+        diagonal_line = Line(
+            [0, 1 * scale_factor, 0], [(1 / (1 - r)) * scale_factor, 0, 0], color=WHITE
+        ).shift(shift_amount)
+        self.play(FadeIn(diagonal_line))
+
+        # Upper similar triangle
+        upper_triangle = Polygon(
+            [0, 1 * scale_factor, 0],
+            [1 * scale_factor, 1 * scale_factor, 0],
+            [1 * scale_factor, r * scale_factor, 0],
+            color=WHITE,
+        ).shift(shift_amount)
+
+        upper_triangle.set_fill(BLUE, opacity=0.7)
+        self.play(FadeIn(upper_triangle))
+
+        # Lower similar triangle
+        lower_triangle = Polygon(
+            [0, 1 * scale_factor, 0],
+            [0, r * scale_factor, 0],
+            [1 * scale_factor, r * scale_factor, 0],
+            color=WHITE,
+        ).shift(shift_amount)
+
+        lower_triangle.set_fill(RED, opacity=0.7)
+        self.play(FadeIn(lower_triangle))
+
+        # Labels for lengths
+        left_label = Brace(left_line, LEFT)
+        left_text = Tex("1").next_to(left_label, LEFT, buff=0.2)
+
+        top_line = Line(
+            [0, 1 * scale_factor], [1 * scale_factor, 1 * scale_factor]
+        ).shift(shift_amount)
+        top_label = Brace(top_line, UP)
+        top_text = Tex("1").next_to(top_label, UP, buff=0.2)
+
+        right_line = Line(
+            [1 * scale_factor, 1 * scale_factor, 0],
+            [1 * scale_factor, r * scale_factor, 0],
+        ).shift(shift_amount)
+        right_label = Brace(right_line, RIGHT)
+        right_text = Tex("1 - r").next_to(right_label, RIGHT, buff=0.2)
+
+        self.play(
+            FadeIn(left_label),
+            FadeIn(left_text),
+            FadeIn(top_label),
+            FadeIn(top_text),
+            FadeIn(right_label),
+            FadeIn(right_text),
+        )
+
+        # Animation to grow lower triangle into the bottom big triangle
+        def update_triangle(triangle, alpha):
+            if alpha < 1 - r:
+                return
+            new_bottom_right = [
+                (1 / (1 - r)) * scale_factor * alpha,
+                (1 - alpha) * scale_factor,
+                0,
+            ]
+            new_polygon = Polygon(
+                [0, 1 * scale_factor, 0],
+                [0, (1 - alpha) * scale_factor, 0],
+                new_bottom_right,
+                color=WHITE,
+            ).shift(shift_amount)
+            new_polygon.set_fill(RED, opacity=0.7)
+
+            triangle.become(new_polygon)
+
+        self.play(UpdateFromAlphaFunc(lower_triangle, update_triangle))
+
+        self.wait(2)
