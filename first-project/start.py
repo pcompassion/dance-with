@@ -86,30 +86,10 @@ class BarAddition(Scene):
 
         x_axis = NumberLine((0, 5, 1), tick_size=0.05)
 
-        numbers = x_axis.add_numbers(range(0, 6, 1), font_size=23, buff=0.15)
+        numbers = x_axis.add_numbers(range(0, 6, 1), font_size=30, buff=0.15)
 
         x_axis.shift(UP * 2.8)
         self.add(x_axis)
-
-        # x_axis = Line(start=LEFT * 2.5, end=RIGHT * 2.5, color=WHITE)
-        # x_axis.move_to(UP * 2.5)  # Position above
-
-        # # Create tick marks and labels at 0,1,2,3,4,5
-        # tick_marks = VGroup()
-        # number_labels = VGroup()
-        # for i in range(6):  # 0 to 5
-        #     tick = Line(UP * 0.2, DOWN * 0.2, color=WHITE)
-        #     tick.move_to(x_axis.get_left() + RIGHT * i)
-        #     tick_marks.add(tick)
-
-        #     if i > 0:  # Avoid placing a "0" label
-        #         num = Tex(str(i)).scale(0.8)
-        #         num.next_to(tick, DOWN * 0.3)
-        #         number_labels.add(num)
-
-        # # Show the x-axis
-        # self.play(ShowCreation(x_axis), FadeIn(tick_marks), FadeIn(number_labels))
-        # self.wait(0.5)
 
         # Create bar of length 3 (Blue) - Align left to tick 0
         bar_3 = Rectangle(height=1, width=3, fill_color=BLUE, fill_opacity=0.8)
@@ -411,7 +391,7 @@ class CommutativeAddition(Scene):
 
         # Create text labels
         text_a = Text("a").scale(1).next_to(shape_a, UP, buff=0.3)
-        text_b = Text("b").scale(1).next_to(shape_b, UP, buff=0.3)
+        text_b = Text("b").scale(1).next_to(shape_b, UP, buff=0.4)
 
         a_group = VGroup(shape_a, text_a)
         b_group = VGroup(shape_b, text_b)
@@ -422,8 +402,8 @@ class CommutativeAddition(Scene):
         self.wait(1)
 
         # Transition to b + a by swapping positions
-        shape_a_target = a_group.copy().move_to(RIGHT * 2)
-        shape_b_target = b_group.copy().move_to(LEFT * 2)
+        shape_a_target = a_group.copy().shift(RIGHT * 4)
+        shape_b_target = b_group.copy().shift(LEFT * 4)
 
         # Animate swap
         self.play(
@@ -625,22 +605,22 @@ class DistributiveProperty(Scene):
 
 class DistributiveArea(Scene):
     def construct(self):
-        # Title
-        title = Tex("(3+2) \\cdot (3+2)").shift(UP * 3)
+        # distributive area
+        eq1 = Tex("(3+2) \\cdot (3+2)").shift(LEFT * 4 + UP)
         bc = BLUE
-        box_3_3_1 = SurroundingRectangle(title[1], color=bc)
-        box_3_3_2 = SurroundingRectangle(title[7], color=bc)
+        box_3_3_1 = SurroundingRectangle(eq1[1], color=bc)
+        box_3_3_2 = SurroundingRectangle(eq1[7], color=bc)
 
-        box_3_2_1 = SurroundingRectangle(title[1], color=bc)
-        box_3_2_2 = SurroundingRectangle(title[9], color=bc)
+        box_3_2_1 = SurroundingRectangle(eq1[1], color=bc)
+        box_3_2_2 = SurroundingRectangle(eq1[9], color=bc)
 
-        box_2_3_1 = SurroundingRectangle(title[3], color=bc)
-        box_2_3_2 = SurroundingRectangle(title[7], color=bc)
+        box_2_3_1 = SurroundingRectangle(eq1[3], color=bc)
+        box_2_3_2 = SurroundingRectangle(eq1[7], color=bc)
 
-        box_2_2_1 = SurroundingRectangle(title[3], color=bc)
-        box_2_2_2 = SurroundingRectangle(title[9], color=bc)
+        box_2_2_1 = SurroundingRectangle(eq1[3], color=bc)
+        box_2_2_2 = SurroundingRectangle(eq1[9], color=bc)
 
-        self.play(FadeIn(title))
+        self.play(FadeIn(eq1))
 
         # Show the x-axis
 
@@ -649,7 +629,7 @@ class DistributiveArea(Scene):
         bar_2 = Rectangle(width=2, height=0.3, color=GREEN, fill_opacity=1)
 
         # Position horizontal bars
-        top_3 = bar_3.copy().move_to(LEFT + UP * 2)
+        top_3 = bar_3.copy().move_to(RIGHT + UP * 2)
         top_2 = bar_2.copy().next_to(top_3, RIGHT, buff=0)
         corner = top_3.get_left()
 
@@ -666,6 +646,9 @@ class DistributiveArea(Scene):
             .rotate(PI / 2, about_point=corner)
             .next_to(left_3, DOWN, buff=0)
         )
+
+        left_bar = VGroup(left_3, left_2)
+        top_bar = VGroup(top_3, top_2)
 
         tick_marks_v = VGroup()
         for i in range(6):  # 0 to 5
@@ -687,7 +670,7 @@ class DistributiveArea(Scene):
         rect_2x2 = Rectangle(width=2, height=2, color=RED, fill_opacity=0.5)
 
         # Align rectangles properly
-        rect_3x3.move_to(LEFT * 1 + UP * 0.5)
+        rect_3x3.next_to(top_3, DOWN, buff=0, aligned_edge=UP)
         rect_3x2.next_to(rect_3x3, RIGHT, buff=0, aligned_edge=UP)
         rect_2x3.next_to(rect_3x3, DOWN, buff=0, aligned_edge=LEFT)
         rect_2x2.next_to(rect_3x2, DOWN, buff=0, aligned_edge=LEFT)
@@ -700,23 +683,48 @@ class DistributiveArea(Scene):
         # Add labels inside rectangles
         label_3x3 = Tex("3 \\cdot 3").move_to(rect_3x3)
         box_3_3 = SurroundingRectangle(label_3x3, color=bc)
+
+        # 3x2
         label_3x2 = Tex("3 \\cdot 2").move_to(rect_3x2)
         box_3_2 = SurroundingRectangle(label_3x2, color=bc)
+
+        # 2x3
         label_2x3 = Tex("2 \\cdot 3").move_to(rect_2x3)
         box_2_3 = SurroundingRectangle(label_2x3, color=bc)
+
         label_2x2 = Tex("2 \\cdot 2").move_to(rect_2x2)
         box_2_2 = SurroundingRectangle(label_2x2, color=bc)
+
+        label_3_l = Brace(left_3, LEFT)
+        text_3_l = Tex("3").next_to(label_3_l, LEFT, buff=0.2)
+
+        label_2_l = Brace(left_2, LEFT)
+        text_2_l = Tex("2").next_to(label_2_l, LEFT, buff=0.2)
+
+        label_3_u = Brace(top_3, UP)
+        text_3_u = Tex("3").next_to(label_3_u, UP, buff=0.2)
+
+        label_2_u = Brace(top_2, UP)
+        text_2_u = Tex("2").next_to(label_2_u, UP, buff=0.2)
 
         self.play(
             FadeIn(label_3x3),
             FadeIn(box_3_3),
             FadeIn(box_3_3_1),
             FadeIn(box_3_3_2),
+            FadeIn(label_3_l),
+            FadeIn(label_3_u),
+            FadeIn(text_3_l),
+            FadeIn(text_3_u),
         )
         self.play(
             FadeOut(box_3_3),
             FadeOut(box_3_3_1),
             FadeOut(box_3_3_2),
+            FadeOut(label_3_l),
+            FadeOut(label_3_u),
+            FadeOut(text_3_l),
+            FadeOut(text_3_u),
         )
 
         self.play(
@@ -724,12 +732,20 @@ class DistributiveArea(Scene):
             FadeIn(box_3_2),
             FadeIn(box_3_2_1),
             FadeIn(box_3_2_2),
+            FadeIn(label_3_l),
+            FadeIn(label_2_u),
+            FadeIn(text_3_l),
+            FadeIn(text_2_u),
         )
 
         self.play(
             FadeOut(box_3_2),
             FadeOut(box_3_2_1),
             FadeOut(box_3_2_2),
+            FadeOut(label_3_l),
+            FadeOut(label_2_u),
+            FadeOut(text_3_l),
+            FadeOut(text_2_u),
         )
 
         self.play(
@@ -737,12 +753,20 @@ class DistributiveArea(Scene):
             FadeIn(box_2_3),
             FadeIn(box_2_3_1),
             FadeIn(box_2_3_2),
+            FadeIn(label_2_l),
+            FadeIn(label_3_u),
+            FadeIn(text_2_l),
+            FadeIn(text_3_u),
         )
 
         self.play(
             FadeOut(box_2_3),
             FadeOut(box_2_3_1),
             FadeOut(box_2_3_2),
+            FadeOut(label_2_l),
+            FadeOut(label_3_u),
+            FadeOut(text_2_l),
+            FadeOut(text_3_u),
         )
 
         self.play(
@@ -750,18 +774,41 @@ class DistributiveArea(Scene):
             FadeIn(box_2_2),
             FadeIn(box_2_2_1),
             FadeIn(box_2_2_2),
+            FadeIn(label_2_l),
+            FadeIn(label_2_u),
+            FadeIn(text_2_l),
+            FadeIn(text_2_u),
         )
 
         self.play(
             FadeOut(box_2_2),
             FadeOut(box_2_2_1),
             FadeOut(box_2_2_2),
+            FadeOut(label_2_l),
+            FadeOut(label_2_u),
+            FadeOut(text_2_l),
+            Fade(text_2_u),
         )
 
-        self.wait(2)
+        self.wait(0.5)
+
+        # Labels for lengths
+        left_label = Brace(left_bar, LEFT)
+        left_text = Tex("5").next_to(left_label, LEFT, buff=0.2)
+
+        self.play(FadeIn(left_label), FadeIn(left_text))
+
+        top_label = Brace(top_bar, UP)
+        top_text = Tex("5").next_to(top_label, UP, buff=0.2)
+
+        self.play(FadeIn(top_label), FadeIn(top_text))
+
+        eq2 = Tex("= 5 \\cdot 5").next_to(eq1, DOWN, buff=0.3)
+
+        self.play(Write(eq2))
 
 
-class DistributiveArea(Scene):
+class DistributiveArea2(Scene):
     def construct(self):
         # Title
         title = Tex("(3+2) \\cdot (4+1)").shift(UP * 3)
@@ -1035,7 +1082,7 @@ class DistributiveLawVisualization(Scene):
 class DistributiveLawVisualization(Scene):
     def construct(self):
         # minus dis
-        title = Tex("4 \\cdot (3 - 2)").shift(UP * 3).scale(1.5)
+        title = Tex("4 \\cdot (3 - 2)").shift(LEFT * 3.5 + UP).scale(1.5)
         self.play(FadeIn(title))
         custom_dark_grey = "#444444"  # Hex color for a darker grey
         # Define colors
@@ -1046,7 +1093,7 @@ class DistributiveLawVisualization(Scene):
         bar_neg_2 = Rectangle(width=2, height=0.3, color=RED, fill_opacity=1)
 
         # Position horizontal bars
-        top_3 = bar_3.copy().move_to(LEFT + UP * 2)
+        top_3 = bar_3.copy().move_to(RIGHT * 2 + UP * 2)
         top_neg_2 = bar_neg_2.copy().next_to(top_3, RIGHT, buff=0)
         corner = top_3.get_left()
 
@@ -1055,23 +1102,36 @@ class DistributiveLawVisualization(Scene):
             corner, aligned_edge=UP
         )
 
-        # self.play(FadeIn(top_3), FadeIn(top_neg_2))
-        # self.play(FadeIn(left_4))
-
         # Define rectangles for areas
         rect_4x3 = Rectangle(width=3, height=4, color=BLUE, fill_opacity=0.9)
-        rect_4x_neg2 = Rectangle(width=2, height=4, color=RED, fill_opacity=0.9)
         rect_4x2 = Rectangle(width=2, height=4, color=RED, fill_opacity=0.9)
+
+        rect_4x1 = Rectangle(width=1, height=4, color=GREEN, fill_opacity=0.5)
 
         # Align rectangles properly
         rect_4x3.move_to(corner + RIGHT * 1.5 + DOWN * 2)
-        rect_4x_neg2.next_to(rect_4x3, RIGHT, buff=0, aligned_edge=UP)
-        rect_4x2_copy = rect_4x2.copy().move_to(
-            rect_4x_neg2.get_left(), aligned_edge=RIGHT
-        )
+        rect_4x2.next_to(rect_4x3, RIGHT, buff=0, aligned_edge=UP)
+
+        rect_4x1.move_to(rect_4x3.get_left(), aligned_edge=LEFT)
+        label_1 = Brace(rect_4x1, UP)
+        text_1 = Tex("1").next_to(label_1, UP, buff=0.2)
+
+        rect_4x2_copy = rect_4x2.copy().move_to(rect_4x2.get_left(), aligned_edge=RIGHT)
         # Move the yellow rectangle from the red one to its new position
 
-        self.play(FadeIn(rect_4x3))
+        label_4 = Brace(rect_4x3, LEFT)
+        text_4 = Tex("4").next_to(label_4, LEFT, buff=0.2)
+
+        label_3 = Brace(rect_4x3, UP)
+        text_3 = Tex("3").next_to(label_3, UP, buff=0.2)
+
+        self.play(
+            FadeIn(rect_4x3),
+            FadeIn(label_4),
+            FadeIn(text_4),
+            FadeIn(label_3),
+            FadeIn(text_3),
+        )
 
         eq1 = Tex("4 \\cdot 3").scale(1.5)
         eq2 = Tex("4 \\cdot 2").scale(1.5)
@@ -1085,22 +1145,40 @@ class DistributiveLawVisualization(Scene):
         self.play(Write(eq1))
         self.wait(0.5)
 
-        self.play(FadeIn(rect_4x_neg2), Write(eq2))
+        label_2 = Brace(rect_4x2, UP)
+        text_2 = Tex("2").next_to(label_2, UP, buff=0.2)
+
+        rect_4x2_group = VGroup(rect_4x2, label_2, text_2)
+
+        label_2c = Brace(rect_4x2_copy, UP)
+        text_2c = Tex("2").next_to(label_2c, UP, buff=0.2)
+
+        rect_4x2_group_copy = VGroup(rect_4x2_copy, label_2c, text_2c)
+
+        self.play(FadeIn(rect_4x2_group))
 
         # Grey out the negative parts to show subtraction
-        grey_rect_neg2 = rect_4x_neg2.copy().set_color("#333333").set_opacity(1)
+        grey_rect = rect_4x2.copy().set_color("#333333").set_opacity(1)
+        grey_rect_copy = rect_4x2_copy.copy().set_color("#444444").set_opacity(1)
 
         self.play(
-            # rect_4x2.animate.move_to(rect_4x_neg2.get_left(), aligned_edge=RIGHT),
-            Transform(rect_4x2, rect_4x2_copy),
+            FadeOut(label_3),
+            FadeOut(text_3),
+            # Transform(rect_4x2, rect_4x2_copy),
+            Transform(rect_4x2_group, rect_4x2_group_copy),
             Write(minus),
-            run_time=2,
+            Write(eq2),
+            run_time=1,
         )
         grey_rect_4x2 = rect_4x2.copy().set_color(custom_dark_grey).set_opacity(1)
 
         self.play(
-            Transform(rect_4x_neg2, grey_rect_neg2),
-            Transform(rect_4x2, grey_rect_4x2),
+            # Transform(rect_4x2, grey_rect),
+            Transform(rect_4x2_copy, grey_rect_copy),
+            FadeOut(label_2),
+            FadeOut(text_2),
+            FadeIn(label_1),
+            FadeIn(text_1),
             Write(eq3),
         )
 
@@ -1201,99 +1279,104 @@ class GeometricSeriesVisualization(Scene):
         # Geometric series visual proof
         r = 0.8  # Updated ratio value
         scale_factor = 2  # Rescale the entire image
-        shift_amount = LEFT * 3  # Shift entire graph to the left
+        shift_amount = LEFT * 5  # Shift entire graph to the left
 
         # Base lines
         left_line = Line([0, 0, 0], [0, 1 * scale_factor, 0], color=WHITE).shift(
             shift_amount
         )
-        bottom_line = Line(
-            [0, 0, 0], [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
-        ).shift(shift_amount)
 
-        self.play(FadeIn(left_line), FadeIn(bottom_line))
+        origin = left_line.get_start()
+        # bottom_line = Line(
+        #     origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
+        # )
 
         # Vertical segment lines at positions 1, 1+r, 1+r+r^2, ...
         x_pos = 1 * scale_factor
+        x_pos_prev = 0
+
         vertical_lines = []
         segment_labels = []
-        while x_pos < (1 / (1 - r)) * scale_factor - 0.5:
-            line = Line(
-                [x_pos, 0, 0],
-                [x_pos, r ** (len(vertical_lines) + 1) * scale_factor, 0],
+        vertical_line = None
+        vertical_line_prev = left_line
+        while x_pos < (1 / (1 - r)) * scale_factor - 1:
+            vertical_line = Line(
+                origin + [x_pos, 0, 0],
+                origin + [x_pos, r ** (len(vertical_lines) + 1) * scale_factor, 0],
                 color=WHITE,
-            ).shift(shift_amount)
-            vertical_lines.append(line)
+            )
+            vertical_lines.append(vertical_line)
+
+            horizontal_line = Line(
+                origin + [x_pos_prev, 0, 0],
+                origin + [x_pos, 0, 0],
+            )
+            x_pos_prev = x_pos
 
             len_v = len(vertical_lines)
-            if len_v == 1:
-                len_t = 1
-            elif len_v == 2:
-                len_t = "r"
-            else:
-                len_t = f"r^{len_v-1}"
-            if len_v < 5:
-                segment_labels.append(
-                    Tex(f"{len_t}")
-                    .move_to(
-                        [
-                            (x_pos + x_pos - r ** len(vertical_lines) * scale_factor)
-                            / 2,
-                            -0.2,
-                            0,
-                        ]
-                    )
-                    .shift(shift_amount)
+            if len_v <= 6:
+                if len_v == 1:
+                    len_t = 1
+                elif len_v == 2:
+                    len_t = "r"
+                elif len_v == 6:
+                    len_t = "..."
+                else:
+                    len_t = f"r^{len_v-1}"
+                text = Tex(f"{len_t}").next_to(
+                    horizontal_line, DOWN, buff=0.3, aligned_edge=DOWN
                 )
+
+            if text is not None:
+                self.play(
+                    FadeIn(horizontal_line), FadeIn(vertical_line_prev), FadeIn(text)
+                )
+            else:
+                self.play(FadeIn(horizontal_line), FadeIn(vertical_line_prev))
+
             x_pos += r ** len(vertical_lines) * scale_factor
+            vertical_line_prev = vertical_line
 
-        self.play(
-            *[FadeIn(line) for line in vertical_lines],
-            *[FadeIn(label) for label in segment_labels],
+        bottom_line = Line(
+            origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
         )
-
-        # Diagonal line from left-top to right-bottom
         diagonal_line = Line(
-            [0, 1 * scale_factor, 0], [(1 / (1 - r)) * scale_factor, 0, 0], color=WHITE
-        ).shift(shift_amount)
-        self.play(FadeIn(diagonal_line))
+            origin + [0, 1 * scale_factor, 0],
+            origin + [(1 / (1 - r)) * scale_factor, 0, 0],
+            color=WHITE,
+        )
+        self.play(
+            FadeIn(diagonal_line),
+            FadeIn(bottom_line),
+        )
 
         # Upper similar triangle
         upper_triangle = Polygon(
-            [0, 1 * scale_factor, 0],
-            [1 * scale_factor, 1 * scale_factor, 0],
-            [1 * scale_factor, r * scale_factor, 0],
+            origin + [0, 1 * scale_factor, 0],
+            origin + [1 * scale_factor, 1 * scale_factor, 0],
+            origin + [1 * scale_factor, r * scale_factor, 0],
             color=WHITE,
-        ).shift(shift_amount)
+        )
 
         upper_triangle.set_fill(BLUE, opacity=0.7)
         self.play(FadeIn(upper_triangle))
-
-        # Lower similar triangle
-        lower_triangle = Polygon(
-            [0, 1 * scale_factor, 0],
-            [0, r * scale_factor, 0],
-            [1 * scale_factor, r * scale_factor, 0],
-            color=WHITE,
-        ).shift(shift_amount)
-
-        lower_triangle.set_fill(RED, opacity=0.7)
-        self.play(FadeIn(lower_triangle))
 
         # Labels for lengths
         left_label = Brace(left_line, LEFT)
         left_text = Tex("1").next_to(left_label, LEFT, buff=0.2)
 
         top_line = Line(
-            [0, 1 * scale_factor], [1 * scale_factor, 1 * scale_factor]
-        ).shift(shift_amount)
+            origin[:2] + [0, 1 * scale_factor],
+            origin[:2] + [1 * scale_factor, 1 * scale_factor],
+        )
+
         top_label = Brace(top_line, UP)
         top_text = Tex("1").next_to(top_label, UP, buff=0.2)
 
         right_line = Line(
-            [1 * scale_factor, 1 * scale_factor, 0],
-            [1 * scale_factor, r * scale_factor, 0],
-        ).shift(shift_amount)
+            origin + [1 * scale_factor, 1 * scale_factor, 0],
+            origin + [1 * scale_factor, r * scale_factor, 0],
+        )
         right_label = Brace(right_line, RIGHT)
         right_text = Tex("1 - r").next_to(right_label, RIGHT, buff=0.2)
 
@@ -1306,25 +1389,66 @@ class GeometricSeriesVisualization(Scene):
             FadeIn(right_text),
         )
 
+        self.wait()
+
+        # Lower similar triangle
+        lower_triangle = Polygon(
+            origin + [0, 1 * scale_factor, 0],
+            origin + [0, r * scale_factor, 0],
+            origin + [1 * scale_factor, r * scale_factor, 0],
+            color=WHITE,
+        )
+
+        lower_triangle.set_fill(RED, opacity=0.7)
+        self.play(FadeIn(lower_triangle))
+
         # Animation to grow lower triangle into the bottom big triangle
         def update_triangle(triangle, alpha):
             if alpha < 1 - r:
                 return
-            new_bottom_right = [
+            new_bottom_right = origin + [
                 (1 / (1 - r)) * scale_factor * alpha,
                 (1 - alpha) * scale_factor,
                 0,
             ]
             new_polygon = Polygon(
-                [0, 1 * scale_factor, 0],
-                [0, (1 - alpha) * scale_factor, 0],
+                origin + [0, 1 * scale_factor, 0],
+                origin + [0, (1 - alpha) * scale_factor, 0],
                 new_bottom_right,
                 color=WHITE,
-            ).shift(shift_amount)
+            )
             new_polygon.set_fill(RED, opacity=0.7)
 
             triangle.become(new_polygon)
 
         self.play(UpdateFromAlphaFunc(lower_triangle, update_triangle))
+        self.wait()
 
+        # Lower similar triangle
+        middle_triangle = Polygon(
+            origin + [1 * scale_factor, r * scale_factor, 0],
+            origin + [1 * scale_factor, r * r * scale_factor, 0],
+            origin + [(1 + r) * scale_factor, r * r * scale_factor, 0],
+            color=WHITE,
+        )
+
+        left_line = Line(
+            middle_triangle.get_vertices()[0], middle_triangle.get_vertices()[1]
+        )
+
+        b_label = Brace(left_line, LEFT)
+        b_text = Tex("r - r^2").next_to(b_label, LEFT, buff=0.2)
+
+        middle_triangle.set_fill(YELLOW, opacity=0.7)
+        self.play(FadeIn(middle_triangle))
+        # self.play(FadeIn(b_label), FadeIn(b_text))
+
+        self.wait()
+
+        # equation
+        equation = Tex(r"\frac{1}{1 - r} = 1 + r + r^2 + \dots")
+        equation.move_to(bottom_line.get_center() + DOWN * 2).scale(
+            1.3
+        )  # Make it slightly larger
+        self.play(Write(equation))  # Animate the equation appearing
         self.wait(2)
