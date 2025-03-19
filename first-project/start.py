@@ -1340,11 +1340,13 @@ class GeometricSeriesVisualization(Scene):
         bottom_line = Line(
             origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
         )
+
         diagonal_line = Line(
             origin + [0, 1 * scale_factor, 0],
             origin + [(1 / (1 - r)) * scale_factor, 0, 0],
             color=WHITE,
         )
+        self.wait()
         self.play(
             FadeIn(diagonal_line),
             FadeIn(bottom_line),
