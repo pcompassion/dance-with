@@ -2,12 +2,15 @@
 
 from manimlib import *
 
+# from manim import *
+
 import os
 import time
 import ctypes
 
 
 class AddPolygon(Scene):
+
     def construct(self):
         # Basic Polygon
 
@@ -78,6 +81,7 @@ class AddPolygon(Scene):
 
         self.play(Write(equation))
         self.wait(0.5)
+        # self.interactive_embed()
 
 
 class BarAddition(Scene):
@@ -1187,95 +1191,6 @@ class DistributiveLawVisualization(Scene):
 
 class GeometricSeriesVisualization(Scene):
     def construct(self):
-        # geometric series visual proof2
-        r = 0.8  # Updated ratio value
-        scale_factor = 2  # Rescale the entire image
-
-        # Base lines
-        left_line = Line(
-            [0, 0, 0], [0, 1 * scale_factor, 0], color=WHITE
-        )  # Vertical left line of length 1
-        # left_line.shift(LEFT * 3)
-        bottom_line = Line(
-            [0, 0, 0], [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
-        )  # Bottom line of sum 1 + r + r^2 + ...
-        # bottom_line.shift(LEFT * 3)
-
-        self.play(FadeIn(left_line), FadeIn(bottom_line))
-
-        # Vertical segment lines at positions 1, 1+r, 1+r+r^2, ...
-        x_pos = 1 * scale_factor
-        vertical_lines = []
-        segment_labels = []
-        while x_pos < (1 / (1 - r)) * scale_factor - 0.5:
-            vertical_lines.append(
-                Line(
-                    [x_pos, 0, 0],
-                    [x_pos, r ** (len(vertical_lines) + 1) * scale_factor, 0],
-                    color=WHITE,
-                )
-            )
-            segment_labels.append(
-                Tex(f"r^{len(vertical_lines)}").next_to(
-                    vertical_lines[-1], DOWN, buff=0.2
-                )
-            )
-            x_pos += r ** len(vertical_lines) * scale_factor
-
-        self.play(
-            *[FadeIn(line) for line in vertical_lines],
-            *[FadeIn(label) for label in segment_labels],
-        )
-
-        # Diagonal line from left-top to right-bottom
-        diagonal_line = Line(
-            [0, 1 * scale_factor, 0], [(1 / (1 - r)) * scale_factor, 0, 0], color=WHITE
-        )
-        self.play(FadeIn(diagonal_line))
-
-        # Upper similar triangle
-        upper_triangle = Polygon(
-            [0, 1 * scale_factor, 0],
-            [1 * scale_factor, 1 * scale_factor, 0],
-            [1 * scale_factor, r * scale_factor, 0],
-            color=WHITE,
-        )
-        upper_triangle.set_fill(BLUE, opacity=0.7)
-        self.play(FadeIn(upper_triangle))
-
-        # Lower similar triangle
-        lower_triangle = Polygon(
-            [0, 1 * scale_factor, 0],
-            [0, r * scale_factor, 0],
-            [1 * scale_factor, r * scale_factor, 0],
-            color=WHITE,
-        )
-        lower_triangle.set_fill(RED, opacity=0.7)
-        self.play(FadeIn(lower_triangle))
-
-        # Labels for lengths
-        left_label = Brace(left_line, LEFT)
-        left_text = Tex("1").next_to(left_label, LEFT, buff=0.2)
-
-        top_line = Line([0, 1 * scale_factor], [1 * scale_factor, 1 * scale_factor])
-        top_label = Brace(top_line, UP)
-        top_text = Tex("1").next_to(top_label, UP, buff=0.2)
-
-        small_segment_label = Tex("1 - r").move_to(
-            [(1 * scale_factor + (1 * scale_factor)) / 2, r * scale_factor + 0.1, 0]
-        )
-
-        self.play(
-            FadeIn(left_label),
-            FadeIn(top_label),
-            FadeIn(small_segment_label),
-        )
-
-        self.wait(2)
-
-
-class GeometricSeriesVisualization(Scene):
-    def construct(self):
         # Geometric series visual proof
         r = 0.8  # Updated ratio value
         scale_factor = 2  # Rescale the entire image
@@ -1340,13 +1255,11 @@ class GeometricSeriesVisualization(Scene):
         bottom_line = Line(
             origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
         )
-
         diagonal_line = Line(
             origin + [0, 1 * scale_factor, 0],
             origin + [(1 / (1 - r)) * scale_factor, 0, 0],
             color=WHITE,
         )
-        self.wait()
         self.play(
             FadeIn(diagonal_line),
             FadeIn(bottom_line),
@@ -1454,3 +1367,374 @@ class GeometricSeriesVisualization(Scene):
         )  # Make it slightly larger
         self.play(Write(equation))  # Animate the equation appearing
         self.wait(2)
+
+
+class PiMultiplication(Scene):
+    def construct(self):
+        # Step 1: Show the 3x3 grid (Front Plane) with full opacity
+        sc = 1.5
+
+        coarse_plane = (
+            NumberPlane(
+                x_range=[0, 4, 1],
+                y_range=[0, 4, 1],
+                faded_line_ratio=0,
+                background_line_style={
+                    "stroke_opacity": 1.0,
+                    "stroke_width": 2,
+                },  # Full opacity
+            )
+            .scale(sc)
+            .set_opacity(1)
+        )  # Ensure it renders on top
+        coarse_plane.z_index = 3
+
+        background = Rectangle(
+            width=coarse_plane.get_width() - 1 * sc,
+            height=coarse_plane.get_height() - 1 * sc,
+            # fill_color="#333333",
+            fill_color=RED,
+            fill_opacity=1,  # Full opacity
+        ).set_z_index(
+            2
+        )  # Ensure it stays behind everything
+
+        background.next_to(coarse_plane, RIGHT).align_to(coarse_plane, DOWN + LEFT)
+
+        self.play(FadeIn(coarse_plane))
+        self.wait(1)
+
+        self.play(FadeIn(background))
+
+        # Step 1.5: FadeIn a slightly larger, more transparent background plane
+        background_plane = (
+            NumberPlane(
+                x_range=[0, 4, 1],
+                y_range=[0, 4, 1],
+                faded_line_ratio=10,
+                background_line_style={
+                    "stroke_opacity": 0.2,
+                    "stroke_width": 2,
+                    "stroke_color": GREY,
+                },  # Lower opacity
+            )
+            .scale(sc)
+            .set_opacity(1)
+            # .shift(DOWN * 0.2 + RIGHT * 0.2)
+        )  # Shift slightly back
+
+        background_plane.z_index = -1
+        # Show both planes
+        self.play(FadeIn(background_plane))
+        self.wait(1)
+
+        point = background_plane.c2p(3.1, 3.1)
+        p31 = Dot().move_to(point)
+
+        self.camera.frame.save_state()
+        self.play(self.camera.frame.animate.scale(0.5).move_to(p31))
+        self.wait()
+
+        # self.play(self.camera_frame.scale(1), self.camera_frame.move_to(ORIGIN))
+
+        self.play(Restore(self.camera.frame))
+
+
+class PiMultiplication(Scene):
+    def construct(self):
+        # Initial scale factor
+        sc = 1.5
+
+        # Step 2: Iterate through finer grids
+        pi_approximations = [
+            3,
+            3.1,
+            3.14,
+            3.141,
+            3.1415,
+            3.14159,
+            3.141592,
+        ]  # Refinement levels
+        # pi_approximations = [3, 3.1]  # Refinement levels
+
+        colors = [RED, YELLOW, GREEN, ORANGE, BLUE, RED, YELLOW] * 2
+        faded_ratio = 0
+        self.camera.frame.save_state()
+
+        pi_text = Tex(r"\pi \cdot \pi").scale(1.5)
+        pi_text.shift(UP * 2.1)
+        pi_text.fix_in_frame()
+        self.play(Write(pi_text))
+
+        self.wait()
+
+        for i in range(0, len(pi_approximations)):
+            ap = pi_approximations[i]
+
+            color = colors[i]
+
+            finer_plane = (
+                NumberPlane(
+                    x_range=[0, 4, 0.1],
+                    y_range=[0, 4, 0.1],
+                    faded_line_ratio=0,
+                    background_line_style={"stroke_opacity": 0, "stroke_width": 0},
+                )
+                .scale(sc)
+                .set_opacity(0.8)
+            )
+            finer_plane.z_index = -3 * i + 2
+
+            if i > 0:
+                point = finer_plane.c2p(
+                    pi_approximations[i - 1], pi_approximations[i - 1]
+                )
+            else:
+                point = finer_plane.c2p(ap, ap)
+            zoom_factor = 0.5**i
+
+            point = finer_plane.c2p(ap, ap)
+            p31 = Dot().move_to(point).scale(zoom_factor)
+
+            pi_text_ap = Tex(f"{ap} \cdot {ap}")
+            pi_text_ap.move_to(pi_text).fix_in_frame()
+
+            width = ap * sc
+            refined_background = Rectangle(
+                width=width,
+                height=width,
+                fill_color=color,
+                fill_opacity=1,
+                stroke_width=0,  # Removes border
+            ).set_z_index(-3 * i + 1)
+
+            refined_background.next_to(finer_plane, RIGHT).align_to(
+                finer_plane, DOWN + LEFT
+            )
+
+            if i > 1:
+                # if True:
+                # self.play(self.camera.frame.animate.set_width(4 / (3**i)).move_to(p31))
+                self.play(
+                    # self.camera.frame.animate.set_width(zoom_factor).move_to(p31),
+                    self.camera.frame.animate.move_to(p31).scale(zoom_factor),
+                    Transform(pi_text, pi_text_ap),
+                    FadeIn(refined_background),
+                )
+                self.wait(1)
+            else:
+                self.play(Transform(pi_text, pi_text_ap), FadeIn(refined_background))
+                self.wait(1)
+
+        pi_text_ap = Tex(f"{ap}... \cdot {ap}...")
+        pi_text_ap.move_to(pi_text).fix_in_frame()
+        self.play(
+            Transform(pi_text, pi_text_ap),
+        )
+
+        self.wait()
+
+        pi_text_ap = Tex(r"\pi \cdot \pi").scale(1.5)
+        pi_text_ap.move_to(pi_text).fix_in_frame()
+
+        self.play(
+            # FadeOut(pi_text_ap),
+            Restore(self.camera.frame),
+            Transform(pi_text, pi_text_ap),
+            run_time=7,
+        )
+        self.play(self.camera.frame.animate.move_to(p31).scale(zoom_factor), run_time=5)
+        self.wait(0.5)
+        self.play(Restore(self.camera.frame), run_time=3)
+
+        self.wait()
+
+
+class InfiniteDecimalGeometric(Scene):
+    def construct(self):
+        # Step 1: Introduce s = 0.99999...
+        s_eq = Tex("s = 0.999\ldots").scale(1.5).shift(UP * 3)
+        self.play(Write(s_eq))
+        self.wait(1)
+
+        s_eq2 = Tex("10s = 9.999\ldots").set_color(ORANGE).scale(1.5).shift(UP * 2)
+
+        # Geometric series visual proof
+        r = 0.9  # Updated ratio value
+        scale_factor = 1.5  # Rescale the entire image
+        shift_amount = LEFT * 6  # Shift entire graph to the left
+
+        # Base lines
+        left_line = Line([0, 0, 0], [0, 1 * scale_factor, 0], color=WHITE).shift(
+            shift_amount
+        )
+        origin = left_line.get_start()
+
+        # Vertical segment lines at positions 1, 1+r, 1+r+r^2, ...
+        x_pos = 1 * scale_factor
+        vertical_lines = VGroup()
+        segment_labels = VGroup()
+        first_line = Line(origin, origin + [0, 9 * scale_factor, 0], stroke_opacity=0)
+        vertical_lines.add(first_line)
+
+        for i in range(18):
+            vertical_line = Line(
+                origin + [x_pos, 0, 0],
+                origin + [x_pos, r ** (i + 1) * scale_factor, 0],
+                color=WHITE,
+            )
+            if i == 0:
+                len_t = "0.9"
+            elif i == 5:
+                len_t = "..."
+            elif i < 5:
+                len_t = f"0.9^{i+1}"
+            else:
+                len_t = ""
+            text = Tex(f"{len_t}").next_to(
+                vertical_line, DOWN, buff=0.3, aligned_edge=DOWN
+            )
+
+            if i < 7:
+                self.play(FadeIn(vertical_line), Write(text), run_time=0.3)
+            else:
+                self.play(FadeIn(vertical_line), run_time=0.01)
+            x_pos += r ** (i + 1) * scale_factor
+
+            vertical_lines.add(vertical_line)
+            segment_labels.add(text)
+
+        group_09 = VGroup(vertical_lines)
+
+        anchor_point = group_09.get_bottom()
+
+        self.play(FadeOut(segment_labels))
+        self.wait(1)
+
+        # Step 2: FadeIn 99s group (Shift left and add a new bar)
+        group_99 = group_09.copy().set_color(ORANGE)
+
+        s_eq2 = (
+            Tex("10s = ")
+            .scale(1.5)
+            .next_to(s_eq, DOWN, aligned_edge=LEFT)
+            .set_color(ORANGE)
+        )
+
+        self.play(Write(s_eq2))
+
+        digits = VGroup()
+        digit = Tex("9").scale(1.5).next_to(s_eq2, RIGHT).set_color(ORANGE)
+        digits.add(digit)
+
+        p_ds = digit
+        ds = [".9", "9", "9", "9", "\\ldots", ""] + [""] * 15
+        for digit_t in ds:
+            digit = (
+                Tex(digit_t).scale(1.5).next_to(p_ds, RIGHT, buff=0.1).set_color(ORANGE)
+            )
+            p_ds = digit
+            digits.add(digit)
+
+        for vgroup in group_99:
+            i = 0
+            for mobject, digit in zip(vgroup, digits):
+
+                if isinstance(mobject, Line):
+                    if mobject.stroke_opacity == 0:
+
+                        mobject.set_stroke(opacity=1)  # Make it visible
+
+                        new_text = Tex("9").next_to(mobject, DOWN, buff=0.3)
+
+                        group_99.add(mobject, new_text)
+
+                    if i < 5:
+                        run_time = 0.4
+                    else:
+                        run_time = 0.1
+
+                    self.play(
+                        Transform(mobject, mobject.shift(LEFT * 0.2 + DOWN * 0.1)),
+                        Write(digit),
+                        run_time=run_time,
+                    )
+                    i += 1
+
+        self.wait(1)
+
+
+class InfiniteDecimalProof(Scene):
+    def construct(self):
+        # Step 1: Introduce s = 0.99999...
+        s_eq = Tex("s = 0.999\ldots").scale(1.5).shift(UP * 3)
+        self.play(Write(s_eq))
+        self.wait(1)
+
+        # Geometric series visual proof
+        r = 0.9  # Updated ratio value
+        scale_factor = 1.5  # Rescale the entire image
+        shift_amount = LEFT * 6  # Shift entire graph to the left
+
+        # Base lines
+        left_line = Line([0, 0, 0], [0, 1 * scale_factor, 0], color=WHITE).shift(
+            shift_amount
+        )
+
+        origin = left_line.get_start()
+        # bottom_line = Line(
+        #     origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
+        # )
+
+        # Vertical segment lines at positions 1, 1+r, 1+r+r^2, ...
+        x_pos = 1 * scale_factor
+        x_pos_prev = 0
+
+        vertical_lines = []
+        segment_labels = []
+        vertical_line = None
+        vertical_line_prev = left_line
+
+        group_09 = VGroup()
+        first_line = None
+
+        for i in range(8):
+            vertical_line = Line(
+                origin + [x_pos, 0, 0],
+                origin + [x_pos, r ** (i + 1) * scale_factor, 0],
+                color=WHITE,
+            )
+            if first_line is None:
+                first_line = vertical_line
+            len_v = i + 1
+
+            if i == 0:
+                len_t = 0.9
+            elif i > 5:
+                len_t = "..."
+            else:
+                len_t = f"0.9^{i+1}"
+
+            text = Tex(f"{len_t}").next_to(
+                vertical_line, DOWN, buff=0.3, aligned_edge=DOWN
+            )
+
+            self.play(FadeIn(vertical_line), Write(text), run_time=0.3)
+
+            x_pos += r ** (i + 1) * scale_factor
+            vertical_line_prev = vertical_line
+
+            group_09.add(vertical_line)
+            # group_09.add(text)
+
+        self.play(group_09.animate.scale(0.3))
+
+        self.wait()
+
+        s_eq2 = Tex("s = 9.999\ldots").scale(1.5).next_to(origin, DOWN * 2)
+        self.play(Write(s_eq))
+        self.wait(1)
+
+        self.play(FadeIn(group_99))
+
+        self.wait()
