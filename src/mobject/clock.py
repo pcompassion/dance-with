@@ -44,7 +44,6 @@ class Clock(VGroup):
         self.add(self.clock_circle, numbers, center_dot, hour_hand, pie)
 
     def animate_hand(self, start_angle, angle_delta, fill_color):
-
         pie = self.pie
         hand = self.hour_hand
         # Use a ValueTracker to animate the sector's angle
@@ -67,6 +66,13 @@ class Clock(VGroup):
                 (ORIGIN[1] - hand_origin[1]) * DOWN
             )  # Keep the pie centered at hand origin
             m.become(new_pie)
+
+        if fill_color is None:
+
+            def foo(m):
+                pass
+
+            update_pie = foo
 
         pie.add_updater(update_pie)
 

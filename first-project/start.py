@@ -2,6 +2,7 @@
 
 from manimlib import *
 from src.mobject.clock import Clock
+from functools import partial
 
 # from manim import *
 
@@ -10,86 +11,12 @@ import time
 import ctypes
 
 
-class AddPolygon(Scene):
-
-    def construct(self):
-        # Basic Polygon
-
-        polys_l = VGroup(
-            *[
-                RegularPolygon(
-                    5,
-                    radius=1,
-                    # color=Color.from_hsv((j / 5, 1.0, 1.0)),
-                    color=RED,
-                    fill_opacity=0.5,
-                )
-                for j in range(3)
-            ],
-            *[
-                RegularPolygon(
-                    5,
-                    radius=1,
-                    # color=Color.from_hsv((j / 5, 1.0, 1.0)),
-                    color=BLUE,
-                    fill_opacity=0.5,
-                )
-                for j in range(2)
-            ],
-        ).arrange(RIGHT, buff=0.2)
-        # polys_l.shift(3 * LEFT)
-        polys_l.shift(UP * 2)
-
-        self.play(DrawBorderThenFill(polys_l), run_time=1)
-        self.wait(0.5)
-
-        polys = VGroup(
-            *[
-                RegularPolygon(
-                    5,
-                    radius=1,
-                    # color=Color.from_hsv((j / 5, 1.0, 1.0)),
-                    color=BLUE,
-                    fill_opacity=0.5,
-                )
-                for j in range(2)
-            ],
-            *[
-                RegularPolygon(
-                    5,
-                    radius=1,
-                    # color=Color.from_hsv((j / 5, 1.0, 1.0)),
-                    color=RED,
-                    fill_opacity=0.5,
-                )
-                for j in range(3)
-            ],
-        ).arrange(RIGHT, buff=0.2)
-        polys.shift(0.5 * DOWN)
-
-        equal_sign = Text("=").scale(1.5)
-        point = polys.get_left() + 0.5 * LEFT
-        equal_sign.move_to(point)
-
-        self.add(equal_sign)  # Add without animation (ManimGL optimized)
-
-        self.play(DrawBorderThenFill(polys), run_time=1)
-
-        self.wait(0.5)
-        # equation
-        equation = Tex(r"3 + 2 = 2 + 3").scale(1.5)
-        equation.shift(DOWN * 2.5)
-
-        self.play(Write(equation))
-        self.wait(0.5)
-        # self.interactive_embed()
-
-
 class BarAddition(Scene):
     def construct(self):
         # Create x-axis
 
-        x_axis = NumberLine((0, 5, 1), tick_size=0.05)
+        sc = 1.5
+        x_axis = NumberLine((0, 5, 1), tick_size=0.05).scale(sc)
 
         numbers = x_axis.add_numbers(range(0, 6, 1), font_size=30, buff=0.15)
 
@@ -97,31 +24,38 @@ class BarAddition(Scene):
         self.add(x_axis)
 
         # Create bar of length 3 (Blue) - Align left to tick 0
-        bar_3 = Rectangle(height=1, width=3, fill_color=BLUE, fill_opacity=0.8)
-        bar_3.move_to(x_axis.get_left() + RIGHT * 1.5 + DOWN)  # Align left to 0
+        bar_3 = Rectangle(
+            height=1, width=3, fill_color=BLUE, fill_opacity=0.8, stroke_width=0
+        ).scale(sc)
+        # bar_3.move_to(x_axis.get_left() + RIGHT * 1.5 + DOWN)  # Align left to 0
+
+        bar_3.next_to(x_axis, DOWN, aligned_edge=LEFT)
 
         # Label "3" above the blue bar
         label_3 = Tex("3").scale(1.2).move_to(bar_3.get_center())
 
         # Animate showing the "3" bar
-        self.play(FadeIn(bar_3), Write(label_3))
+        self.play(FadeIn(bar_3), Write(label_3), run_time=0.5)
         self.wait(0.5)
 
         # Create bar of length 2 (Red) - Align to right of the blue bar
-        bar_2 = Rectangle(height=1, width=2, fill_color=RED, fill_opacity=0.8)
+        bar_2 = Rectangle(
+            height=1, width=2, fill_color=RED, fill_opacity=0.8, stroke_width=0
+        ).scale(sc)
         bar_2.next_to(bar_3, RIGHT, buff=0)  # Place next to blue bar
 
         # Label "2" above the red bar
         label_2 = Tex("2").scale(1.2).move_to(bar_2.get_center())
 
         # Animate showing the "2" bar
-        self.play(FadeIn(bar_2), Write(label_2))
+        self.play(FadeIn(bar_2), Write(label_2), run_time=0.5)
         self.wait(0.5)
 
         # Create the final bar of length 5 (Green) - Align left to tick 0
-        bar_5 = Rectangle(height=1, width=5, fill_color=GREEN, fill_opacity=0.8)
-        bar_5.move_to(bar_3.get_left() + RIGHT * 2.5 + DOWN)  # Align left
-
+        bar_5 = Rectangle(
+            height=1, width=5, fill_color=GREEN, fill_opacity=0.8, stroke_width=0
+        ).scale(sc)
+        bar_5.next_to(bar_3, DOWN, aligned_edge=LEFT, buff=0)
         # Label "3" above the blue bar
         label_5 = Tex("5").scale(1.2).move_to(bar_5.get_center())
 
@@ -129,6 +63,7 @@ class BarAddition(Scene):
         self.play(
             Transform(bar_3.copy(), bar_5),  # Merge blue into green
             Transform(bar_2.copy(), bar_5),  # Merge red into green
+            run_time=0.5,
         )
         self.play(
             Write(label_5),
@@ -137,10 +72,12 @@ class BarAddition(Scene):
         self.wait(0.5)
 
         bar_2b = bar_2.copy()
-        bar_2b.move_to(bar_5.get_left() + RIGHT + DOWN * 1)
+        # bar_2b.move_to(bar_5.get_left() + RIGHT + DOWN * 1)
+
+        bar_2b.next_to(bar_5, DOWN, aligned_edge=LEFT, buff=0)
 
         self.play(
-            Transform(bar_2.copy(), bar_2b),  # Merge red into green
+            Transform(bar_2.copy(), bar_2b, run_time=0.5),  # Merge red into green
         )
 
         # Label "2" above the red bar
@@ -150,10 +87,11 @@ class BarAddition(Scene):
         self.wait(0.5)
 
         bar_3b = bar_3.copy()
-        bar_3b.move_to(bar_2b.get_right() + RIGHT * 1.5)
+        # bar_3b.move_to(bar_2b.get_right() + RIGHT * 1.5)
+        bar_3b.next_to(bar_2b, RIGHT, buff=0)
 
         self.play(
-            Transform(bar_3.copy(), bar_3b),  # Merge red into green
+            Transform(bar_3.copy(), bar_3b, run_time=0.5),  # Merge red into green
         )
 
         # Label "3" above the blue bar
@@ -166,7 +104,7 @@ class BarAddition(Scene):
 
         # Show "3 + 2 = 5" text at the bottom
         equation = Tex("3 + 2 = 2 + 3").scale(1.5)
-        equation.next_to(bar_5, DOWN * 3, buff=0.5)
+        equation.next_to(bar_5, DOWN * 3.8, buff=0.5)
 
         self.play(Write(equation))
         self.wait()
@@ -210,7 +148,7 @@ class ClockAnimation(Scene):
                 outer_radius=2,
                 angle=0,  # Start with no visible pie slice
                 start_angle=start_angle,  # Starts from the top
-                fill_color=BLUE,
+                fill_color=GREEN,
                 fill_opacity=0.5,  # Keep it visible but initially empty
             )
             # self.add(pie_3)  # Add it first so we can update its angle
@@ -261,11 +199,11 @@ class ClockAnimation(Scene):
 
         self.wait(0.5)
 
-        animate_hand(hand_origin, start_angle=PI / 2, angle_delta=-PI, fill_color=BLUE)
+        animate_hand(hand_origin, start_angle=PI / 2, angle_delta=-PI, fill_color=GREEN)
 
         self.wait(0.5)
         animate_hand(
-            hand_origin, start_angle=-PI / 2, angle_delta=-2 * PI / 3, fill_color=GREY_A
+            hand_origin, start_angle=-PI / 2, angle_delta=-2 * PI / 3, fill_color=RED
         )
 
         clock = clock_face()
@@ -279,12 +217,12 @@ class ClockAnimation(Scene):
         self.wait(0.5)
 
         animate_hand(
-            hand_origin, start_angle=PI / 2, angle_delta=-2 * PI / 3, fill_color=BLUE
+            hand_origin, start_angle=PI / 2, angle_delta=-2 * PI / 3, fill_color=RED
         )
 
         self.wait(0.5)
         animate_hand(
-            hand_origin, start_angle=-1 * PI / 6, angle_delta=-PI, fill_color=GREY_A
+            hand_origin, start_angle=-1 * PI / 6, angle_delta=-PI, fill_color=GREEN
         )
 
         # equation
@@ -293,65 +231,6 @@ class ClockAnimation(Scene):
 
         self.play(Write(equation))
         self.wait(0.5)
-
-
-class BallDrop(Scene):
-    def construct(self):
-        # Create a three-sided box (open top)
-        floor = Line(LEFT * 3, RIGHT * 3, color=WHITE)
-        left_wall = Line(UP * 2, DOWN * 2, color=WHITE)
-        right_wall = Line(UP * 2, DOWN * 2, color=WHITE)
-
-        # Position the walls correctly
-        left_wall.move_to(LEFT * 3 + DOWN * 1)
-        right_wall.move_to(RIGHT * 3 + DOWN * 1)
-        box = VGroup(floor, left_wall, right_wall)
-
-        # Create three balls (circles)
-        balls = VGroup(
-            *[
-                Dot(radius=0.2, fill_color=BLUE).move_to(UP * 2 + LEFT * (1 - i))
-                for i in range(2)
-            ]
-        )
-
-        gravity = 3
-        min_velocity = 1
-
-        for ball in balls:
-            velocity = ValueTracker(0)  # Initial velocity
-            time_tracker = ValueTracker(0)  # Track time
-
-            def update_ball(m, dt, time_tracker=time_tracker, velocity=velocity):
-                damping_factor = 0.7  # Bounce energy loss
-
-                time_tracker.increment_value(dt)
-                v = velocity.get_value() + gravity * dt  # Apply gravity
-                m.shift(DOWN * v * dt)  # Move the ball
-                velocity.set_value(v)
-
-                # Collision with floor (bouncing effect)
-                if m.get_bottom()[1] <= floor.get_center()[1]:
-                    new_v = -damping_factor * v  # Reduce bounce velocity
-                    velocity.set_value(new_v)
-                    m.move_to(
-                        [m.get_x(), floor.get_center()[1] + 0.2, 0]
-                    )  # Keep ball on floor
-
-                    # Stop updating if the bounce velocity is too low or time exceeds 2 sec
-                    if abs(new_v) < min_velocity:  # or time_tracker.get_value() > 2:
-                        velocity.set_value(-1 * v)
-
-            ball.add_updater(update_ball)
-
-        # Animate dropping balls
-        self.play(FadeIn(box), FadeIn(balls))
-        self.wait(10)  # Let the balls bounce and settle
-        # Acceleration due to gravity
-
-        # # Stop updates to freeze the scene
-        # for ball in balls:
-        #     ball.clear_updaters()
 
 
 class CommutativeAddition(Scene):
@@ -425,102 +304,8 @@ class CommutativeAddition(Scene):
 
 class DistributiveProperty(Scene):
     def construct(self):
-        # Step 1: Define M, A, B in a single line
-        M_text = Tex("M").scale(1.5)
-        l_text = Tex("(")
-        A_text = Tex("A").scale(1.5)
-        m_text = Tex("*")
-        B_text = Tex("B").scale(1.5)
-        r_text = Tex(")")
-
-        # Arrange M, A, B in a line
-        M_text.move_to(LEFT * 3)
-        A_text.move_to(LEFT * 2)
-
-        B_text.move_to(LEFT * 1)
-        l_text.move_to((M_text.get_right() + A_text.get_left()) / 2)
-        m_text.move_to((A_text.get_right() + B_text.get_left()) / 2)
-        r_text.move_to(B_text.get_right() + RIGHT * 0.2)
-
-        # Step 2: Draw curved arrows from M to A and M to B
-        arc_to_A = Arrow(
-            M_text.get_top(), A_text.get_top(), color=YELLOW, path_arc=-PI / 3
-        )
-        arc_to_B = Arrow(
-            M_text.get_bottom(), B_text.get_bottom(), color=YELLOW, path_arc=PI / 3
-        )
-
-        # Step 3: Animate the elements appearing
-        self.play(
-            FadeIn(M_text),
-            FadeIn(l_text),
-            FadeIn(A_text),
-            FadeIn(m_text),
-            FadeIn(B_text),
-            FadeIn(r_text),
-        )
-        self.play(GrowArrow(arc_to_A))
-
-        equal_sign = Tex(r"=")
-
-        equation_rhs1 = Tex(r"MA").scale(1.5)
-        equation_rhs1.move_to(equal_sign.get_right() + RIGHT)
-
-        self.play(FadeIn(equal_sign), FadeIn(equation_rhs1))
-
-        plus_sign = Tex(r"+").scale(1.5)
-        equation_rhs2 = Tex(r"MB").scale(1.5)
-
-        plus_sign.move_to(equation_rhs1.get_right() + RIGHT * 0.5)
-        equation_rhs2.move_to(plus_sign.get_right() + RIGHT * 0.8)
-
-        self.play(GrowArrow(arc_to_B))
-        self.play(FadeIn(plus_sign), FadeIn(equation_rhs2))
-
-        self.wait(0.5)
-
-
-class DistributivePropertyBasic(Scene):
-    def construct(self):
-        # Step 1: Write initial equation M(A + B)
-        equation_lhs = Tex(r"M(A + B)").scale(1.5)
-        equation_lhs.move_to(LEFT * 3)
-
-        # Step 2: Write transformed equation MA + MB
-        equation_rhs = Tex(r"MA + MB").scale(1.5)
-        equation_rhs.move_to(RIGHT * 3)
-
-        # Step 3: Draw curved arrows to indicate distribution
-        M_text = Tex("M").scale(1.5)
-        A_text = Tex("A").scale(1.5)
-        B_text = Tex("B").scale(1.5)
-
-        M_text.move_to(LEFT * 3.5 + UP)
-        A_text.move_to(LEFT * 2.5 + DOWN * 0.5)
-        B_text.move_to(LEFT * 1.5 + DOWN * 0.5)
-
-        arc_to_A = Arrow(
-            M_text.get_bottom(), A_text.get_top(), color=YELLOW, path_arc=-PI / 3
-        )
-        arc_to_B = Arrow(
-            M_text.get_bottom(), B_text.get_top(), color=YELLOW, path_arc=PI / 3
-        )
-
-        # Step 4: Animate the distribution
-        self.play(Write(equation_lhs))
-        self.wait(0.5)
-        self.play(FadeIn(M_text), FadeIn(A_text), FadeIn(B_text))
-        self.wait(0.5)
-        self.play(GrowArrow(arc_to_A), GrowArrow(arc_to_B))
-        self.wait(0.5)
-        self.play(Transform(equation_lhs, equation_rhs))  # Morph into MA + MB
-        self.wait()
-
-
-class DistributiveProperty(Scene):
-    def construct(self):
         # Title
-        title = Tex("2(3+4) = 2 \\cdot 3 + 2 \\cdot 4").shift(UP * 1.5 + LEFT * 0.5)
+        title = Tex("2(3+4) = 2 \\times 3 + 2 \\times 4").shift(UP * 1.5 + LEFT * 0.5)
 
         box_2_3 = SurroundingRectangle(title[7:10], color=YELLOW)
         box_3_2 = SurroundingRectangle(title[11:14], color=RED)
@@ -611,7 +396,7 @@ class DistributiveProperty(Scene):
 class DistributiveArea(Scene):
     def construct(self):
         # distributive area
-        eq1 = Tex("(3+2) \\cdot (3+2)").shift(LEFT * 4 + UP)
+        eq1 = Tex("(3+2) \\times (3+2)").shift(LEFT * 4 + UP)
         bc = BLUE
         box_3_3_1 = SurroundingRectangle(eq1[1], color=bc)
         box_3_3_2 = SurroundingRectangle(eq1[7], color=bc)
@@ -792,7 +577,7 @@ class DistributiveArea(Scene):
             FadeOut(label_2_l),
             FadeOut(label_2_u),
             FadeOut(text_2_l),
-            Fade(text_2_u),
+            FadeOut(text_2_u),
         )
 
         self.wait(0.5)
@@ -813,219 +598,26 @@ class DistributiveArea(Scene):
         self.play(Write(eq2))
 
 
-class DistributiveArea2(Scene):
+class MultiplicationLawVisualization(Scene):
     def construct(self):
-        # Title
-        title = Tex("(3+2) \\cdot (4+1)").shift(UP * 3)
-        bc = BLUE
-        box_3_3_1 = SurroundingRectangle(title[1], color=bc)
-        box_3_3_2 = SurroundingRectangle(title[7], color=bc)
+        # Create equation
+        eq1 = Tex(r"(a+b) \cdot (a^2 - ab + b^2) = a^3 + b^3").scale(1.2)
 
-        box_3_2_1 = SurroundingRectangle(title[1], color=bc)
-        box_3_2_2 = SurroundingRectangle(title[9], color=bc)
+        # Display equation
+        self.play(Write(eq1))
+        self.wait(0.5)
 
-        box_2_3_1 = SurroundingRectangle(title[3], color=bc)
-        box_2_3_2 = SurroundingRectangle(title[7], color=bc)
-
-        box_2_2_1 = SurroundingRectangle(title[3], color=bc)
-        box_2_2_2 = SurroundingRectangle(title[9], color=bc)
-
-        self.play(FadeIn(title))
-
-        # Show the x-axis
-
-        # Define bar lengths
-        bar_3 = Rectangle(width=3, height=0.3, color=BLUE, fill_opacity=1)
-        bar_2 = Rectangle(width=2, height=0.3, color=GREEN, fill_opacity=1)
-
-        # Position horizontal bars
-        top_3 = bar_3.move_to(LEFT + UP * 2)
-        top_2 = bar_2.next_to(top_3, RIGHT, buff=0)
-        corner = top_3.get_left()
-
-        tick_marks = VGroup()
-        for i in range(6):  # 0 to 5
-            tick = Line(UP * 0.2, DOWN * 0.2, color=GREY_E)
-            tick.move_to(top_3.get_left() + RIGHT * i)
-            tick_marks.add(tick)
-
-        # Position vertical bars
-        left_3 = top_3.copy().rotate(-PI / 2, about_point=corner)
-        left_2 = (
-            top_2.copy()
-            .rotate(PI / 2, about_point=corner)
-            .next_to(left_3, DOWN, buff=0)
+        # Underline for the second term in LHS ("a^2 - ab + b^2")
+        underline = Line(eq1[6].get_left(), eq1[15].get_right(), color=BLUE).shift(
+            DOWN * 0.4
         )
-
-        tick_marks_v = VGroup()
-        for i in range(6):  # 0 to 5
-            tick = Line(UP * 0.2, DOWN * 0.2, color=GREY_E)
-            tick.move_to(top_3.get_left() + RIGHT * i)
-            tick.rotate(-PI / 2, about_point=corner)
-
-            tick_marks_v.add(tick)
-
-        bar_4 = Rectangle(width=4, height=0.3, color=BLUE, fill_opacity=1)
-        bar_1 = Rectangle(width=1, height=0.3, color=GREEN, fill_opacity=1)
-        top_4 = bar_4.copy().move_to(corner + RIGHT * 4 / 2)
-        top_1 = bar_1.copy().next_to(top_4, RIGHT, buff=0)
-
-        self.play(FadeIn(top_4), FadeIn(top_1), FadeIn(tick_marks))
-
-        self.play(FadeIn(left_3), FadeIn(left_2), FadeIn(tick_marks_v))
-        self.wait(1)
-
-        # Define rectangles for areas
-        rect_3x3 = Rectangle(width=4, height=3, color=WHITE, fill_opacity=0.5)
-        rect_3x2 = Rectangle(width=1, height=3, color=YELLOW, fill_opacity=0.5)
-        rect_2x3 = Rectangle(width=4, height=2, color=ORANGE, fill_opacity=0.5)
-        rect_2x2 = Rectangle(width=1, height=2, color=RED, fill_opacity=0.5)
-
-        # Align rectangles properly
-        rect_3x3.move_to(LEFT * 0.5 + UP * 0.5)
-        rect_3x2.next_to(rect_3x3, RIGHT, buff=0, aligned_edge=UP)
-        rect_2x3.next_to(rect_3x3, DOWN, buff=0, aligned_edge=LEFT)
-        rect_2x2.next_to(rect_3x2, DOWN, buff=0, aligned_edge=LEFT)
-
-        self.play(FadeIn(rect_3x3))
-        self.play(FadeIn(rect_3x2))
-        self.play(FadeIn(rect_2x3))
-        self.play(FadeIn(rect_2x2))
-
-        # Add labels inside rectangles
-        label_3x3 = Tex("3 \\cdot 4").move_to(rect_3x3)
-        box_3_3 = SurroundingRectangle(label_3x3, color=bc)
-        label_3x2 = Tex("3 \\cdot 1").move_to(rect_3x2)
-        box_3_2 = SurroundingRectangle(label_3x2, color=bc)
-        label_2x3 = Tex("2 \\cdot 4").move_to(rect_2x3)
-        box_2_3 = SurroundingRectangle(label_2x3, color=bc)
-        label_2x2 = Tex("2 \\cdot 1").move_to(rect_2x2)
-        box_2_2 = SurroundingRectangle(label_2x2, color=bc)
-
-        self.play(
-            FadeIn(label_3x3),
-            FadeIn(box_3_3),
-            FadeIn(box_3_3_1),
-            FadeIn(box_3_3_2),
-        )
-        self.play(
-            FadeOut(box_3_3),
-            FadeOut(box_3_3_1),
-            FadeOut(box_3_3_2),
-        )
-
-        self.play(
-            FadeIn(label_3x2),
-            FadeIn(box_3_2),
-            FadeIn(box_3_2_1),
-            FadeIn(box_3_2_2),
-        )
-
-        self.play(
-            FadeOut(box_3_2),
-            FadeOut(box_3_2_1),
-            FadeOut(box_3_2_2),
-        )
-
-        self.play(
-            FadeIn(label_2x3),
-            FadeIn(box_2_3),
-            FadeIn(box_2_3_1),
-            FadeIn(box_2_3_2),
-        )
-
-        self.play(
-            FadeOut(box_2_3),
-            FadeOut(box_2_3_1),
-            FadeOut(box_2_3_2),
-        )
-
-        self.play(
-            FadeIn(label_2x2),
-            FadeIn(box_2_2),
-            FadeIn(box_2_2_1),
-            FadeIn(box_2_2_2),
-        )
-
-        self.play(
-            FadeOut(box_2_2),
-            FadeOut(box_2_2_1),
-            FadeOut(box_2_2_2),
-        )
-
+        self.play(FadeIn(underline))
         self.wait(2)
 
-
-class GeometricSeries(Scene):
-    def construct(self):
-        # Define equations
-        eq1 = Tex("S = 0.999999\\dots")
-        eq2 = Tex("10S = 9.999999\\dots")
-
-        eq3 = Tex("10S - S = 9.999999\\dots - 0.999999\\dots")
-        eq4 = Tex("9S = 9")
-        eq5 = Tex("S = 1")
-
-        # Position equations
-        eq1.shift(UP * 2)
-        left_margin = LEFT * 3  # Adjust as needed
-        eq1.move_to(left_margin + UP * 2)
-        eq2.next_to(eq1, DOWN, buff=0.5).align_to(eq1, LEFT)
-        eq3.next_to(eq2, DOWN, buff=0.5).align_to(eq1, LEFT)
-        eq4.next_to(eq3, DOWN, buff=0.5).align_to(eq1, LEFT)
-        eq5.next_to(eq4, DOWN, buff=0.5).align_to(eq1, LEFT)
-
-        # Animate equations step by step
-        self.play(FadeIn(eq1))
+        # Surrounding box for the minus sign (indexing finds '-')
+        minus_box = SurroundingRectangle(eq1[9], color=RED, buff=0.1)
+        self.play(FadeIn(minus_box))
         self.wait(1)
-        self.play(FadeIn(eq2))
-        self.wait(1)
-        self.play(FadeIn(eq3))
-        self.wait(1)
-        self.play(FadeIn(eq4))
-        self.wait(1)
-        self.play(FadeIn(eq5))
-        self.wait(2)
-
-        self.clear()
-
-        # 9999
-        eq1 = Tex("S = \dots999999")
-        eq2 = Tex("10S = \dots999990")
-
-        eq3 = Tex("10S - S = \dots999990 - \dots999999")
-
-        eq4 = Tex("9S = -9")
-        eq5 = Tex("S = -1")
-
-        # Position equations
-        eq1.shift(UP * 2)
-        left_margin = LEFT * 3  # Align to left margin
-        eq1.move_to(left_margin + UP * 2)
-        eq2.next_to(eq1, DOWN, buff=0.5).align_to(eq1, LEFT)
-        eq3.next_to(eq2, DOWN, buff=0.5).align_to(eq1, LEFT)
-        eq4.next_to(eq3, DOWN, buff=0.5).align_to(eq1, LEFT)
-        eq5.next_to(eq4, DOWN, buff=0.5).align_to(eq1, LEFT)
-
-        # Animate equations step by step
-        self.play(FadeIn(eq1))
-        self.wait(1)
-        self.play(FadeIn(eq2))
-
-        self.wait(1)
-        self.play(FadeIn(eq3))
-
-        self.wait(1)
-        self.play(FadeIn(eq4))
-        self.wait(1)
-        self.play(FadeIn(eq5))
-        self.wait(2)
-
-        self.clear()
-
-        equation = Tex("(3+4i)(2+3i) = 6 + 9i + 8i + 12i^2")
-        self.play(FadeIn(equation))
-        self.wait(2)
 
 
 class DistributiveLawVisualization(Scene):
@@ -1057,7 +649,6 @@ class DistributiveLawVisualization(Scene):
 
         self.play(FadeIn(top_3), FadeIn(top_2), FadeIn(top_1))
         self.play(FadeIn(left_3), FadeIn(left_2))
-        self.wait(1)
 
         # Define rectangles for areas
         rect_3x3 = Rectangle(width=3, height=3, color=WHITE, fill_opacity=0.5)
@@ -1075,19 +666,19 @@ class DistributiveLawVisualization(Scene):
         rect_2x2.next_to(rect_3x2, DOWN, buff=0, aligned_edge=LEFT)
         rect_2x1.next_to(rect_3x1, DOWN, buff=0, aligned_edge=LEFT)
 
-        self.play(FadeIn(rect_3x3))
-        self.play(FadeIn(rect_3x2))
-        self.play(FadeIn(rect_3x1))
-        self.play(FadeIn(rect_2x3))
-        self.play(FadeIn(rect_2x2))
-        self.play(FadeIn(rect_2x1))
+        self.play(FadeIn(rect_3x3), run_time=0.3)
+        self.play(FadeIn(rect_3x2), run_time=0.3)
+        self.play(FadeIn(rect_3x1), run_time=0.3)
+        self.play(FadeIn(rect_2x3), run_time=0.3)
+        self.play(FadeIn(rect_2x2), run_time=0.3)
+        self.play(FadeIn(rect_2x1), run_time=0.3)
         self.wait(2)
 
 
 class DistributiveLawVisualization(Scene):
     def construct(self):
         # minus dis
-        title = Tex("4 \\cdot (3 - 2)").shift(LEFT * 3.5 + UP).scale(1.5)
+        title = Tex("4 \\times (3 - 2)").shift(LEFT * 3.5 + UP).scale(1.5)
         self.play(FadeIn(title))
         custom_dark_grey = "#444444"  # Hex color for a darker grey
         # Define colors
@@ -1160,7 +751,10 @@ class DistributiveLawVisualization(Scene):
 
         rect_4x2_group_copy = VGroup(rect_4x2_copy, label_2c, text_2c)
 
-        self.play(FadeIn(rect_4x2_group))
+        self.play(
+            FadeIn(rect_4x2_group),
+            Write(eq2),
+        )
 
         # Grey out the negative parts to show subtraction
         grey_rect = rect_4x2.copy().set_color("#333333").set_opacity(1)
@@ -1172,10 +766,12 @@ class DistributiveLawVisualization(Scene):
             # Transform(rect_4x2, rect_4x2_copy),
             Transform(rect_4x2_group, rect_4x2_group_copy),
             Write(minus),
-            Write(eq2),
-            run_time=1,
+            run_time=2,
         )
+
         grey_rect_4x2 = rect_4x2.copy().set_color(custom_dark_grey).set_opacity(1)
+
+        self.wait(1)
 
         self.play(
             # Transform(rect_4x2, grey_rect),
@@ -1190,198 +786,97 @@ class DistributiveLawVisualization(Scene):
         self.wait()
 
 
-class GeometricSeriesVisualization(Scene):
+class MultiplicationLawVisualization(Scene):
     def construct(self):
-        # Geometric series visual proof
-        r = 0.8  # Updated ratio value
-        scale_factor = 2  # Rescale the entire image
-        shift_amount = LEFT * 5  # Shift entire graph to the left
+        # Create equation
+        eq1 = Tex(r"(a+b) \cdot (a^2 - ab + b^2) = a^3 + b^3").scale(1.2)
 
-        # Base lines
-        left_line = Line([0, 0, 0], [0, 1 * scale_factor, 0], color=WHITE).shift(
-            shift_amount
-        )
+        # Display equation
+        self.play(Write(eq1))
+        self.wait(0.5)
 
-        origin = left_line.get_start()
-        # bottom_line = Line(
-        #     origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
-        # )
 
-        # Vertical segment lines at positions 1, 1+r, 1+r+r^2, ...
-        x_pos = 1 * scale_factor
-        x_pos_prev = 0
+class MultiplicationLawVisualization(Scene):
+    def construct(self):
+        # Create equation
+        equation = Tex(r"(a+b) \cdot (a^2 - ab + b^2)").scale(1.2)
+        equation.shift(UP * 2)
 
-        vertical_lines = []
-        segment_labels = []
-        vertical_line = None
-        vertical_line_prev = left_line
-        cnt = 0
-        while x_pos < (1 / (1 - r)) * scale_factor - 0.1:
-            cnt += 1
-            run_time = 1
-            if cnt > 5:
-                run_time = 0.1
+        self.play(Write(equation))
 
-            vertical_line = Line(
-                origin + [x_pos, 0, 0],
-                origin + [x_pos, r ** (len(vertical_lines) + 1) * scale_factor, 0],
-                color=WHITE,
-            )
-            vertical_lines.append(vertical_line)
+        # Break down the multiplication step-by-step
+        step1 = Tex(r"(a+b) \cdot a^2 - (a+b) \cdot ab + (a+b) \cdot b^2").scale(1.1)
+        step1.next_to(equation, DOWN * 1.3, buff=0.5)
+        arrow1 = Arrow(equation.get_bottom(), step1.get_top(), buff=0.2)
 
-            horizontal_line = Line(
-                origin + [x_pos_prev, 0, 0],
-                origin + [x_pos, 0, 0],
-            )
-            x_pos_prev = x_pos
+        self.play(GrowArrow(arrow1))
+        self.play(Write(step1))
 
-            len_v = len(vertical_lines)
-            if len_v <= 6:
-                if len_v == 1:
-                    len_t = 1
-                elif len_v == 2:
-                    len_t = "r"
-                elif len_v == 6:
-                    len_t = "..."
-                else:
-                    len_t = f"r^{len_v-1}"
-                text = Tex(f"{len_t}").next_to(
-                    horizontal_line, DOWN, buff=0.3, aligned_edge=DOWN
-                )
-            else:
-                text = None
+        # Expanding further
+        step2 = Tex(r"a^3 + a^2b - a^2b - ab^2 + ab^2 + b^3").scale(1.1)
+        step2.next_to(step1, DOWN * 1.3, buff=0.5)
+        arrow2 = Arrow(step1.get_bottom(), step2.get_top(), buff=0.2)
 
-            if text is not None:
-                self.play(
-                    FadeIn(horizontal_line),
-                    FadeIn(vertical_line_prev),
-                    FadeIn(text),
-                    run_time=run_time,
-                )
-            else:
-                self.play(
-                    FadeIn(horizontal_line),
-                    FadeIn(vertical_line_prev),
-                    run_time=run_time,
-                )
+        self.play(GrowArrow(arrow2))
+        self.play(Write(step2))
 
-            x_pos += r ** len(vertical_lines) * scale_factor
-            vertical_line_prev = vertical_line
+        # Final cancellation
+        step3 = Tex(r"a^3 + b^3").scale(1.2)
+        step3.next_to(step2, DOWN * 1.3, buff=0.5)
+        arrow3 = Arrow(step2.get_bottom(), step3.get_top(), buff=0.2)
+
+        self.play(GrowArrow(arrow3))
+        self.play(Write(step3))
 
         self.wait(2)
-        bottom_line = Line(
-            origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
-        )
-        diagonal_line = Line(
-            origin + [0, 1 * scale_factor, 0],
-            origin + [(1 / (1 - r)) * scale_factor, 0, 0],
-            color=WHITE,
-        )
-        self.play(
-            FadeIn(diagonal_line),
-            FadeIn(bottom_line),
-        )
 
-        # Upper similar triangle
-        upper_triangle = Polygon(
-            origin + [0, 1 * scale_factor, 0],
-            origin + [1 * scale_factor, 1 * scale_factor, 0],
-            origin + [1 * scale_factor, r * scale_factor, 0],
-            color=WHITE,
-        )
 
-        upper_triangle.set_fill(BLUE, opacity=0.7)
-        self.play(FadeIn(upper_triangle))
-
-        # Labels for lengths
-        left_label = Brace(left_line, LEFT)
-        left_text = Tex("1").next_to(left_label, LEFT, buff=0.2)
-
-        top_line = Line(
-            origin[:2] + [0, 1 * scale_factor],
-            origin[:2] + [1 * scale_factor, 1 * scale_factor],
-        )
-
-        top_label = Brace(top_line, UP)
-        top_text = Tex("1").next_to(top_label, UP, buff=0.2)
-
-        right_line = Line(
-            origin + [1 * scale_factor, 1 * scale_factor, 0],
-            origin + [1 * scale_factor, r * scale_factor, 0],
-        )
-        right_label = Brace(right_line, RIGHT)
-        right_text = Tex("1 - r").next_to(right_label, RIGHT, buff=0.2)
-
-        self.play(
-            FadeIn(left_label),
-            FadeIn(left_text),
-            FadeIn(top_label),
-            FadeIn(top_text),
-            FadeIn(right_label),
-            FadeIn(right_text),
-        )
-
-        self.wait()
-
-        # Lower similar triangle
-        lower_triangle = Polygon(
-            origin + [0, 1 * scale_factor, 0],
-            origin + [0, r * scale_factor, 0],
-            origin + [1 * scale_factor, r * scale_factor, 0],
-            color=WHITE,
-        )
-
-        lower_triangle.set_fill(RED, opacity=0.7)
-        self.play(FadeIn(lower_triangle))
-
-        # Animation to grow lower triangle into the bottom big triangle
-        def update_triangle(triangle, alpha):
-            if alpha < 1 - r:
-                return
-            new_bottom_right = origin + [
-                (1 / (1 - r)) * scale_factor * alpha,
-                (1 - alpha) * scale_factor,
-                0,
-            ]
-            new_polygon = Polygon(
-                origin + [0, 1 * scale_factor, 0],
-                origin + [0, (1 - alpha) * scale_factor, 0],
-                new_bottom_right,
-                color=WHITE,
-            )
-            new_polygon.set_fill(RED, opacity=0.7)
-
-            triangle.become(new_polygon)
-
-        self.play(UpdateFromAlphaFunc(lower_triangle, update_triangle))
-        self.wait()
-
-        # equation
-        equation = Tex(r"\frac{1}{1 - r} = 1 + r + r^2 + \dots")
-        equation.move_to(bottom_line.get_center() + DOWN * 2).scale(
-            1.3
-        )  # Make it slightly larger
-        self.play(Write(equation))  # Animate the equation appearing
+class ComplexNumber(Scene):
+    def construct(self):
+        equation = Tex("(3+4i)(2+3i) = 6 + 9i + 8i + 12i^2").scale(1.2).shift(UP * 2)
+        self.play(FadeIn(equation))
         self.wait(2)
 
-        # Lower similar triangle
-        middle_triangle = Polygon(
-            origin + [1 * scale_factor, r * scale_factor, 0],
-            origin + [1 * scale_factor, r * r * scale_factor, 0],
-            origin + [(1 + r) * scale_factor, r * r * scale_factor, 0],
-            color=WHITE,
+        plane = (
+            NumberPlane(
+                x_range=[0, 3, 1],
+                y_range=[0, 2, 1],
+                faded_line_ratio=3,
+                background_line_style={
+                    "stroke_opacity": 0.2,
+                    "stroke_width": 2,
+                    "stroke_color": GREY,
+                },
+            )
+            .set_opacity(0.8)
+            .shift(DOWN)
+            .scale(1.5)
         )
 
-        left_line = Line(
-            middle_triangle.get_vertices()[0], middle_triangle.get_vertices()[1]
+        origin = plane.c2p(0.0)
+
+        def create_rectangle(x1, y1, x2, y2, color):
+            """FadeIns a rectangle aligned to the NumberPlane."""
+            rect = Rectangle(
+                width=abs(x2 - x1) * sc,
+                height=abs(y2 - y1) * sc,
+                stroke_color=color,
+                fill_color=color,
+                fill_opacity=0.5,
+            ).move_to(
+                [origin[0] + (x1 + x2) / 2 * sc, origin[1] + (y1 + y2) / 2 * sc, 0]
+            )
+            return rect
+
+        rect1 = create_rectangle(0, 0, 2, 1, BLUE)  # 2 x 1
+        rect2 = create_rectangle(0, 1, 2, 2, GREEN)  # 2 x 2/3
+        rect3 = create_rectangle(2, 0, 3, 1, ORANGE)  # 1/4 x 1
+        rect4 = create_rectangle(2, 1, 3, 2, RED)  # 1/4 x 2/3
+        self.play(FadeIn(plane))
+
+        self.play(
+            FadeIn(rect1), FadeIn(rect2), FadeIn(rect3), FadeIn(rect4), run_time=0.5
         )
-
-        b_label = Brace(left_line, LEFT)
-        b_text = Tex("r - r^2").next_to(b_label, LEFT, buff=0.2)
-
-        middle_triangle.set_fill(YELLOW, opacity=0.7)
-        self.play(FadeIn(middle_triangle))
-        self.play(FadeIn(b_label), FadeIn(b_text))
 
         self.wait()
 
@@ -1397,25 +892,30 @@ class MultiplicationAnimation(Scene):
         num_2_3 = Tex(r"\frac{2}{3}")
 
         # Construct the equation dynamically using VGroup
-        equation = VGroup(
-            Tex("("),
-            num_2,
-            Tex("+"),
-            num_1_4,
-            Tex(") \\cdot ("),
-            num_1,
-            Tex("+"),
-            num_2_3,
-            Tex(")"),
-        ).arrange(RIGHT)
+        equation = (
+            VGroup(
+                Tex("("),
+                num_2,
+                Tex("+"),
+                num_1_4,
+                Tex(") \\cdot ("),
+                num_1,
+                Tex("+"),
+                num_2_3,
+                Tex(")"),
+            )
+            .arrange(RIGHT)
+            .scale(1.2)
+        )
 
         # Position the equation at the top
-        equation.shift(UP * 3)
+        equation.shift(UP * 2.2)
 
         # Animate the equation appearance
         self.play(Write(equation))
 
-        sc = 2  # Scaling factor
+        self.wait()
+        sc = 2.3  # Scaling factor
 
         # Main number plane (integer grid)
         big_plane = (
@@ -1431,7 +931,7 @@ class MultiplicationAnimation(Scene):
             )
             .scale(sc)
             .set_opacity(0.8)
-        )
+        ).shift(DOWN)
 
         big_plane.add_coordinate_labels()
         self.add(big_plane)
@@ -1451,7 +951,7 @@ class MultiplicationAnimation(Scene):
             )
             .scale(sc)
             .set_opacity(0.8)
-        )
+        ).shift(DOWN)
 
         self.add(big_plane2)
 
@@ -1528,6 +1028,22 @@ class MultiplicationAnimation(Scene):
         animate_multiplication(num_2, num_2_3, rect2, 0, 1, GREEN)  # 2 * 2/3
         animate_multiplication(num_1_4, num_1, rect3, 2, 0, ORANGE)  # 1/4 * 1
         animate_multiplication(num_1_4, num_2_3, rect4, 2, 1, RED)  # 1/4 * 2/3
+
+        self.wait(2)
+
+
+class MultiplicationPiVisualization(Scene):
+    def construct(self):
+        # Display title
+        title = Tex(r" \pi \times \pi").scale(1.2)
+        title.shift(UP * 3)
+        self.play(Write(title))
+
+        eq1 = Tex(r"3.14159265358979323846\ldots")
+        m = Tex(r"\times").next_to(eq1, DOWN)
+        eq2 = Tex(r"3.14159265358979323846\ldots").next_to(m, DOWN)
+
+        self.play(Write(eq1), Write(m), Write(eq2))
 
         self.wait(2)
 
@@ -1645,7 +1161,7 @@ class PiMultiplication(Scene):
             # FadeOut(pi_text_ap),
             Restore(self.camera.frame),
             Transform(pi_text, pi_text_ap),
-            run_time=7,
+            run_time=5,
         )
         self.play(self.camera.frame.animate.move_to(p31).scale(zoom_factor), run_time=6)
         self.wait(0.5)
@@ -1657,268 +1173,89 @@ class PiMultiplication(Scene):
 class InfiniteDecimalGeometric(Scene):
     def construct(self):
         # Step 1: Introduce s = 0.99999...
-        s_eq = Tex("s = 0.999\ldots").scale(1.5).shift(UP * 3)
-        self.play(Write(s_eq))
-        self.wait(1)
+        equation_s = Tex(r"s = 0.99999\ldots").scale(1.5)
 
-        s_eq2 = Tex("10s = 9.999\ldots").set_color(ORANGE).scale(1.5).shift(UP * 2)
+        self.play(Write(equation_s))
+        self.wait(1)
 
         # Geometric series visual proof
-        r = 0.9  # Updated ratio value
-        scale_factor = 1.5  # Rescale the entire image
-        shift_amount = LEFT * 6  # Shift entire graph to the left
+        r = 0.1  # Updated ratio value
+        shift_amount = LEFT * 6 + DOWN * 3  # Shift entire graph to the left
 
-        # Base lines
-        left_line = Line([0, 0, 0], [0, 1 * scale_factor, 0], color=WHITE).shift(
-            shift_amount
-        )
-        origin = left_line.get_start()
-
-        # Vertical segment lines at positions 1, 1+r, 1+r+r^2, ...
-        x_pos = 1 * scale_factor
-        vertical_lines = VGroup()
-        segment_labels = VGroup()
-        first_line = Line(origin, origin + [0, 9 * scale_factor, 0], stroke_opacity=0)
-        vertical_lines.add(first_line)
-
-        for i in range(18):
-            vertical_line = Line(
-                origin + [x_pos, 0, 0],
-                origin + [x_pos, r ** (i + 1) * scale_factor, 0],
-                color=WHITE,
-            )
-            if i == 0:
-                len_t = "0.9"
-            elif i == 5:
-                len_t = "..."
-            elif i < 5:
-                len_t = f"0.9^{i+1}"
-            else:
-                len_t = ""
-            text = Tex(f"{len_t}").next_to(
-                vertical_line, DOWN, buff=0.3, aligned_edge=DOWN
-            )
-
-            if i < 7:
-                self.play(FadeIn(vertical_line), Write(text), run_time=0.3)
-            else:
-                self.play(FadeIn(vertical_line), run_time=0.01)
-            x_pos += r ** (i + 1) * scale_factor
-
-            vertical_lines.add(vertical_line)
-            segment_labels.add(text)
-
-        group_09 = VGroup(vertical_lines)
-
-        anchor_point = group_09.get_bottom()
-
-        self.play(FadeOut(segment_labels))
-        self.wait(1)
-
-        # Step 2: FadeIn 99s group (Shift left and add a new bar)
-        group_99 = group_09.copy().set_color(ORANGE)
-
-        s_eq2 = (
-            Tex("10s = ")
+        equation_s10 = (
+            Tex(r"10s = 9.99999\ldots")
             .scale(1.5)
-            .next_to(s_eq, DOWN, aligned_edge=LEFT)
-            .set_color(ORANGE)
+            .next_to(equation_s, DOWN, aligned_edge=LEFT)
+            .shift(LEFT * 0.65)
         )
-
-        self.play(Write(s_eq2))
-
-        digits = VGroup()
-        digit = Tex("9").scale(1.5).next_to(s_eq2, RIGHT).set_color(ORANGE)
-        digits.add(digit)
-
-        p_ds = digit
-        ds = [".9", "9", "9", "9", "\\ldots", ""] + [""] * 15
-        for digit_t in ds:
-            digit = (
-                Tex(digit_t).scale(1.5).next_to(p_ds, RIGHT, buff=0.1).set_color(ORANGE)
-            )
-            p_ds = digit
-            digits.add(digit)
-
-        for vgroup in group_99:
-            i = 0
-            for mobject, digit in zip(vgroup, digits):
-
-                if isinstance(mobject, Line):
-                    if mobject.stroke_opacity == 0:
-
-                        mobject.set_stroke(opacity=1)  # Make it visible
-
-                        new_text = Tex("9").next_to(mobject, DOWN, buff=0.3)
-
-                        group_99.add(mobject, new_text)
-
-                    if i < 5:
-                        run_time = 0.4
-                    else:
-                        run_time = 0.1
-
-                    self.play(
-                        Transform(mobject, mobject.shift(LEFT * 0.2 + DOWN * 0.1)),
-                        Write(digit),
-                        run_time=run_time,
-                    )
-                    i += 1
-
+        self.play(Write(equation_s10))
         self.wait(1)
 
-
-class InfiniteDecimalProof(Scene):
-    def construct(self):
-        # Step 1: Introduce s = 0.99999...
-        s_eq = Tex("s = 0.999\ldots").scale(1.5).shift(UP * 3)
-        self.play(Write(s_eq))
-        self.wait(1)
-
-        # Geometric series visual proof
-        r = 0.9  # Updated ratio value
-        scale_factor = 1.5  # Rescale the entire image
-        shift_amount = LEFT * 6  # Shift entire graph to the left
-
-        # Base lines
-        left_line = Line([0, 0, 0], [0, 1 * scale_factor, 0], color=WHITE).shift(
-            shift_amount
+        self.play(
+            equation_s.animate.shift(UP * 1),
+            equation_s10.animate.shift(UP * 2.5),
         )
 
-        origin = left_line.get_start()
-        # bottom_line = Line(
-        #     origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
+        self.wait()
+
+        minus = (
+            Tex(r" - ")
+            .scale(1.5)
+            .next_to(equation_s, LEFT * 1.8, aligned_edge=LEFT)
+            .set_color(GREY)
+        )
+
+        equation = Tex(r"9s = 9").scale(1.5).shift(LEFT * 1.65)
+
+        # Extract parts for individual animation
+        s9 = equation[0:2]  # "10s"
+        equal = equation[2]  # "="
+        res = equation[3]  # "9"
+
+        # self.play(Indicate(equation_s10, color=WHITE))
+
+        self.play(FadeIn(minus))
+
+        # self.play(Indicate(equation_s, color=WHITE))
+
+        self.play(
+            Write(s9),
+        )
+        self.wait()
+        # self.play(
+        #     FadeIn(strike_line1),
+        #     FadeIn(strike_line2),
         # )
-
-        # Vertical segment lines at positions 1, 1+r, 1+r+r^2, ...
-        x_pos = 1 * scale_factor
-        x_pos_prev = 0
-
-        vertical_lines = []
-        segment_labels = []
-        vertical_line = None
-        vertical_line_prev = left_line
-
-        group_09 = VGroup()
-        first_line = None
-
-        for i in range(8):
-            vertical_line = Line(
-                origin + [x_pos, 0, 0],
-                origin + [x_pos, r ** (i + 1) * scale_factor, 0],
-                color=WHITE,
-            )
-            if first_line is None:
-                first_line = vertical_line
-            len_v = i + 1
-
-            if i == 0:
-                len_t = 0.9
-            elif i > 5:
-                len_t = "..."
-            else:
-                len_t = f"0.9^{i+1}"
-
-            text = Tex(f"{len_t}").next_to(
-                vertical_line, DOWN, buff=0.3, aligned_edge=DOWN
-            )
-
-            self.play(FadeIn(vertical_line), Write(text), run_time=0.3)
-
-            x_pos += r ** (i + 1) * scale_factor
-            vertical_line_prev = vertical_line
-
-            group_09.add(vertical_line)
-            # group_09.add(text)
-
-        self.play(group_09.animate.scale(0.3))
-
-        self.wait()
-
-        s_eq2 = Tex("s = 9.999\ldots").scale(1.5).next_to(origin, DOWN * 2)
-        self.play(Write(s_eq))
-        self.wait(1)
-
-        self.play(FadeIn(group_99))
-
-        self.wait()
-
-
-class PythagoreanProofAligned(Scene):
-    def construct(self):
-        # Colors for variables
-        color_a = BLUE
-        color_b = RED
-        color_c = WHITE
-        color_h = GREEN
-
-        # First equation (Area formula) split into LHS, '=', RHS
-        lhs1 = Tex(r"\text{Area} = \frac{1}{2}", r"a", r"b")
-        rhs1 = Tex(r"= \frac{1}{2}", r"c", r"h")
-
-        # Color parts
-        lhs1.set_color_by_tex("a", color_a)
-        lhs1.set_color_by_tex("b", color_b)
-        rhs1.set_color_by_tex("c", color_c)
-        rhs1.set_color_by_tex("h", color_h)
-
-        # Second equation split
-        lhs2 = Tex(r"a^2", r"b^2")
-        eq2 = Tex("=")
-        rhs2 = Tex(r"c^2", r"h^2")
-
-        lhs2.set_color_by_tex("a^2", color_a)
-        lhs2.set_color_by_tex("b^2", color_b)
-        rhs2.set_color_by_tex("c^2", color_c)
-        rhs2.set_color_by_tex("h^2", color_h)
-
-        # Third equation split
-        lhs3 = Tex(r"a^2", r"b^2")
-        eq3 = Tex("=")
-        rhs3 = Tex(r"(", r"a^2", "+", r"b^2", ")", r"h^2")
-
-        lhs3.set_color_by_tex("a^2", color_a)
-        lhs3.set_color_by_tex("b^2", color_b)
-        rhs3.set_color_by_tex("a^2", color_a)
-        rhs3.set_color_by_tex("b^2", color_b)
-        rhs3.set_color_by_tex("h^2", color_h)
-
-        # Align equal signs (`=`) in all equations
-        eq2.next_to(lhs2, RIGHT, buff=0.3)
-        rhs2.next_to(eq2, RIGHT, buff=0.3)
-
-        eq3.next_to(lhs3, RIGHT, buff=0.3)
-        rhs3.next_to(eq3, RIGHT, buff=0.3)
-
-        # Ensure first equation aligns by splitting left and right parts
-        rhs1.next_to(lhs1, RIGHT, buff=0.3)
-
-        # Position all equations vertically
-        lhs1.to_edge(UP, buff=1)
-        rhs1.next_to(lhs1, RIGHT, buff=0.3)
-
-        lhs2.next_to(lhs1, DOWN, buff=0.8)
-        eq2.next_to(lhs2, RIGHT, buff=0.3)
-        rhs2.next_to(eq2, RIGHT, buff=0.3)
-
-        lhs3.next_to(lhs2, DOWN, buff=0.8)
-        eq3.next_to(lhs3, RIGHT, buff=0.3)
-        rhs3.next_to(eq3, RIGHT, buff=0.3)
-
-        # Arrows to show transition
-        arrow1 = Arrow(lhs1.get_bottom(), lhs2.get_top(), buff=0.2)
-        arrow2 = Arrow(lhs2.get_bottom(), lhs3.get_top(), buff=0.2)
-
-        # Display everything
-        self.play(Write(lhs1), Write(rhs1))
-        self.wait(1)
-        self.play(GrowArrow(arrow1))
-        self.play(Write(lhs2), Write(eq2), Write(rhs2))
-        self.wait(1)
-        self.play(GrowArrow(arrow2))
-        self.play(Write(lhs3), Write(eq3), Write(rhs3))
+        self.play(Write(equal), Write(res))
 
         self.wait(2)
+
+        equation2 = Tex(r"s = 1").scale(1.5).shift(LEFT * 1.45)
+
+        self.play(
+            Transform(equation, equation2),
+        )
+
+        self.wait()
+
+        self.play(
+            # FadeOut(strike_line1),
+            # FadeOut(strike_line2),
+            FadeOut(minus)
+        )
+
+        framebox1 = SurroundingRectangle(equation_s[2:], buff=0.1)
+        framebox2 = SurroundingRectangle(equation2[2], buff=0.1)
+
+        equation3 = Tex(r"0.99999\ldots = 1").shift(DOWN * 1).scale(1.8)
+
+        self.play(FadeIn(framebox1), Write(equation3[0:10]))
+        self.wait()
+
+        self.play(FadeIn(framebox2), Write(equation3[-1]), Write(equation3[-2]))
+        self.play(Indicate(equation3, color=WHITE))
+
+        self.wait()
 
 
 class InfiniteRepeatingNine(Scene):
@@ -1927,41 +1264,42 @@ class InfiniteRepeatingNine(Scene):
         color_s = BLUE
 
         color_ten = GREEN
+        sc = 1.2
 
         # First equation: s = ...99999999
-        lhs1 = Tex("s")
-        eq1 = Tex("=")
-        rhs1 = Tex("...", "99999999")
+        lhs1 = Tex("s").scale(sc)
+        eq1 = Tex("=").scale(sc)
+        rhs1 = Tex("...", "99999999").scale(sc)
 
         lhs1.set_color(color_s)
 
         # Second equation: 10s = ...99999990
-        lhs2 = Tex("10s")
-        eq2 = Tex("=")
-        rhs2 = Tex("...", "99999990")
+        lhs2 = Tex("10s").scale(sc)
+        eq2 = Tex("=").scale(sc)
+        rhs2 = Tex("...", "99999990").scale(sc)
 
         lhs2.set_color(color_s)
-        rhs2.set_color_by_tex("0", RED)
+        rhs2.set_color_by_tex("0", YELLOW)
 
         # Third equation: 10s - s = -9
-        lhs3 = Tex("10s", "-", "s")
-        eq3 = Tex("=")
-        rhs3 = Tex("-9")
+        lhs3 = Tex("10s", "-", "s").scale(sc)
+        eq3 = Tex("=").scale(sc)
+        rhs3 = Tex("-9").scale(sc)
 
         lhs3.set_color_by_tex("s", color_s)
         lhs3.set_color_by_tex("10s", color_s)
 
         # Fourth equation: 9s = -9
-        lhs4 = Tex("9s")
-        eq4 = Tex("=")
-        rhs4 = Tex("-9")
+        lhs4 = Tex("9s").scale(sc)
+        eq4 = Tex("=").scale(sc)
+        rhs4 = Tex("-9").scale(sc)
 
         lhs4.set_color_by_tex("9s", color_s)
 
         # Fifth equation: s = -1
-        lhs5 = Tex("s")
-        eq5 = Tex("=")
-        rhs5 = Tex("-1")
+        lhs5 = Tex("s").scale(sc)
+        eq5 = Tex("=").scale(sc)
+        rhs5 = Tex("-1").scale(sc)
 
         lhs5.set_color(color_s)
 
@@ -2015,9 +1353,7 @@ class InfiniteRepeatingNine(Scene):
 
 
 class DualClockWithAnimation(Scene):
-
     def construct(self):
-
         # FadeIn first clock (left) with red hand
         clock1 = Clock()
         clock1.move_to(LEFT * 3.5)
@@ -2035,16 +1371,23 @@ class DualClockWithAnimation(Scene):
 
         self.play(*ani1, *ani2, run_time=2)
 
-        eq = Tex("11 = -1").scale(1.5)
+        self.wait()
+
+        eq = Tex(r"11 = -1").scale(1.5)
         eq.shift(DOWN * 3)
 
         self.play(Write(eq))
 
+        self.wait(2)
+
+        # eq2 = Tex(r"11^2 + 11 = -1").scale(1.5)
+        # eq2.shift(DOWN * 3)
+
+        # self.play(Transform(eq, eq2))
+
 
 class DualClockWithAnimation10(Scene):
-
     def construct(self):
-
         # FadeIn first clock (left) with red hand
         clock1 = Clock(num_hours=10)
         clock1.move_to(LEFT * 3.5)
@@ -2067,173 +1410,678 @@ class DualClockWithAnimation10(Scene):
 
         self.play(Write(eq))
 
-        self.wait(2)
+        self.wait()
+
+        eq2 = Tex("99 = -1").scale(1.5)
+        eq2.shift(DOWN * 3)
+
+        self.play(Transform(eq, eq2))
+
+        ani1 = clock1.animate_hand(TAU / 10, -TAU * 6, fill_color=None)
+
+        self.play(*ani1, run_time=2)
+
+        self.wait()
+
+        eq2 = Tex("999 = -1").scale(1.5)
+        eq2.shift(DOWN * 3)
+
+        self.play(Transform(eq, eq2))
+
+        ani1 = clock1.animate_hand(TAU / 10, -TAU * 10, fill_color=None)
+
+        self.play(*ani1, run_time=2)
+
+        self.wait()
 
         eq2 = Tex("...99999 = -1").scale(1.5)
         eq2.shift(DOWN * 3)
 
         self.play(Transform(eq, eq2))
+        ani1 = clock1.animate_hand(TAU / 10, -TAU * 15, fill_color=None)
+
+        self.play(*ani1, run_time=3)
+
+        self.wait(2)
 
 
-class RotatingDiskAnt(Scene):
+class FlatAnt(Scene):
     def construct(self):
-        # Disk properties
-        disk_radius = 3
-        omega = 2 * PI / 5  # Angular velocity (full rotation in 5 sec)
-        move_time = 2  # Time taken to move 1 unit upwards
+        sc = 2
+        move_time = 1  # Time for the ant to move up by 1 unit in global frame
+        move_speed = 1 / move_time * 2
 
-        # Create the rotating disk
-        disk = Circle(radius=disk_radius, color=BLUE, fill_opacity=0.5)
-        disk.move_to(ORIGIN)
+        left_plane = NumberPlane(
+            x_range=[-1, 2, 1],
+            y_range=[-1, 2, 1],
+            faded_line_ratio=0,
+            axis_config={
+                "stroke_opacity": 0.5,
+            },
+            background_line_style={
+                "stroke_opacity": 0.2,
+                "stroke_width": 2,
+                "stroke_color": GREY,
+            },  # Lower opacity
+        ).scale(sc)
 
-        # Create the ant
+        def update_ant_north(mob, alpha, plane):
+            time_prev = times[0]
+            time = move_time * alpha
+            dt = time - time_prev
+            times[0] = time
+
+            ant_pos = mob.get_center()
+            pos = ant_pos + [0, move_speed * dt, 0]
+            mob.move_to(pos)
+            up_arrow.next_to(mob, UP, aligned_edge=UP)
+
+            plane.add(mob.copy().set_fill(RED))
+
+        def update_ant_east(mob, alpha, plane):
+            time_prev = times[0]
+            time = move_time * alpha
+            dt = time - time_prev
+            times[0] = time
+
+            ant_pos = mob.get_center()
+            pos = ant_pos + [move_speed * dt, 0, 0]
+            mob.move_to(pos)
+            right_arrow.next_to(mob, RIGHT, aligned_edge=RIGHT)
+
+            plane.add(mob.copy().set_fill(GREEN))
+
+        self.play(FadeIn(left_plane))
         ant = Dot(color=WHITE)
-        ant.move_to(ORIGIN)
 
-        # Ant's global movement (straight north in global coordinates)
-        target_position = ORIGIN + UP  # Move up 1 unit
+        starting_pos = left_plane.c2p(0, 0)
+        up_arrow = Arrow(
+            start=starting_pos,
+            end=starting_pos + UP,
+            fill_color=BLUE,
+        )
+        up_arrow.next_to(starting_pos, UP, aligned_edge=UP)
+        ant.move_to(starting_pos)
 
-        # Ant's trajectory (curved in rotating frame)
-        def rotating_motion(t):
-            theta = omega * t  # Angle of rotation at time t
-            r_vec = np.array([0, t, 0])  # Local displacement in the disk frame
-            rot_matrix = np.array(
-                [
-                    [np.cos(-theta), -np.sin(-theta), 0],
-                    [np.sin(-theta), np.cos(-theta), 0],
-                    [0, 0, 1],
-                ]
-            )
-            return rot_matrix @ r_vec  # Transform to rotating frame
+        right_arrow = Arrow(
+            start=starting_pos,
+            end=starting_pos + RIGHT,
+            fill_color=BLUE,
+        )
+        times = [0]
 
-        trajectory = VMobject(color=RED, stroke_width=3).set_points_smoothly(
-            [rotating_motion(t) for t in np.linspace(0, move_time, 30)]
+        self.add(up_arrow)
+        self.play(
+            UpdateFromAlphaFunc(
+                ant,
+                partial(update_ant_north, plane=left_plane),
+            ),
+            run_time=move_time,
+            rate_func=linear,
         )
 
-        # Animation sequence
-        self.play(FadeIn(disk), FadeIn(ant))
-        self.wait(1)
-        self.play(MoveAlongPath(ant, trajectory, run_time=move_time))
-        self.wait(1)
+        self.play(FadeOut(up_arrow))
 
+        times = [0]
+        starting_pos = ant.get_center()
 
-class RotatingDisk(Scene):
-    def construct(self):
-        # Disk properties
-        disk_radius = 3
-        omega = 2 * PI / 5  # Angular velocity (full rotation in 5 sec)
+        right_arrow.next_to(starting_pos, RIGHT, aligned_edge=RIGHT)
+        self.add(right_arrow)
 
-        # Create the rotating disk
-        disk = Circle(radius=disk_radius, color=BLUE, fill_opacity=0.5)
-        disk.move_to(ORIGIN)
+        self.play(
+            UpdateFromAlphaFunc(
+                ant,
+                partial(update_ant_east, plane=left_plane),
+            ),
+            run_time=move_time,
+            rate_func=linear,
+        )
+        self.remove(right_arrow)
 
-        # Create polar coordinate lines
-        polar_lines = VGroup()
-        for angle in np.linspace(0, 2 * PI, 12, endpoint=False):
-            line = Line(
-                ORIGIN,
-                disk_radius * np.array([np.cos(angle), np.sin(angle), 0]),
-                color=WHITE,
+        self.wait()
+
+        self.play(left_plane.animate.shift(LEFT * 3.5), ant.animate.shift(LEFT * 3.5))
+
+        # right plane
+        right_plane = (
+            NumberPlane(
+                x_range=[-1, 2, 1],
+                y_range=[-1, 2, 1],
+                faded_line_ratio=0,
+                axis_config={
+                    "stroke_opacity": 0.5,
+                },
+                background_line_style={
+                    "stroke_opacity": 0.2,
+                    "stroke_width": 2,
+                    "stroke_color": GREY,
+                },  # Lower opacity
             )
-            polar_lines.add(line)
+            .scale(sc)
+            .shift(RIGHT * 3.5)
+        )
 
-        # Create radial lines
-        radial_circles = VGroup()
-        for r in np.linspace(0.5, disk_radius, 5):
-            circle = Circle(radius=r, color=WHITE, stroke_opacity=0.5)
-            radial_circles.add(circle)
+        self.play(FadeIn(right_plane))
 
-        # Group everything together
-        rotating_group = VGroup(disk, polar_lines, radial_circles)
+        starting_pos = right_plane.c2p(0, 0)
 
-        # Animation: Rotate the disk
-        self.play(FadeIn(rotating_group))
-        self.wait(1)
-        self.play(Rotate(rotating_group, angle=2 * PI, run_time=5, rate_func=linear))
-        self.wait(1)
+        ant2 = Dot(color=WHITE)
+        ant2.move_to(starting_pos)
 
+        times = [0]
 
-import numpy as np
-from scipy.integrate import solve_ivp
+        right_arrow.next_to(starting_pos, RIGHT, aligned_edge=RIGHT)
+        self.add(right_arrow)
+
+        self.play(
+            UpdateFromAlphaFunc(
+                ant2,
+                partial(update_ant_east, plane=left_plane),
+            ),
+            run_time=move_time,
+            rate_func=linear,
+        )
+        self.remove(right_arrow)
+
+        times = [0]
+        starting_pos = ant2.get_center()
+
+        up_arrow.next_to(starting_pos, UP, aligned_edge=UP)
+        self.add(up_arrow)
+
+        self.play(
+            UpdateFromAlphaFunc(
+                ant2,
+                partial(update_ant_north, plane=right_plane),
+            ),
+            run_time=move_time,
+            rate_func=linear,
+        )
+        self.remove(up_arrow)
+
+        # glow
+        glow = Dot(ant.get_center(), color=BLUE, radius=0.3, fill_opacity=0.2)
+
+        glow2 = Dot(ant2.get_center(), color=BLUE, radius=0.3, fill_opacity=0.2)
+
+        self.play(FadeIn(glow), FadeIn(glow2))
+
+        self.wait()
+
+        left_plane.set_opacity(0.03)
+        right_plane.set_opacity(0.03)
+
+        up_arrow = Arrow(
+            start=ORIGIN,
+            end=UP * 2,
+            stroke_color=BLUE_D,
+            fill_color=BLUE_D,
+            stroke_width=10,
+            fill_opacity=1,
+        )
+        right_arrow = Arrow(
+            start=ORIGIN,
+            end=RIGHT * 2,
+            stroke_color=BLUE_D,
+            fill_color=BLUE_D,
+            stroke_width=10,
+            fill_opacity=1,
+        )
+
+        up_arrow.move_to(left_plane.c2p(0.5, 0.5)).shift(LEFT * 0.8)
+        left_plus = Tex(r" + ").scale(1.5)
+
+        right_arrow.move_to(left_plane.c2p(0.5, 0.5)).shift(RIGHT * 1.3)
+        left_plus.move_to(left_plane.c2p(0.5, 0.5))
+
+        self.play(FadeIn(up_arrow), FadeIn(right_arrow), Write(left_plus))
+
+        up_arrow_c = up_arrow.copy()
+        up_arrow_c.move_to(right_plane).shift(RIGHT * 0.8)
+        right_plus = Tex(r" + ").scale(1.5)
+
+        right_arrow_c = right_arrow.copy()
+        right_arrow_c.move_to(right_plane).shift(LEFT * 1.3)
+        right_plus.move_to(right_plane)
+
+        self.play(FadeIn(right_arrow_c), FadeIn(up_arrow_c), Write(right_plus))
+
+        neq = Tex(r"=").scale(2.0)
+
+        self.play(Write(neq))
 
 
 class RotatingDiskAnt(Scene):
     def construct(self):
         # Disk properties
-        disk_radius = 3
-        omega = 2 * PI / 5  # Angular velocity (full rotation in 5 sec)
-        move_time = 2  # Time for the ant to move up by 1 unit in global frame
 
-        # Create the rotating disk
-        disk = Circle(radius=disk_radius, color=BLUE, fill_opacity=0.5)
+        disk_radius = 2.5
+        omega = 2 * PI / 9  # Angular velocity (full rotation in 5 sec)
+        move_time = 4  # Time for the ant to move up by 1 unit in global frame
+        move_speed = 1 / move_time * 1.5
 
-        # Create polar coordinate lines
-        polar_lines = VGroup()
-        for angle in np.linspace(0, 2 * PI, 12, endpoint=False):
-            line = Line(
-                ORIGIN,
-                disk_radius * np.array([np.cos(angle), np.sin(angle), 0]),
-                color=WHITE,
-            )
-            polar_lines.add(line)
+        def create_disc():
+            # Create the rotating disk
+            disk = Circle(radius=disk_radius, fill_opacity=0.1)
 
-        # Create radial circles
-        radial_circles = VGroup()
-        for r in np.linspace(0.5, disk_radius, 5):
-            circle = Circle(radius=r, color=WHITE, stroke_opacity=0.5)
-            radial_circles.add(circle)
+            # Create polar coordinate lines
+            polar_lines = VGroup()
+            for angle in np.linspace(0, 2 * PI, 12, endpoint=False):
+                line = DashedLine(
+                    ORIGIN,
+                    disk_radius * np.array([np.cos(angle), np.sin(angle), 0]),
+                    stroke_color=GREY_A,
+                    dash_length=0.2,
+                    stroke_width=0.5,
+                )
+                polar_lines.add(line)
 
-        rotating_group = VGroup(disk, polar_lines, radial_circles)
+            # Create radial circles
+            radial_circles = VGroup()
+            for r in np.linspace(0.5, disk_radius, 4):
+                circle = Circle(radius=r, stroke_color=GREY_A, stroke_opacity=0.3)
+                radial_circles.add(circle)
 
-        # Numerical integration of ant's trajectory in rotating frame
-        def ode(t, z):
-            x, y = z
-            dxdt = 0
-            dydt = 1
-            return [dxdt, dydt]
+            group = VGroup(disk, polar_lines, radial_circles)
+            return group
 
-        sol = solve_ivp(
-            ode, [0, move_time], [0, 0], t_eval=np.linspace(0, move_time, 100)
-        )
-        x_vals, y_vals = sol.y
+        disc = create_disc()
 
-        points = [np.array([x, y, 0]) for x, y in zip(x_vals, y_vals)]
+        rotating_group = disc
 
-        # Draw trajectory in rotating frame
-        trajectory = VMobject(color=RED, stroke_width=3)
-        trajectory.set_points_smoothly(points)
-
-        ant = Dot(color=WHITE).move_to(points[0])
+        ant = Dot(color=WHITE)
 
         # Group with rotating disk
-        ant_and_trail = VGroup(ant, trajectory)
         rotating_all = VGroup(rotating_group, ant)
+
+        rotating_all.shift(LEFT * 3)
 
         # Add to scene
         self.play(FadeIn(rotating_all))
-
-        # self.play(Rotate(rotating_group, angle=2*PI, run_time=5, rate_func=linear))
 
         self.wait(1)
 
         # Animate ant moving along trajectory while rotating the disk
 
-        def update_rotating_group(mob, alpha):
+        def update_ant_north(mob, alpha, disc, starting_pos=ORIGIN):
+            origin = disc.get_center()
+            time_prev = times[0]
             time = move_time * alpha
             dt = time - time_prev
-            time_prev = time
-            mob.rotate(omega * dt, about_point=ORIGIN)
+            times[0] = time
+            disc.rotate(omega * dt, about_point=origin)
 
-        def update_ant(mob, alpha):
-            index = int(alpha * (len(points) - 1))
-            print(index)
-            mob.move_to(points[index])
+            ant_pos = mob.get_center()
+            pos = ant_pos + [0, move_speed * dt, 0]
+            mob.move_to(pos)
+            up_arrow.next_to(mob, UP, aligned_edge=UP)
 
+            disc.add(mob.copy().set_fill(RED))
+
+        def update_ant_east(mob, alpha, disc, starting_pos=ORIGIN):
+            origin = disc.get_center()
+            time_prev = times[0]
+            time = move_time * alpha
+            dt = time - time_prev
+            times[0] = time
+            disc.rotate(omega * dt, about_point=origin)
+
+            ant_pos = mob.get_center()
+            pos = ant_pos + [move_speed * dt, 0, 0]
+            mob.move_to(pos)
+            right_arrow.next_to(mob, RIGHT, aligned_edge=RIGHT)
+
+            disc.add(mob.copy().set_fill(GREEN))
+
+        times = [0]
+
+        starting_pos = rotating_all.copy().get_center()
+        up_arrow = Arrow(
+            start=starting_pos,
+            end=starting_pos + UP,
+            fill_color=BLUE,
+        )
+        up_arrow.next_to(starting_pos, UP, aligned_edge=UP)
+
+        right_arrow = Arrow(
+            start=starting_pos,
+            end=starting_pos + RIGHT,
+            fill_color=BLUE,
+        )
+
+        self.play(FadeIn(up_arrow))
         self.play(
-            UpdateFromAlphaFunc(ant, update_ant),
-            UpdateFromAlphaFunc(rotating_all, update_rotating_group),
+            UpdateFromAlphaFunc(
+                ant,
+                partial(update_ant_north, disc=rotating_all, starting_pos=starting_pos),
+            ),
             run_time=move_time,
             rate_func=linear,
         )
 
         self.wait(1)
+
+        times = [0]
+        starting_pos = ant.copy().get_center()
+
+        right_arrow.next_to(starting_pos, RIGHT, aligned_edge=RIGHT)
+        self.play(FadeOut(up_arrow), FadeIn(right_arrow))
+
+        self.play(
+            UpdateFromAlphaFunc(
+                ant,
+                partial(update_ant_east, disc=rotating_all, starting_pos=starting_pos),
+            ),
+            run_time=move_time,
+            rate_func=linear,
+        )
+
+        self.wait(1)
+
+        # second disc
+        disc2 = create_disc()
+
+        rotating_group2 = disc2
+
+        ant2 = Dot(color=WHITE)
+
+        # Group with rotating disk
+        rotating_all2 = VGroup(rotating_group2, ant2)
+
+        rotating_all2.shift(RIGHT * 3)
+
+        # Add to scene
+        self.play(FadeIn(rotating_all2))
+
+        self.wait(1)
+
+        times = [0]
+
+        starting_pos = rotating_all2.copy().get_center()
+        self.play(
+            UpdateFromAlphaFunc(
+                ant2,
+                partial(update_ant_east, disc=rotating_all2, starting_pos=starting_pos),
+            ),
+            run_time=move_time,
+            rate_func=linear,
+        )
+
+        self.wait(1)
+
+        times = [0]
+        starting_pos = ant2.copy().get_center()
+        up_arrow.next_to(starting_pos, UP, aligned_edge=UP)
+
+        self.play(FadeOut(right_arrow), FadeIn(up_arrow))
+
+        self.play(
+            UpdateFromAlphaFunc(
+                ant2,
+                partial(
+                    update_ant_north, disc=rotating_all2, starting_pos=starting_pos
+                ),
+            ),
+            run_time=move_time,
+            rate_func=linear,
+        )
+        self.remove(up_arrow)
+        self.remove(right_arrow)
+        # show equation
+        rotating_all.set_opacity(0.03)
+        rotating_all2.set_opacity(0.03)
+
+        # glow
+        glow = Dot(ant.get_center(), color=BLUE, radius=0.3, fill_opacity=0.2)
+
+        ant.set_opacity(1)
+        self.play(FadeIn(glow))
+
+        glow2 = Dot(ant2.get_center(), color=BLUE, radius=0.3, fill_opacity=0.2)
+
+        ant2.set_opacity(1)
+        self.play(FadeIn(glow2))
+
+        self.wait(1)
+
+        up_arrow = Arrow(
+            start=ORIGIN,
+            end=UP * 2,
+            stroke_color=BLUE_D,
+            fill_color=BLUE_D,
+            stroke_width=10,
+            fill_opacity=1,
+        )
+        right_arrow = Arrow(
+            start=ORIGIN,
+            end=RIGHT * 2,
+            stroke_color=BLUE_D,
+            fill_color=BLUE_D,
+            stroke_width=10,
+            fill_opacity=1,
+        )
+
+        up_arrow.move_to(rotating_all).shift(LEFT * 0.8)
+        left_plus = Tex(r" + ").scale(1.5)
+
+        right_arrow.move_to(rotating_all).shift(RIGHT * 1.3)
+        left_plus.move_to(rotating_all)
+
+        self.play(FadeIn(up_arrow), FadeIn(right_arrow), Write(left_plus))
+
+        up_arrow_c = up_arrow.copy()
+        up_arrow_c.move_to(rotating_all2).shift(RIGHT * 0.8)
+        right_plus = Tex(r" + ").scale(1.5)
+
+        right_arrow_c = right_arrow.copy()
+        right_arrow_c.move_to(rotating_all2).shift(LEFT * 1.3)
+        right_plus.move_to(rotating_all2)
+
+        self.play(FadeIn(right_arrow_c), FadeIn(up_arrow_c), Write(right_plus))
+
+        neq = Tex(r"\neq").set_color(RED).scale(2.0)
+
+        self.play(Write(neq))
+
+
+class GeometricSeriesVisualization(Scene):
+    def construct(self):
+        # Geometric series visual proof
+        r = 0.8  # Updated ratio value
+        scale_factor = 2.3  # Rescale the entire image
+        shift_amount = LEFT * 5  # Shift entire graph to the left
+
+        # Base lines
+        left_line = Line([0, 0, 0], [0, 1 * scale_factor, 0], color=WHITE).shift(
+            shift_amount
+        )
+
+        origin = left_line.get_start()
+        # bottom_line = Line(
+        #     origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
+        # )
+
+        # Vertical segment lines at positions 1, 1+r, 1+r+r^2, ...
+        x_pos = 1 * scale_factor
+        x_pos_prev = 0
+
+        vertical_lines = []
+        segment_labels = []
+        vertical_line = None
+        vertical_line_prev = left_line
+        cnt = 0
+        while x_pos < (1 / (1 - r)) * scale_factor - 0.1:
+            cnt += 1
+            run_time = 1
+            if cnt > 5:
+                run_time = 0.1
+
+            vertical_line = Line(
+                origin + [x_pos, 0, 0],
+                origin + [x_pos, r ** (len(vertical_lines) + 1) * scale_factor, 0],
+                color=WHITE,
+            )
+            vertical_lines.append(vertical_line)
+
+            horizontal_line = Line(
+                origin + [x_pos_prev, 0, 0],
+                origin + [x_pos, 0, 0],
+            )
+            x_pos_prev = x_pos
+
+            len_v = len(vertical_lines)
+            if len_v <= 6:
+                if len_v == 1:
+                    len_t = 1
+                elif len_v == 2:
+                    len_t = "r"
+                elif len_v == 6:
+                    len_t = "..."
+                else:
+                    len_t = f"r^{len_v-1}"
+                text = Tex(f"{len_t}").next_to(
+                    horizontal_line, DOWN, buff=0.3, aligned_edge=DOWN
+                )
+            else:
+                text = None
+
+            if text is not None:
+                self.play(
+                    FadeIn(horizontal_line),
+                    FadeIn(vertical_line_prev),
+                    FadeIn(text),
+                    run_time=run_time,
+                )
+            else:
+                self.play(
+                    FadeIn(horizontal_line),
+                    FadeIn(vertical_line_prev),
+                    run_time=run_time,
+                )
+
+            x_pos += r ** len(vertical_lines) * scale_factor
+            vertical_line_prev = vertical_line
+
+        self.wait(2)
+        bottom_line = Line(
+            origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
+        )
+        diagonal_line = Line(
+            origin + [0, 1 * scale_factor, 0],
+            origin + [(1 / (1 - r)) * scale_factor, 0, 0],
+            color=WHITE,
+        )
+        self.play(FadeIn(diagonal_line), FadeIn(bottom_line), run_time=3)
+
+        # Upper similar triangle
+        upper_triangle = Polygon(
+            origin + [0, 1 * scale_factor, 0],
+            origin + [1 * scale_factor, 1 * scale_factor, 0],
+            origin + [1 * scale_factor, r * scale_factor, 0],
+            color=WHITE,
+        )
+
+        upper_triangle.set_fill(BLUE, opacity=0.7)
+        self.play(FadeIn(upper_triangle))
+
+        # Labels for lengths
+        left_label = Brace(left_line, LEFT)
+        left_text = Tex("1").next_to(left_label, LEFT, buff=0.2)
+
+        top_line = Line(
+            origin[:2] + [0, 1 * scale_factor],
+            origin[:2] + [1 * scale_factor, 1 * scale_factor],
+        )
+
+        top_label = Brace(top_line, UP)
+        top_text = Tex("1").next_to(top_label, UP, buff=0.2)
+
+        right_line = Line(
+            origin + [1 * scale_factor, 1 * scale_factor, 0],
+            origin + [1 * scale_factor, r * scale_factor, 0],
+        )
+        right_label = Brace(right_line, RIGHT)
+        right_text = Tex("1 - r").next_to(right_label, RIGHT, buff=0.2)
+
+        self.play(
+            FadeIn(left_label),
+            FadeIn(left_text),
+            FadeIn(top_label),
+            FadeIn(top_text),
+            FadeIn(right_label),
+            FadeIn(right_text),
+        )
+
+        self.wait()
+
+        # Lower similar triangle
+        lower_triangle = Polygon(
+            origin + [0, 1 * scale_factor, 0],
+            origin + [0, r * scale_factor, 0],
+            origin + [1 * scale_factor, r * scale_factor, 0],
+            color=WHITE,
+        )
+
+        lower_triangle.set_fill(RED, opacity=0.7)
+        self.play(FadeIn(lower_triangle))
+
+        # Animation to grow lower triangle into the bottom big triangle
+        def update_triangle(triangle, alpha):
+            if alpha < 1 - r:
+                return
+            new_bottom_right = origin + [
+                (1 / (1 - r)) * scale_factor * alpha,
+                (1 - alpha) * scale_factor,
+                0,
+            ]
+            new_polygon = Polygon(
+                origin + [0, 1 * scale_factor, 0],
+                origin + [0, (1 - alpha) * scale_factor, 0],
+                new_bottom_right,
+                color=WHITE,
+            )
+            new_polygon.set_fill(RED, opacity=0.7)
+
+            triangle.become(new_polygon)
+
+        self.play(UpdateFromAlphaFunc(lower_triangle, update_triangle))
+        self.wait()
+
+        # equation
+        equation = Tex(r"\frac{1}{1 - r} = \frac{1 + r + r^2 + \dots}{1}")
+        equation.move_to(bottom_line.get_center() + DOWN * 2).scale(
+            1.3
+        )  # Make it slightly larger
+        self.play(Write(equation))  # Animate the equation appearing
+        self.wait()
+
+        # Lower similar triangle
+        middle_triangle = Polygon(
+            origin + [1 * scale_factor, r * scale_factor, 0],
+            origin + [1 * scale_factor, r * r * scale_factor, 0],
+            origin + [(1 + r) * scale_factor, r * r * scale_factor, 0],
+            color=WHITE,
+        )
+
+        left_line = Line(
+            middle_triangle.get_vertices()[0], middle_triangle.get_vertices()[1]
+        )
+
+        b_label = Brace(left_line, LEFT)
+        b_text = Tex("r - r^2").next_to(b_label, LEFT, buff=0.2)
+
+        middle_triangle.set_fill(YELLOW, opacity=0.7)
+        self.play(FadeIn(middle_triangle))
+        self.play(FadeIn(b_label), FadeIn(b_text))
+
+        middle_line = Line(
+            origin + [1 * scale_factor, 0, 0],
+            origin + [1 * scale_factor, r * r * scale_factor, 0],
+            color=WHITE,
+        )
+
+        b_label = Brace(middle_line, LEFT)
+        b_text = Tex("r^2").next_to(b_label, LEFT, buff=0.2)
+        self.play(FadeIn(b_label), FadeIn(b_text))
+
+        self.wait()
