@@ -1,7 +1,7 @@
-# directories:
+#directories:
 #   mirror_module_path: True
 #   removed_mirror_prefix: "/Users/grant/cs/videos/"
-#   base: "/Users/grant/3Blue1Brown Dropbox/3Blue1Brown/"
+#  base: "/Users/eugenekim/projects/dance-with/first-project/"
 #   subdirs:
 #     raster_images: "images/raster"
 #     vector_images: "images/vector"
@@ -25,6 +25,6 @@ text:
   alignment: "CENTER"
 tex:
   template: "default"
-embed:
-  autoreload: True
-ignore_manimlib_modules_on_reload: True
+# embed:
+#   autoreload: True
+# ignore_manimlib_modules_on_reload: True

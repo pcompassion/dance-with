@@ -3,18 +3,341 @@
 from manimlib import *
 from src.mobject.clock import Clock
 from functools import partial
+import math
 
-# from manim import *
 
-import os
-import time
-import ctypes
+class Test(Scene):
+    def construct(self):
+        import matplotlib.font_manager as fm
+
+        text = Text("한글 테스트", font="BM Hanna 11yrs Old")
+        self.add(text)
+        # for font in fm.fontManager.ttflist:
+        #     if "B" in font.name:
+        #         print(font.name)
+
+
+class Intro(Scene):
+    def construct(self):
+        import matplotlib.font_manager as fm
+
+        t1 = Text("학교에서 안가르쳐주는 ", font="BM Hanna 11yrs Old").scale(1.5)
+        t2 = Text("더하기", font="BM Hanna 11yrs Old").scale(2.2)
+
+        t3 = Text(" 곱하기!", font="BM Hanna 11yrs Old").scale(2.2)
+
+        img = ImageMobject("/Users/eugenekim/projects/dance-with/first-project/g.jpg")
+        img.shift(DOWN * 2).scale(1.5)
+        self.add(img)
+
+        t2.set_color(RED)
+
+        group = VGroup(t1, t2, t3).arrange(RIGHT, buff=0.2).shift(2 * UP)
+        t4 = Tex(r"+").scale(2).next_to(t2, DOWN)
+        t5 = Tex(r"\times").scale(2).next_to(t3, DOWN)
+
+        self.add(group)
+        self.add(t4)
+        self.add(t5)
+
+
+class NonCommutative(Scene):
+    def construct(self):
+        import matplotlib.font_manager as fm
+
+        t1 = Text("퇴근 ", font="BM Hanna 11yrs Old").scale(2)
+        t2 = Tex(r"+").scale(2)
+        t3 = Text("식사", font="BM Hanna 11yrs Old").scale(2)
+
+        t4 = Text("식사", font="BM Hanna 11yrs Old").scale(2)
+        t5 = Tex(r"+").scale(2)
+        t6 = Text("퇴근", font="BM Hanna 11yrs Old").scale(2)
+
+        group = VGroup(t1, t2, t3).arrange(RIGHT, buff=0.2).shift(UP * 0.7)
+        group2 = VGroup(t4, t5, t6).arrange(RIGHT, buff=0.2).shift(DOWN * 0.7)
+
+        self.play(Write(group))
+        self.play(Write(group2))
+
+        self.wait()
+
+        eq = Tex(r" = ").scale(2).next_to(group2, LEFT)
+        q = Text(" ? ").scale(2).next_to(group2, RIGHT)
+
+        self.play(Write(eq))
+        self.play(Write(q))
+        self.wait()
+
+
+class NonCommutative2(Scene):
+    def construct(self):
+        # Word Pairs
+        t1 = Text("퇴근", font="BM Hanna 11yrs Old").scale(1.5)
+        t2 = Tex("+").scale(1.5)
+        t3 = Text("식사", font="BM Hanna 11yrs Old").scale(1.5)
+
+        t4 = Text("식사", font="BM Hanna 11yrs Old").scale(1.5)
+        t5 = Tex("+").scale(1.5)
+        t6 = Text("퇴근", font="BM Hanna 11yrs Old").scale(1.5)
+
+        group = VGroup(t1, t2, t3).arrange(RIGHT, buff=0.2).shift(UP * 0.7)
+        group2 = VGroup(t4, t5, t6).arrange(RIGHT, buff=0.2).shift(DOWN * 0.7)
+
+        self.play(Write(group))
+        self.play(Write(group2))
+
+        self.wait(2)
+
+        self.play(
+            group.animate.move_to(LEFT * 3 + UP * 2),
+            group2.animate.move_to(RIGHT * 3 + UP * 2),
+            run_time=1.5,
+        )
+
+        self.wait(2)
+
+        # Axes for time 1 and time 2
+        axes_left_1 = Axes(x_range=[0, 3], y_range=[0, 3], height=2, width=2).shift(
+            LEFT * 4 + DOWN * 1
+        )
+        axes_left_2 = Axes(x_range=[0, 3], y_range=[0, 3], height=2, width=2).shift(
+            LEFT * 2 + DOWN * 1
+        )
+        axes_right_1 = Axes(x_range=[0, 3], y_range=[0, 3], height=2, width=2).shift(
+            RIGHT * 2 + DOWN * 1
+        )
+        axes_right_2 = Axes(x_range=[0, 3], y_range=[0, 3], height=2, width=2).shift(
+            RIGHT * 4 + DOWN * 1
+        )
+
+        time1_label_left = (
+            Text("Time = 1", font="BM Hanna 11yrs Old")
+            .scale(0.6)
+            .next_to(axes_left_1, DOWN)
+            .set_color(ORANGE)
+        )
+        time2_label_left = (
+            Text("Time = 2", font="BM Hanna 11yrs Old")
+            .scale(0.6)
+            .next_to(axes_left_2, DOWN)
+            .set_color(GREEN)
+        )
+        time1_label_right = (
+            Text("Time = 1", font="BM Hanna 11yrs Old")
+            .scale(0.6)
+            .next_to(axes_right_1, DOWN)
+            .set_color(ORANGE)
+        )
+        time2_label_right = (
+            Text("Time = 2", font="BM Hanna 11yrs Old")
+            .scale(0.6)
+            .next_to(axes_right_2, DOWN)
+            .set_color(GREEN)
+        )
+
+        self.play(
+            ShowCreation(axes_left_1),
+            FadeIn(time1_label_left),
+            ShowCreation(axes_left_2),
+            FadeIn(time2_label_left),
+            ShowCreation(axes_right_1),
+            FadeIn(time1_label_right),
+            ShowCreation(axes_right_2),
+            FadeIn(time2_label_right),
+        )
+        self.wait(1)
+
+        # Vector Transformations
+        # Left Side: 퇴근 -> time 1, 식사 -> time 2
+        t1_vec = Arrow(
+            start=axes_left_1.c2p(0, 0), end=axes_left_1.c2p(1.5, 1), buff=0, color=BLUE
+        )
+        t1_label = (
+            Text("퇴근", font="BM Hanna 11yrs Old")
+            .scale(0.8)
+            .next_to(t1_vec.get_end(), RIGHT, buff=0.1)
+        )
+
+        t3_vec = Arrow(
+            start=axes_left_2.c2p(0, 0),
+            end=axes_left_2.c2p(1, 2.8),
+            buff=0,
+            color=GREEN,
+        )
+        t3_label = (
+            Text("식사", font="BM Hanna 11yrs Old")
+            .scale(0.8)
+            .next_to(t3_vec.get_end(), RIGHT, buff=0.1)
+        )
+
+        self.play(TransformFromCopy(t1, t1_vec), FadeIn(t1_label))
+        self.play(TransformFromCopy(t3, t3_vec), FadeIn(t3_label))
+        self.wait(1)
+
+        # Right Side: 식사 -> time 1, 퇴근 -> time 2
+        t4_vec = Arrow(
+            start=axes_right_1.c2p(0, 0),
+            end=axes_right_1.c2p(1, 2.8),
+            buff=0,
+            color=GREEN,
+        )
+        t4_label = (
+            Text("식사", font="BM Hanna 11yrs Old")
+            .scale(0.8)
+            .next_to(t4_vec.get_end(), RIGHT, buff=0.1)
+        )
+
+        t6_vec = Arrow(
+            start=axes_right_2.c2p(0, 0),
+            end=axes_right_2.c2p(1.5, 1),
+            buff=0,
+            color=BLUE,
+        )
+        t6_label = (
+            Text("퇴근", font="BM Hanna 11yrs Old")
+            .scale(0.8)
+            .next_to(t6_vec.get_end(), RIGHT, buff=0.1)
+        )
+
+        self.play(TransformFromCopy(t4, t4_vec), FadeIn(t4_label))
+        self.play(TransformFromCopy(t6, t6_vec), FadeIn(t6_label))
+        self.wait(2)
+
+        self.play(Indicate(time1_label_left))
+        self.play(Indicate(time2_label_left))
+
+        self.wait(1.5)
+
+        self.play(Indicate(time1_label_right))
+        self.play(Indicate(time2_label_right))
+        self.wait(2)
+
+        # --- Highlight left group (words + vectors) ---
+        left_words_box = SurroundingRectangle(group, color=YELLOW, buff=0.4)
+        left_coords_group = VGroup(
+            axes_left_1,
+            axes_left_2,
+            t1_vec,
+            t1_label,
+            t3_vec,
+            t3_label,
+            time1_label_left,
+            time2_label_left,
+        )
+        left_coords_box = SurroundingRectangle(
+            left_coords_group, color=YELLOW, buff=0.4
+        )
+
+        self.play(FadeIn(left_words_box))
+        self.play(FadeIn(left_coords_box))
+        self.wait(1)
+
+        # --- Highlight right group (words + vectors) ---
+        right_words_box = SurroundingRectangle(group2, color=RED, buff=0.4)
+        right_coords_group = VGroup(
+            axes_right_1,
+            axes_right_2,
+            t4_vec,
+            t4_label,
+            t6_vec,
+            t6_label,
+            time1_label_right,
+            time2_label_right,
+        )
+        right_coords_box = SurroundingRectangle(right_coords_group, color=RED, buff=0.4)
+
+        self.play(FadeIn(right_words_box))
+        self.play(FadeIn(right_coords_box))
+        self.wait(2)
+
+
+class Addition(Scene):
+
+    def construct(self):
+        eq3 = Tex(r"a + b = b + a").scale(1.5)
+
+        # Group and arrange vertically
+
+        self.play(FadeIn(eq3))
+
+
+class AddPolygon(Scene):
+    def construct(self):
+        # Basic Polygon
+
+        polys_l = VGroup(
+            *[
+                RegularPolygon(
+                    5,
+                    radius=1,
+                    # color=Color.from_hsv((j / 5, 1.0, 1.0)),
+                    color=RED,
+                    fill_opacity=0.5,
+                )
+                for j in range(3)
+            ],
+            *[
+                RegularPolygon(
+                    5,
+                    radius=1,
+                    # color=Color.from_hsv((j / 5, 1.0, 1.0)),
+                    color=BLUE,
+                    fill_opacity=0.5,
+                )
+                for j in range(2)
+            ],
+        ).arrange(RIGHT, buff=0.2)
+        # polys_l.shift(3 * LEFT)
+        polys_l.shift(UP * 2)
+
+        self.play(DrawBorderThenFill(polys_l), run_time=1)
+        self.wait(0.5)
+
+        polys = VGroup(
+            *[
+                RegularPolygon(
+                    5,
+                    radius=1,
+                    # color=Color.from_hsv((j / 5, 1.0, 1.0)),
+                    color=BLUE,
+                    fill_opacity=0.5,
+                )
+                for j in range(2)
+            ],
+            *[
+                RegularPolygon(
+                    5,
+                    radius=1,
+                    # color=Color.from_hsv((j / 5, 1.0, 1.0)),
+                    color=RED,
+                    fill_opacity=0.5,
+                )
+                for j in range(3)
+            ],
+        ).arrange(RIGHT, buff=0.2)
+        polys.shift(0.5 * DOWN)
+
+        equal_sign = Text("=").scale(1.5)
+        point = polys.get_left() + 0.5 * LEFT
+        equal_sign.move_to(point)
+
+        self.add(equal_sign)  # Add without animation (ManimGL optimized)
+
+        self.play(DrawBorderThenFill(polys), run_time=1)
+
+        self.wait(0.5)
+        # equation
+        equation = Tex(r"3 + 2 = 2 + 3").scale(1.5)
+        equation.shift(DOWN * 2.5)
+
+        self.play(Write(equation))
+        self.wait(0.5)
 
 
 class BarAddition(Scene):
     def construct(self):
-        # Create x-axis
 
+        # Create x-axis
         sc = 1.5
         x_axis = NumberLine((0, 5, 1), tick_size=0.05).scale(sc)
 
@@ -110,7 +433,7 @@ class BarAddition(Scene):
         self.wait()
 
 
-class ClockAnimation(Scene):
+class AddClockAnimation(Scene):
     def construct(self):
         # clock_face
         def clock_face():
@@ -302,10 +625,51 @@ class CommutativeAddition(Scene):
         self.wait(0.5)
 
 
-class DistributiveProperty(Scene):
+class Distributive(Scene):
+    def construct(self):
+        eq = Tex(r"m \cdot (a + b) = m \cdot b + m \cdot a").scale(1.5)
+        self.play(FadeIn(eq))
+        self.wait(1)
+
+        # Get references to letters
+        m1 = eq.get_part_by_tex("m")[0]  # left m
+        a = eq.get_part_by_tex("a")[0]  # left a
+        b = eq.get_part_by_tex("b")[0]  # left b
+
+        # Create labels (π, π, √2)
+        m_val = Tex(r"\pi").scale(1.5).set_color(YELLOW)
+        a_val = Tex(r"\pi").scale(1.5).set_color(BLUE)
+        b_val = Tex(r"\sqrt{2}").scale(1.2).set_color(GREEN)
+
+        # Position them somewhere below
+        m_val.next_to(m1, DOWN, buff=1)
+        a_val.next_to(a, DOWN, buff=1)
+        b_val.next_to(b, DOWN, buff=1)
+
+        # Arrows
+        m_arrow = Arrow(
+            start=m_val.get_top(), end=m1.get_bottom(), buff=0.1, color=YELLOW
+        )
+        a_arrow = Arrow(start=a_val.get_top(), end=a.get_bottom(), buff=0.1, color=BLUE)
+        b_arrow = Arrow(
+            start=b_val.get_top(), end=b.get_bottom(), buff=0.1, color=GREEN
+        )
+
+        # Group them
+        subs = VGroup(m_val, a_val, b_val, m_arrow, a_arrow, b_arrow)
+
+        self.play(Write(subs), run_time=2)
+        self.wait(2)
+
+
+class DistributiveSingle(Scene):
     def construct(self):
         # Title
-        title = Tex("2(3+4) = 2 \\times 3 + 2 \\times 4").shift(UP * 1.5 + LEFT * 0.5)
+        title = (
+            Tex("2(3+4) = 2 \\times 3 + 2 \\times 4")
+            .shift(UP * 1.5 + LEFT * 0.5)
+            .scale(1.2)
+        )
 
         box_2_3 = SurroundingRectangle(title[7:10], color=YELLOW)
         box_3_2 = SurroundingRectangle(title[11:14], color=RED)
@@ -393,7 +757,7 @@ class DistributiveProperty(Scene):
         self.wait(2)
 
 
-class DistributiveArea(Scene):
+class Distributive3232Area(Scene):
     def construct(self):
         # distributive area
         eq1 = Tex("(3+2) \\times (3+2)").shift(LEFT * 4 + UP)
@@ -598,7 +962,7 @@ class DistributiveArea(Scene):
         self.play(Write(eq2))
 
 
-class MultiplicationLawVisualization(Scene):
+class MultiplicationLaw2Visualization(Scene):
     def construct(self):
         # Create equation
         eq1 = Tex(r"(a+b) \cdot (a^2 - ab + b^2) = a^3 + b^3").scale(1.2)
@@ -620,7 +984,7 @@ class MultiplicationLawVisualization(Scene):
         self.wait(1)
 
 
-class DistributiveLawVisualization(Scene):
+class Distributive321Visualization(Scene):
     def construct(self):
         # 3+2 * 3+2+1
         title = Tex("(3+2) \cdot (3+2+1)").shift(UP * 3)
@@ -675,7 +1039,7 @@ class DistributiveLawVisualization(Scene):
         self.wait(2)
 
 
-class DistributiveLawVisualization(Scene):
+class DistributiveNegativeLaw(Scene):
     def construct(self):
         # minus dis
         title = Tex("4 \\times (3 - 2)").shift(LEFT * 3.5 + UP).scale(1.5)
@@ -796,46 +1160,12 @@ class MultiplicationLawVisualization(Scene):
         self.wait(0.5)
 
 
-class MultiplicationLawVisualization(Scene):
-    def construct(self):
-        # Create equation
-        equation = Tex(r"(a+b) \cdot (a^2 - ab + b^2)").scale(1.2)
-        equation.shift(UP * 2)
-
-        self.play(Write(equation))
-
-        # Break down the multiplication step-by-step
-        step1 = Tex(r"(a+b) \cdot a^2 - (a+b) \cdot ab + (a+b) \cdot b^2").scale(1.1)
-        step1.next_to(equation, DOWN * 1.3, buff=0.5)
-        arrow1 = Arrow(equation.get_bottom(), step1.get_top(), buff=0.2)
-
-        self.play(GrowArrow(arrow1))
-        self.play(Write(step1))
-
-        # Expanding further
-        step2 = Tex(r"a^3 + a^2b - a^2b - ab^2 + ab^2 + b^3").scale(1.1)
-        step2.next_to(step1, DOWN * 1.3, buff=0.5)
-        arrow2 = Arrow(step1.get_bottom(), step2.get_top(), buff=0.2)
-
-        self.play(GrowArrow(arrow2))
-        self.play(Write(step2))
-
-        # Final cancellation
-        step3 = Tex(r"a^3 + b^3").scale(1.2)
-        step3.next_to(step2, DOWN * 1.3, buff=0.5)
-        arrow3 = Arrow(step2.get_bottom(), step3.get_top(), buff=0.2)
-
-        self.play(GrowArrow(arrow3))
-        self.play(Write(step3))
-
-        self.wait(2)
-
-
 class ComplexNumber(Scene):
     def construct(self):
         equation = Tex("(3+4i)(2+3i) = 6 + 9i + 8i + 12i^2").scale(1.2).shift(UP * 2)
         self.play(FadeIn(equation))
         self.wait(2)
+        sc = 1.5
 
         plane = (
             NumberPlane(
@@ -881,7 +1211,7 @@ class ComplexNumber(Scene):
         self.wait()
 
 
-class MultiplicationAnimation(Scene):
+class MultiplicationFraction(Scene):
     def construct(self):
         # Display multiplication expression
 
@@ -1032,18 +1362,44 @@ class MultiplicationAnimation(Scene):
         self.wait(2)
 
 
-class MultiplicationPiVisualization(Scene):
+class MultiplicationPiEquation(Scene):
     def construct(self):
         # Display title
-        title = Tex(r" \pi \times \pi").scale(1.2)
-        title.shift(UP * 3)
+        title = Tex(r" \pi \times \pi").scale(1.5)
+        title.shift(UP * 2)
         self.play(Write(title))
 
-        eq1 = Tex(r"3.14159265358979323846\ldots")
+        eq1 = Tex(r"3.1415926535897932\ldots")
         m = Tex(r"\times").next_to(eq1, DOWN)
-        eq2 = Tex(r"3.14159265358979323846\ldots").next_to(m, DOWN)
+        eq2 = Tex(r"3.1415926535897932\ldots").next_to(m, DOWN)
 
         self.play(Write(eq1), Write(m), Write(eq2))
+        self.wait(2)
+
+        self.play(FadeOut(eq1), FadeOut(m), FadeOut(eq2))
+
+        eq1 = Tex(r"3").set_color(BLUE).scale(1.2)
+        mul = Tex(r"\times")
+        eq2 = Tex(r"3.1415926535897932\ldots")
+
+        group = VGroup(eq1, mul, eq2).arrange(RIGHT, buff=0.2).shift(UP * 0.5)
+
+        self.play(Write(group))
+        self.wait()
+
+        t1 = Text("끝나면 다음 수를 곱하자", font="BM Hanna 11yrs Old").scale(1)
+
+        t1.next_to(group, DOWN * 1.3)
+        self.play(Write(t1))
+        self.wait(2)
+
+        eq1 = Tex(r"3.1").set_color(BLUE).scale(1.2)
+        mul = Tex(r"\times")
+        eq2 = Tex(r"3.1415926535897932\ldots")
+
+        group = VGroup(eq1, mul, eq2).arrange(RIGHT, buff=0.2)
+        group.next_to(t1, DOWN * 1.3)
+        self.play(Write(group))
 
         self.wait(2)
 
@@ -1170,7 +1526,44 @@ class PiMultiplication(Scene):
         self.wait()
 
 
-class InfiniteDecimalGeometric(Scene):
+class PiApproximation(Scene):
+    def construct(self):
+        # Step 1: Start high with π · π
+        eq = Tex(r"\pi \cdot \pi").scale(2)
+        self.play(Write(eq))
+        self.wait(1)
+
+        # Step 2: Move to center while changing to 3 · 3
+
+        # Step 3: In-place morphs
+        approximations = [
+            r"3 \cdot 3",
+            r"3.1 \cdot 3.1",
+            r"3.14 \cdot 3.14",
+            r"3.141 \cdot 3.141",
+            r"3.1415 \cdot 3.1415",
+            r"3.14159 \cdot 3.14159",
+            r"3.141592 \cdot 3.141592",
+        ]
+
+        for approx in approximations:
+            next_eq = Tex(approx).scale(2)
+            self.play(Transform(eq, next_eq), run_time=0.8)
+            self.wait(0.2)
+
+        self.wait(1)
+        eq_lim = (
+            Tex(r"\lim a_n \times \lim b_n = \lim (a_n \times b_n)")
+            .shift(DOWN * 1.5)
+            .scale(1.2)
+        ).set_color(GREY)
+        eq2 = Tex(r"\pi \cdot \pi").scale(2)
+
+        self.play(Write(eq_lim), Transform(eq, eq2))
+        self.wait()
+
+
+class InfiniteDecimalGeometricEq(Scene):
     def construct(self):
         # Step 1: Introduce s = 0.99999...
         equation_s = Tex(r"s = 0.99999\ldots").scale(1.5)
@@ -1258,7 +1651,7 @@ class InfiniteDecimalGeometric(Scene):
         self.wait()
 
 
-class InfiniteRepeatingNine(Scene):
+class InfiniteRepeatingNineBlowup(Scene):
     def construct(self):
         # Define the colors for emphasis
         color_s = BLUE
@@ -1352,7 +1745,7 @@ class InfiniteRepeatingNine(Scene):
         self.wait(2)
 
 
-class DualClockWithAnimation(Scene):
+class DualClock12WithAnimation(Scene):
     def construct(self):
         # FadeIn first clock (left) with red hand
         clock1 = Clock()
@@ -1651,6 +2044,196 @@ class FlatAnt(Scene):
         self.play(Write(neq))
 
 
+class RotatingDiskAntIntro(Scene):
+    def construct(self):
+        # Disk properties
+
+        move_time = 1  # Time for the ant to move up by 1 unit in global frame
+        move_speed = 1 / move_time * 1
+        sc = 1.5
+
+        left_plane = NumberPlane(
+            x_range=[-1, 2, 1],
+            y_range=[-1, 2, 1],
+            faded_line_ratio=0,
+            axis_config={
+                "stroke_opacity": 0.5,
+            },
+            background_line_style={
+                "stroke_opacity": 0.2,
+                "stroke_width": 2,
+                "stroke_color": GREY,
+            },  # Lower opacity
+        ).scale(sc)
+
+        def update_ant_north_plane(mob, alpha, plane):
+            time_prev = times[0]
+            time = move_time * alpha
+            dt = time - time_prev
+            times[0] = time
+
+            ant_pos = mob.get_center()
+            pos = ant_pos + [0, move_speed * dt, 0]
+            mob.move_to(pos)
+            up_arrow.next_to(mob, UP, aligned_edge=UP)
+
+            plane.add(mob.copy().set_fill(RED))
+
+        def update_ant_east_plane(mob, alpha, plane):
+            time_prev = times[0]
+            time = move_time * alpha
+            dt = time - time_prev
+            times[0] = time
+
+            ant_pos = mob.get_center()
+            pos = ant_pos + [move_speed * dt, 0, 0]
+            mob.move_to(pos)
+            right_arrow.next_to(mob, RIGHT, aligned_edge=RIGHT)
+
+            plane.add(mob.copy().set_fill(GREEN))
+
+        left_plane.set_opacity(0)
+        self.play(FadeIn(left_plane))
+
+        # self.play(left_plane.animate.shift(RIGHT * 3.5))
+
+        t1 = Text("회전하는 판위에서", font="BM Hanna 11yrs Old").scale(1.2)
+
+        t2 = Text("움직인다면?", font="BM Hanna 11yrs Old").scale(1.2)
+
+        t1.shift(RIGHT * 2.5)
+        t2.next_to(t1, DOWN)
+        self.play(Write(t1))
+        self.play(Write(t2))
+
+        ant = Dot(color=WHITE)
+
+        starting_pos = left_plane.c2p(0, 0)
+        up_arrow = Arrow(
+            start=starting_pos,
+            end=starting_pos + UP,
+            fill_color=BLUE,
+        )
+        up_arrow.next_to(starting_pos, UP, aligned_edge=UP)
+        ant.move_to(starting_pos)
+
+        right_arrow = Arrow(
+            start=starting_pos,
+            end=starting_pos + RIGHT,
+            fill_color=BLUE,
+        )
+
+        disk_radius = 2.5
+        omega = 2 * PI / 9  # Angular velocity (full rotation in 5 sec)
+        rotate_time = 4  # Time for the ant to move up by 1 unit in global frame
+        rotate_speed = 1 / rotate_time * 1.5
+
+        def create_disc():
+            # Create the rotating disk
+            disk = Circle(radius=disk_radius, fill_opacity=0.1)
+
+            # Create polar coordinate lines
+            polar_lines = VGroup()
+            for angle in np.linspace(0, 2 * PI, 12, endpoint=False):
+                line = DashedLine(
+                    ORIGIN,
+                    disk_radius * np.array([np.cos(angle), np.sin(angle), 0]),
+                    stroke_color=GREY_A,
+                    dash_length=0.2,
+                    stroke_width=0.5,
+                )
+                polar_lines.add(line)
+
+            # Create radial circles
+            radial_circles = VGroup()
+            for r in np.linspace(0.5, disk_radius, 4):
+                circle = Circle(radius=r, stroke_color=GREY_A, stroke_opacity=0.3)
+                radial_circles.add(circle)
+
+            group = VGroup(disk, polar_lines, radial_circles)
+            return group
+
+        disc = create_disc()
+
+        rotating_group = disc
+
+        ant = Dot(color=WHITE)
+
+        # Group with rotating disk
+        rotating_all = VGroup(rotating_group, ant)
+
+        rotating_all.shift(LEFT * 3)
+
+        # Add to scene
+        self.play(FadeIn(rotating_all))
+
+        # Animate ant moving along trajectory while rotating the disk
+
+        def update_ant_north(mob, alpha, disc, starting_pos=ORIGIN):
+            origin = disc.get_center()
+            time_prev = times[0]
+            time = rotate_time * alpha
+            dt = time - time_prev
+            times[0] = time
+            disc.rotate(omega * dt, about_point=origin)
+
+        def update_ant_east(mob, alpha, disc, starting_pos=ORIGIN):
+            origin = disc.get_center()
+            time_prev = times[0]
+            time = rotate_time * alpha
+            dt = time - time_prev
+            times[0] = time
+            disc.rotate(omega * dt, about_point=origin)
+
+        times = [0]
+
+        starting_pos = rotating_all.copy().get_center()
+
+        self.play(
+            UpdateFromAlphaFunc(
+                ant,
+                partial(update_ant_north, disc=rotating_all, starting_pos=starting_pos),
+            ),
+            run_time=rotate_time,
+            rate_func=linear,
+        )
+
+        self.wait(1)
+        # plane
+
+        times = [0]
+
+        self.add(up_arrow)
+        self.play(
+            UpdateFromAlphaFunc(
+                ant,
+                partial(update_ant_north_plane, plane=left_plane),
+            ),
+            run_time=move_time,
+            rate_func=linear,
+        )
+
+        self.play(FadeOut(up_arrow))
+
+        times = [0]
+        starting_pos = ant.get_center()
+
+        right_arrow.next_to(starting_pos, RIGHT, aligned_edge=RIGHT)
+        self.add(right_arrow)
+
+        self.play(
+            UpdateFromAlphaFunc(
+                ant,
+                partial(update_ant_east_plane, plane=left_plane),
+            ),
+            run_time=move_time,
+            rate_func=linear,
+        )
+        self.remove(right_arrow)
+
+        self.wait()
+
+
 class RotatingDiskAnt(Scene):
     def construct(self):
         # Disk properties
@@ -1884,6 +2467,440 @@ class RotatingDiskAnt(Scene):
         self.play(Write(neq))
 
 
+class RotatingDiskAntInAbs(Scene):
+    def construct(self):
+        # Disk properties
+
+        disk_radius = 2.5
+        omega = 4 * PI / 9  # Angular velocity (full rotation in 5 sec)
+
+        move_time = 5  # Time for the ant to move up by 1 unit in global frame
+        move_speed = 2
+        sc = 1.5
+
+        def create_disc():
+            # Create the rotating disk
+            disk = Circle(radius=disk_radius, fill_opacity=0.1)
+
+            # Create polar coordinate lines
+            polar_lines = VGroup()
+            for angle in np.linspace(0, 2 * PI, 12, endpoint=False):
+                line = DashedLine(
+                    ORIGIN,
+                    disk_radius * np.array([np.cos(angle), np.sin(angle), 0]),
+                    stroke_color=GREY_A,
+                    dash_length=0.2,
+                    stroke_width=0.5,
+                )
+                polar_lines.add(line)
+
+            # Create radial circles
+            radial_circles = VGroup()
+            for r in np.linspace(0.5, disk_radius, 4):
+                circle = Circle(radius=r, stroke_color=GREY_A, stroke_opacity=0.3)
+                radial_circles.add(circle)
+
+            group = VGroup(disk, polar_lines, radial_circles)
+            return group
+
+        disc = create_disc()
+
+        rotating_group = disc
+
+        ant = Dot(color=WHITE)
+
+        # Group with rotating disk
+        rotating_all = VGroup(rotating_group, ant)
+
+        rotating_all.shift(LEFT * 3)
+
+        # Add to scene
+        self.play(FadeIn(rotating_all))
+
+        self.wait(1)
+
+        # Animate ant moving along trajectory while rotating the disk
+
+        def update_ant_north(mob, alpha, disc, starting_pos=ORIGIN):
+
+            time_prev = times[0]
+            time = move_time * alpha
+            dt = time - time_prev
+            times[0] = time
+            disc.rotate(omega * dt, about_point=starting_pos)
+
+            ant_pos = mob.get_center()
+            pos = ant_pos + [0, move_speed * dt, 0]
+            mob.move_to(pos)
+            up_arrow.next_to(mob, UP, aligned_edge=UP)
+
+            disc.add(mob.copy().set_fill(RED))
+
+        def update_ant_east(mob, alpha, disc, starting_pos=ORIGIN):
+
+            time_prev = times[0]
+            time = move_time * alpha
+            dt = time - time_prev
+            times[0] = time
+            disc.rotate(omega * dt, about_point=starting_pos)
+
+            ant_pos = mob.get_center()
+            pos = ant_pos + [move_speed * dt, 0, 0]
+            mob.move_to(pos)
+            right_arrow.next_to(mob, RIGHT, aligned_edge=RIGHT)
+
+            disc.add(mob.copy().set_fill(GREEN))
+
+            positions.append(pos)
+
+        times = [0]
+        positions = []
+
+        starting_pos = rotating_all.copy().get_center()
+        up_arrow = Arrow(
+            start=starting_pos,
+            end=starting_pos + UP,
+            fill_color=BLUE,
+        )
+        up_arrow.next_to(starting_pos, UP, aligned_edge=UP)
+
+        right_arrow = Arrow(
+            start=starting_pos,
+            end=starting_pos + RIGHT,
+            fill_color=BLUE,
+        )
+
+        self.play(FadeIn(up_arrow))
+        self.play(
+            UpdateFromAlphaFunc(
+                ant,
+                partial(update_ant_north, disc=rotating_all, starting_pos=starting_pos),
+            ),
+            run_time=move_time,
+            rate_func=linear,
+        )
+
+        self.wait(1)
+
+        times = [0]
+
+        right_arrow.next_to(ant.copy().get_center(), RIGHT, aligned_edge=RIGHT)
+        self.play(FadeOut(up_arrow), FadeIn(right_arrow))
+
+        self.play(
+            UpdateFromAlphaFunc(
+                ant,
+                partial(update_ant_east, disc=rotating_all, starting_pos=starting_pos),
+            ),
+            run_time=move_time,
+            rate_func=linear,
+        )
+
+        self.wait(1)
+
+        # second disc
+        disc2 = create_disc()
+
+        rotating_group2 = disc2
+
+        ant2 = Dot(color=WHITE)
+
+        # Group with rotating disk
+        rotating_all2 = VGroup(rotating_group2, ant2)
+
+        rotating_all2.shift(RIGHT * 3)
+
+        # Add to scene
+        self.play(FadeIn(rotating_all2))
+
+        self.wait(1)
+
+        times = [0]
+        positions = []
+
+        starting_pos = rotating_all2.copy().get_center()
+        self.play(
+            UpdateFromAlphaFunc(
+                ant2,
+                partial(update_ant_east, disc=rotating_all2, starting_pos=starting_pos),
+            ),
+            run_time=move_time,
+            rate_func=linear,
+        )
+
+        self.wait(1)
+
+        times = [0]
+
+        up_arrow.next_to(ant2.copy().get_center(), UP, aligned_edge=UP)
+
+        self.play(FadeOut(right_arrow), FadeIn(up_arrow))
+
+        self.play(
+            UpdateFromAlphaFunc(
+                ant2,
+                partial(
+                    update_ant_north, disc=rotating_all2, starting_pos=starting_pos
+                ),
+            ),
+            run_time=move_time,
+            rate_func=linear,
+        )
+
+        self.wait(2)
+        up_arrow.set_opacity(0.1)
+        right_arrow.set_opacity(0)
+
+        rotating_all.set_opacity(0.1)
+        rotating_all2.set_opacity(0.1)
+
+        self.wait(2)
+
+        right_plane = (
+            NumberPlane(
+                x_range=[-2, 2, 1],
+                y_range=[-2, 2, 1],
+                faded_line_ratio=0,
+                axis_config={
+                    "stroke_opacity": 1,
+                    "stroke_width": 3,
+                },
+                background_line_style={
+                    "stroke_opacity": 1,
+                    "stroke_width": 2,
+                    "stroke_color": GREY,
+                },  # Lower opacity
+            ).scale(sc)
+        ).move_to(disc2)
+
+        self.play(FadeIn(right_plane))
+
+        self.wait()
+
+        # self.play(up_arrow.animate.set_opacity(1))
+
+        # First index
+
+        # omega = 4 * PI / 9  # Angular velocity (full rotation in 5 sec)
+
+        # move_time = 5  # Time for the ant to move up by 1 unit in global frame
+
+        times = [0]
+
+        def update_ant_east_withv(mob, alpha, disc, starting_pos=ORIGIN):
+
+            time_prev = times[0]
+            time = move_time * alpha
+            dt = time - time_prev
+            times[0] = time
+            disc.rotate(omega * dt, about_point=starting_pos)
+
+            ant_pos = mob.get_center()
+            pos = ant_pos + [move_speed * dt, 0, 0]
+            mob.move_to(pos)
+            # right_arrow.next_to(mob, RIGHT, aligned_edge=RIGHT)
+
+            disc.add(mob.copy().set_fill(GREEN))
+
+            rel_pos = pos - starting_pos
+            x, y, z = rel_pos
+            scale = 1
+
+            dxdt = (move_speed - omega * y) * scale
+            dydt = omega * x * scale
+
+            new_arrow_x = Arrow(
+                start=pos, end=pos + np.array([dxdt, 0, 0]), fill_color=BLUE, buff=0
+            )
+            new_arrow_y = Arrow(
+                start=pos,
+                end=pos + np.array([0, dydt, 0]),
+                fill_color=BLUE,
+                buff=0,
+            )
+            arrow_x.become(new_arrow_x)
+            arrow_y.become(new_arrow_y)
+
+        pos = [0, 0, 0]
+        arrow_x = Arrow(
+            start=pos, end=pos + np.array([0, 0, 0]), fill_color=BLUE, buff=0
+        )
+
+        arrow_y = Arrow(
+            start=pos,
+            end=pos + np.array([0, 0, 0]),
+            fill_color=BLUE,
+            buff=0,
+        )
+        self.add(arrow_x)
+        self.add(arrow_y)
+
+        ant2.move_to(starting_pos)
+
+        remaining = 2 * PI - omega * move_time * 2
+
+        self.play(
+            Rotate(rotating_all2, angle=remaining, about_point=starting_pos), run_time=2
+        )
+        self.wait()
+
+        self.play(
+            UpdateFromAlphaFunc(
+                ant2,
+                partial(
+                    update_ant_east_withv, disc=rotating_all2, starting_pos=starting_pos
+                ),
+            ),
+            run_time=move_time * 2,
+            rate_func=linear,
+        )
+
+        # Step through every nth frame
+
+        self.play(FadeOut(arrow_x), FadeOut(arrow_y))
+
+        self.wait(1)
+
+        def get_polar_grid(
+            max_radius=3,
+            num_circles=3,
+            num_radial_lines=12,
+            color=WHITE,
+            stroke_opacity=0.2,
+        ):
+            # Circles
+            circles = VGroup(
+                *[
+                    Circle(radius=r, color=color, stroke_opacity=stroke_opacity)
+                    for r in np.linspace(1, max_radius, num_circles)
+                ]
+            )
+
+            # Radial lines
+            lines = VGroup(
+                *[
+                    Line(ORIGIN, RIGHT * max_radius)
+                    .rotate(i * TAU / num_radial_lines, about_point=ORIGIN)
+                    .set_stroke(color=color, opacity=stroke_opacity)
+                    for i in range(num_radial_lines)
+                ]
+            )
+
+            # Axes: horizontal and vertical
+            h_line = Line(
+                LEFT * max_radius,
+                RIGHT * max_radius,
+                color=color,
+                stroke_opacity=stroke_opacity,
+            )
+            v_line = Line(
+                DOWN * max_radius,
+                UP * max_radius,
+                color=color,
+                stroke_opacity=stroke_opacity,
+            )
+
+            axes = VGroup(h_line, v_line)
+
+            return VGroup(circles, lines, axes)
+
+        remaining = 2 * PI - omega * move_time * 1
+
+        self.play(
+            Rotate(rotating_all2, angle=remaining, about_point=starting_pos), run_time=2
+        )
+
+        self.wait()
+
+        # polar = get_polar_grid()
+        # polar.scale(0.2)
+        # polar.move_to(starting_pos)
+        # ant2.move_to(starting_pos)
+
+        # self.play(FadeOut(right_plane))
+        # self.play(FadeIn(polar))
+
+        # # ant2.move_to(starting_pos)
+
+        # arrow_x = Arrow(
+        #     start=pos, end=pos + np.array([0, 0, 0]), fill_color=BLUE, buff=0
+        # )
+
+        # arrow_y = Arrow(
+        #     start=pos,
+        #     end=pos + np.array([0, 0, 0]),
+        #     fill_color=BLUE,
+        #     buff=0,
+        # )
+
+        # self.add(arrow_x)
+        # self.add(arrow_y)
+
+        # def update_ant_east_with_polar(mob, alpha, disc, polar, starting_pos=ORIGIN):
+
+        #     time_prev = times[0]
+        #     time = move_time * alpha
+        #     dt = time - time_prev
+        #     times[0] = time
+        #     disc.rotate(omega * dt, about_point=starting_pos)
+
+        #     ant_pos = mob.get_center()
+        #     pos = ant_pos + [move_speed * dt, 0, 0]
+        #     mob.move_to(pos)
+        #     # right_arrow.next_to(mob, RIGHT, aligned_edge=RIGHT)
+
+        #     polar.move_to(pos)
+        #     polar.rotate(omega * dt, about_point=polar.get_center())
+
+        #     disc.add(mob.copy().set_fill(GREEN))
+
+        #     rel_pos = pos - starting_pos
+        #     x, y, z = rel_pos
+        #     scale = 1
+
+        #     theta = math.atan2(y, x)
+        #     dadt = math.cos(theta) * scale
+        #     drdt = -math.sin(theta) * scale
+
+        #     new_arrow_x = Arrow(
+        #         start=pos, end=pos + np.array([dadt + 1, 0, 0]), fill_color=BLUE, buff=0
+        #     )
+        #     new_arrow_x.rotate(theta, about_point=pos)
+        #     new_arrow_y = Arrow(
+        #         start=pos,
+        #         end=pos + np.array([0, drdt, 0]),
+        #         fill_color=BLUE,
+        #         buff=0,
+        #     )
+        #     new_arrow_y.rotate(theta, about_point=pos)
+
+        #     arrow_x.become(new_arrow_x)
+        #     arrow_y.become(new_arrow_y)
+
+        # times = [0]
+
+        # self.play(
+        #     UpdateFromAlphaFunc(
+        #         ant2,
+        #         partial(
+        #             update_ant_east_with_polar,
+        #             disc=rotating_all2,
+        #             polar=polar,
+        #             starting_pos=starting_pos,
+        #         ),
+        #     ),
+        #     run_time=move_time*2,
+        #     rate_func=linear,
+        # )
+
+        # # Step through every nth frame
+
+        # self.wait(1)
+        # self.remove(arrow_x)
+        # self.remove(arrow_y)
+        # self.remove(polar)
+
+
 class GeometricSeriesVisualization(Scene):
     def construct(self):
         # Geometric series visual proof
@@ -2085,3 +3102,368 @@ class GeometricSeriesVisualization(Scene):
         self.play(FadeIn(b_label), FadeIn(b_text))
 
         self.wait()
+
+
+class GeometricSeriesVisualization2(Scene):
+    def construct(self):
+        # Geometric series visual proof
+        r = 0.8  # Updated ratio value
+        scale_factor = 2.3  # Rescale the entire image
+        shift_amount = LEFT * 5  # Shift entire graph to the left
+
+        # Base lines
+        left_line = Line([0, 0, 0], [0, 1 * scale_factor, 0], color=WHITE).shift(
+            shift_amount
+        )
+
+        origin = left_line.get_start()
+        # bottom_line = Line(
+        #     origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
+        # )
+
+        # Vertical segment lines at positions 1, 1+r, 1+r+r^2, ...
+        x_pos = 1 * scale_factor
+        x_pos_prev = 0
+
+        vertical_lines = []
+        segment_labels = []
+        vertical_line = None
+        vertical_line_prev = left_line
+        cnt = 0
+        while x_pos < (1 / (1 - r)) * scale_factor - 0.1:
+            cnt += 1
+            run_time = 0.1
+
+            vertical_line = Line(
+                origin + [x_pos, 0, 0],
+                origin + [x_pos, r ** (len(vertical_lines) + 1) * scale_factor, 0],
+                color=WHITE,
+            )
+            vertical_lines.append(vertical_line)
+
+            horizontal_line = Line(
+                origin + [x_pos_prev, 0, 0],
+                origin + [x_pos, 0, 0],
+            )
+            x_pos_prev = x_pos
+
+            len_v = len(vertical_lines)
+            if len_v <= 6:
+                if len_v == 1:
+                    len_t = 1
+                elif len_v == 2:
+                    len_t = "r"
+                elif len_v == 6:
+                    len_t = "..."
+                else:
+                    len_t = f"r^{len_v-1}"
+                text = Tex(f"{len_t}").next_to(
+                    horizontal_line, DOWN, buff=0.3, aligned_edge=DOWN
+                )
+            else:
+                text = None
+
+            if text is not None:
+                self.play(
+                    FadeIn(horizontal_line),
+                    FadeIn(vertical_line_prev),
+                    FadeIn(text),
+                    run_time=run_time,
+                )
+            else:
+                self.play(
+                    FadeIn(horizontal_line),
+                    FadeIn(vertical_line_prev),
+                    run_time=run_time,
+                )
+
+            x_pos += r ** len(vertical_lines) * scale_factor
+            vertical_line_prev = vertical_line
+
+        self.wait(2)
+        bottom_line = Line(
+            origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
+        )
+
+        end = origin + [(1 / (1 - r)) * scale_factor, 0, 0]
+        diagonal_line = Line(
+            origin + [0, 1 * scale_factor, 0],
+            end,
+            color=WHITE,
+        )
+        self.play(FadeIn(diagonal_line), FadeIn(bottom_line), run_time=3)
+
+        self.wait()
+
+        # Dot at bottom-right point
+
+        glow = Dot(point=end, color=BLUE, radius=0.3, fill_opacity=0.2)
+
+        # Add dot + glow
+        self.play(FadeIn(glow))
+        self.wait()
+
+
+class PandaNoiseIllustration(Scene):
+    def construct(self):
+        # Step 1: Show the washed out panda
+
+        washed_out = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/new_panda_more_washed_out.png"
+        )
+
+        ws2 = washed_out.copy().shift(LEFT * 3.2)
+
+        self.play(FadeIn(washed_out), FadeIn(ws2))
+
+        self.wait(1)
+        # noise_layer = ImageMobject("/Users/eugenekim/projects/dance-with/first-project/coarse_noise_overlay.png"
+        #                            )
+
+        noise_layer = Rectangle(
+            width=washed_out.get_width(),
+            height=washed_out.height,
+            fill_color=GREY_D,
+            fill_opacity=0.6,
+            stroke_opacity=0,
+        )
+
+        noise_layer_top = Rectangle(
+            width=washed_out.get_width(),
+            height=washed_out.height,
+            fill_color=GREY_D,
+            fill_opacity=0.4,
+            stroke_opacity=0,
+        )
+
+        noise_layer.next_to(washed_out, RIGHT * 2)
+
+        t1 = Text("노이즈", font="BM Hanna 11yrs Old")
+        t1.next_to(noise_layer, DOWN)
+        t2 = t1.copy().next_to(washed_out, DOWN)
+
+        gr_noise = VGroup(noise_layer, t1)
+
+        self.play(FadeIn(gr_noise))
+
+        self.wait()
+
+        # Step 3: Transition to the moderately noisy image (sharper)
+        sharper_panda = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/new_panda_noise_1.png"
+        )
+        sharper_panda.move_to(washed_out.get_center())
+
+        self.play(
+            # noise_layer.animate.move_to(washed_out),
+            Transform(noise_layer, noise_layer_top),
+            Transform(t1, t2),
+        )
+        self.play(
+            noise_layer.animate.move_to(washed_out),
+            FadeOut(washed_out),
+            FadeOut(gr_noise),
+            FadeIn(sharper_panda),
+            FadeOut(t2),
+        )
+
+        self.wait(2)
+
+        # self.play(
+        #     FadeOut(washed_out), FadeOut(noise_layer), FadeIn(sharper_panda), run_time=2
+        # )
+
+        t1 = Text("원본", font="BM Hanna 11yrs Old")
+        t1.next_to(ws2, DOWN)
+
+        t2 = Text("원본 + 노이즈", font="BM Hanna 11yrs Old").set_color(YELLOW)
+        t2.next_to(sharper_panda, DOWN)
+
+        self.play(FadeIn(t1), FadeIn(t2))
+        self.wait(2)
+
+        noise2 = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/new_panda_noise_3.png"
+        )
+
+        noise2.next_to(sharper_panda, RIGHT * 2)
+
+        t3 = Text("노이즈 * 5", font="BM Hanna 11yrs Old")
+        t3.next_to(noise2, DOWN)
+
+        self.play(FadeIn(noise2), FadeIn(t3))
+
+        self.wait()
+
+        t1 = Tex(r"a + b").scale(1.2)
+        t1.shift(UP * 2.7)
+
+        self.play(Write(t1))
+        self.wait()
+
+
+class AbstractNumberScene(Scene):
+    def construct(self):
+        # ----------------------------
+        # 🐑 3-SHEEP ADDITION
+        # ----------------------------
+        sheep_path = "/Users/eugenekim/projects/dance-with/first-project/sheep.png"
+        sheep1 = ImageMobject(sheep_path).scale(0.8).shift(LEFT * 2)
+        sheep2 = ImageMobject(sheep_path).scale(0.8)
+        sheep3 = ImageMobject(sheep_path).scale(0.8).shift(RIGHT * 2)
+
+        plus1 = Tex("+").scale(1.2).next_to(sheep1, RIGHT, buff=0.2)
+        plus2 = Tex("+").scale(1.2).next_to(sheep2, RIGHT, buff=0.2)
+
+        self.play(FadeIn(sheep1))
+        self.wait(0.3)
+        self.play(FadeIn(sheep2))
+        self.wait(0.3)
+        self.play(FadeIn(sheep3))
+        self.wait(0.5)
+
+        sheep_eq = Tex("= 3").scale(1.2).next_to(sheep3, RIGHT, buff=0.4)
+        self.play(Write(sheep_eq))
+        self.wait(1.5)
+
+        self.play(*[FadeOut(m) for m in [sheep1, sheep2, sheep3, sheep_eq]])
+
+        # ----------------------------
+        # 🍎 3-APPLE ADDITION
+        # ----------------------------
+        apple_path = "/Users/eugenekim/projects/dance-with/first-project/apple.png"
+        apple1 = ImageMobject(apple_path).scale(0.8).shift(LEFT * 2)
+        apple2 = ImageMobject(apple_path).scale(0.8)
+        apple3 = ImageMobject(apple_path).scale(0.8).shift(RIGHT * 2)
+
+        plus3 = Tex("+").scale(1.2).next_to(apple1, RIGHT, buff=0.2)
+        plus4 = Tex("+").scale(1.2).next_to(apple2, RIGHT, buff=0.2)
+
+        self.play(FadeIn(apple1))
+        self.wait(0.3)
+        self.play(FadeIn(apple2))
+        self.wait(0.3)
+        self.play(FadeIn(apple3))
+        self.wait(0.5)
+
+        apple_eq = Tex("= 3").scale(1.2).next_to(apple3, RIGHT, buff=0.4)
+        self.play(Write(apple_eq))
+        self.wait(1.5)
+
+        self.play(*[FadeOut(m) for m in [apple1, apple2, apple3, apple_eq]])
+
+        # ----------------------------
+        # 📄 ABSTRACT INTEGER ADDITION
+        # ----------------------------
+        # self.play(FadeOut(self.mobjects))  # Clear screen
+
+        int_expr = Tex("1 + 1 + 1 = 3").scale(2)
+
+        # Extract number indices from the expression
+        number_indices = [0, 2, 4, 6]  # positions of '1', '1', '1', '3'
+
+        # Create glow circles for each number
+        glows = [
+            Circle(radius=0.4, color=WHITE, fill_opacity=0.3, stroke_opacity=0).move_to(
+                int_expr[i].get_center()
+            )
+            for i in number_indices
+        ]
+
+        self.play(Write(int_expr))
+        self.wait(0.5)
+        self.play(*[FadeIn(glow) for glow in glows])
+        self.wait(2)
+
+        self.play(FadeOut(int_expr), *[FadeOut(glow) for glow in glows])
+
+        self.wait()
+
+        # ----------------------------
+        # 📏 REAL NUMBER ADDITION (LENGTHS)
+        # ----------------------------
+
+        origin = LEFT * 4
+
+        # Make lines longer and distinguishable
+        seg1 = Line(origin, origin + RIGHT * 3.0, color=BLUE, stroke_width=10)
+        seg1_label = Tex("1.5", font_size=50).next_to(seg1, DOWN)
+
+        seg2 = Line(
+            seg1.get_end(), seg1.get_end() + RIGHT * 4.6, color=GREEN, stroke_width=10
+        )
+        seg2_label = Tex("2.3", font_size=50).next_to(seg2, DOWN)
+
+        # Total line (faint white), placed below
+        sum_seg = Line(origin, origin + RIGHT * 7.6, color=YELLOW, stroke_width=10)
+        sum_seg.shift(DOWN * 1.0)
+
+        sum_label = Tex("= 3.8", font_size=50).next_to(sum_seg, DOWN)
+
+        # Animate additions
+        self.play(FadeIn(seg1), FadeIn(seg1_label))
+        self.wait(0.5)
+        self.play(FadeIn(seg2), FadeIn(seg2_label))
+        self.wait(1)
+        self.play(FadeIn(sum_seg), FadeIn(sum_label))
+        self.wait(1.5)
+
+        # Fade out everything
+        self.play(
+            *[
+                FadeOut(mob)
+                for mob in [seg1, seg2, seg1_label, seg2_label, sum_seg, sum_label]
+            ]
+        )
+
+        # ----------------------------
+        # 🧭 VECTOR ADDITION
+        # ----------------------------
+        # Bigger and colorful vector addition
+
+        start = ORIGIN
+
+        # Extend the vector lengths
+        v1 = Arrow(
+            start, start + RIGHT * 4, buff=0, color=ORANGE, stroke_width=8
+        ).shift(LEFT * 2.8 + DOWN)
+        v2 = Arrow(
+            v1.get_end(), v1.get_end() + UP * 3, buff=0, color=GREEN, stroke_width=8
+        )
+        v_sum = Arrow(
+            v1.get_start(), v1.get_end() + UP * 3, buff=0, color=WHITE, stroke_width=8
+        )
+
+        # Bigger, clearer labels
+        v_label = Tex("\\vec{v}_1", font_size=42).next_to(v1, DOWN)
+        u_label = Tex("\\vec{v}_2", font_size=42).next_to(v2, RIGHT)
+        sum_label = Tex("\\vec{v}_1 + \\vec{v}_2", font_size=44).next_to(
+            v_sum, UP + RIGHT * 0.3
+        )
+
+        self.play(GrowArrow(v1), FadeIn(v_label))
+        self.play(GrowArrow(v2), FadeIn(u_label))
+        self.wait(0.5)
+        self.play(GrowArrow(v_sum), FadeIn(sum_label))
+        self.wait(2)
+
+        self.play(*[FadeOut(m) for m in [v1, v2, v_sum, v_label, u_label, sum_label]])
+
+        self.wait()
+
+        # ----------------------------
+        # ➕ FINAL ABSTRACTION: a + b
+        # ----------------------------
+
+        expr = Tex("a + b").scale(2.5)
+        plus_part = expr[1]
+
+        # Create glow: white circle behind +
+        glow = Circle(
+            radius=0.5, color=WHITE, fill_opacity=0.3, stroke_opacity=0
+        ).move_to(plus_part.get_center())
+
+        self.play(Write(expr))
+        self.wait(0.5)
+        self.play(FadeIn(glow), plus_part.animate.set_color(YELLOW).scale(1.2))
+        self.wait(2)
