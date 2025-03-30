@@ -2812,6 +2812,9 @@ class RotatingDiskAntInAbs(Scene):
 
         self.wait()
 
+        #  if you want to animate the polar coordinate perspective..
+        # wip
+
         # polar = get_polar_grid()
         # polar.scale(0.2)
         # polar.move_to(starting_pos)
@@ -2889,7 +2892,7 @@ class RotatingDiskAntInAbs(Scene):
         #             starting_pos=starting_pos,
         #         ),
         #     ),
-        #     run_time=move_time*2,
+        #     run_time=move_time * 2,
         #     rate_func=linear,
         # )
 
@@ -3308,9 +3311,9 @@ class AbstractNumberScene(Scene):
         # 🐑 3-SHEEP ADDITION
         # ----------------------------
         sheep_path = "/Users/eugenekim/projects/dance-with/first-project/sheep.png"
-        sheep1 = ImageMobject(sheep_path).scale(0.8).shift(LEFT * 2)
-        sheep2 = ImageMobject(sheep_path).scale(0.8)
-        sheep3 = ImageMobject(sheep_path).scale(0.8).shift(RIGHT * 2)
+        sheep1 = ImageMobject(sheep_path).scale(0.6).shift(LEFT * 2)
+        sheep2 = ImageMobject(sheep_path).scale(0.6)
+        sheep3 = ImageMobject(sheep_path).scale(0.6).shift(RIGHT * 2)
 
         plus1 = Tex("+").scale(1.2).next_to(sheep1, RIGHT, buff=0.2)
         plus2 = Tex("+").scale(1.2).next_to(sheep2, RIGHT, buff=0.2)
@@ -3332,9 +3335,9 @@ class AbstractNumberScene(Scene):
         # 🍎 3-APPLE ADDITION
         # ----------------------------
         apple_path = "/Users/eugenekim/projects/dance-with/first-project/apple.png"
-        apple1 = ImageMobject(apple_path).scale(0.8).shift(LEFT * 2)
-        apple2 = ImageMobject(apple_path).scale(0.8)
-        apple3 = ImageMobject(apple_path).scale(0.8).shift(RIGHT * 2)
+        apple1 = ImageMobject(apple_path).scale(0.6).shift(LEFT * 2)
+        apple2 = ImageMobject(apple_path).scale(0.6)
+        apple3 = ImageMobject(apple_path).scale(0.6).shift(RIGHT * 2)
 
         plus3 = Tex("+").scale(1.2).next_to(apple1, RIGHT, buff=0.2)
         plus4 = Tex("+").scale(1.2).next_to(apple2, RIGHT, buff=0.2)
@@ -3467,3 +3470,520 @@ class AbstractNumberScene(Scene):
         self.wait(0.5)
         self.play(FadeIn(glow), plus_part.animate.set_color(YELLOW).scale(1.2))
         self.wait(2)
+
+
+class MemoryConceptScene(Scene):
+    def construct(self):
+        # Load images
+        animals_path = "/Users/eugenekim/projects/dance-with/first-project/animals.png"
+        face_path = "/Users/eugenekim/projects/dance-with/first-project/face.png"
+
+        # Image Mobjects
+        animals = ImageMobject(animals_path).scale(1)
+        face = ImageMobject(face_path).scale(1)
+
+        # Reduce distance: shift slightly less than full screen
+        animals.shift(LEFT * 3 + UP)
+        face.shift(RIGHT * 3 + UP)
+
+        # Text under animal
+        episodic_desc = Text("여러번의 구체적인 경험", font="BM Hanna 11yrs Old").scale(
+            1.2
+        )
+        episodic_desc.next_to(animals, DOWN, buff=0.3)
+
+        # Text under face
+        semantic_desc = Text("얼굴이라는 개념", font="BM Hanna 11yrs Old").scale(1.2)
+        semantic_desc.next_to(face, DOWN, buff=0.3)
+        semantic_desc.set_color_by_text("얼굴", GREEN)
+        semantic_desc.set_color_by_text("개념", ORANGE)
+
+        # STEP 1: Show left image and its description
+        self.play(FadeIn(animals))
+        self.wait(0.5)
+        self.play(Write(episodic_desc))
+        self.wait(1)
+
+        # STEP 2: Show right image and its description
+        self.play(FadeIn(face))
+        self.wait(0.5)
+        self.play(Write(semantic_desc))
+        self.wait(1.5)
+
+        # STEP 4: Arrow from left to right
+        arrow = Arrow(start=animals.get_right(), end=face.get_left(), buff=0.3)
+
+        self.play(GrowArrow(arrow))
+        self.wait(2)
+
+        # STEP 3: Show memory labels
+        episodic_kr = Text("(에피소드 기억)", font="BM Hanna 11yrs Old", font_size=32)
+        semantic_kr = Text("(의미 기억)", font="BM Hanna 11yrs Old", font_size=32)
+        episodic_kr.next_to(episodic_desc, DOWN, buff=0.3)
+        semantic_kr.next_to(semantic_desc, DOWN, buff=0.3)
+
+        self.play(Write(episodic_kr))
+        self.wait(0.5)
+        self.play(Write(semantic_kr))
+        self.wait(1)
+
+
+class DateScene(Scene):
+    def construct(self):
+
+        dating_path = "/Users/eugenekim/projects/dance-with/first-project/dating.png"
+
+        # Image Mobjects
+        dating = ImageMobject(dating_path).scale(1)
+
+        pick_path = "/Users/eugenekim/projects/dance-with/first-project/datepick.png"
+
+        # Image Mobjects
+        pick = ImageMobject(pick_path).scale(1)
+
+        dad_path = "/Users/eugenekim/projects/dance-with/first-project/dad.png"
+
+        # Image Mobjects
+        dad = ImageMobject(dad_path).scale(0.5)
+
+        dating.shift(UP)
+        pick.shift(UP)
+
+        # Step 1: Show girl evaluating candidates
+        self.play(FadeIn(dating))
+        self.wait(2)
+
+        # Step 2: Transition to picked candidate
+
+        self.play(FadeOut(dating), FadeIn(pick))
+
+        self.wait(2)
+
+        # Step 3: Reveal dad image (implying resemblance)
+
+        dad.move_to(dating)
+        dad.shift(UP + RIGHT * 1.8)
+        dad.set_opacity(0)  # start transparent
+        self.play(FadeIn(dad.set_opacity(1)))
+        self.wait(2)
+
+        # Step 4: Text: "여러번의 구체적인 경험 → 이상적인 파트너"
+        text1 = Text(
+            "여러번의 구체적인 경험 ---> 이상적인 파트너",
+            font="BM Hanna 11yrs Old",
+            font_size=36,
+        )
+        text1.next_to(pick, DOWN)
+        self.play(Write(text1))
+        self.wait(2)
+
+        # Step 5: Cross it out with red X line
+        x_line1 = Line(
+            text1.get_corner(UL), text1.get_corner(DR), color=RED, stroke_width=5
+        )
+        x_line2 = Line(
+            text1.get_corner(UR), text1.get_corner(DL), color=RED, stroke_width=5
+        )
+        self.play(ShowCreation(x_line1), ShowCreation(x_line2))
+        self.wait(1.5)
+
+        # Step 6: New Text: "각인 → 여러번의 경험"
+        text2 = Text("각인 ---> 재경험", font="BM Hanna 11yrs Old", font_size=36)
+        text2.next_to(text1, DOWN)
+        self.play(Write(text2))
+        self.wait(3)
+
+
+class CreateOrFoundScene(Scene):
+    def construct(self):
+
+        int_expr = Tex("1 + 1 + 1 = 3").scale(2)
+        int_expr.shift(UP * 1.5)
+
+        # Extract number indices from the expression
+        number_indices = [0, 2, 4, 6]  # positions of '1', '1', '1', '3'
+
+        # Create glow circles for each number
+        glows = [
+            Circle(radius=0.4, color=WHITE, fill_opacity=0.3, stroke_opacity=0).move_to(
+                int_expr[i].get_center()
+            )
+            for i in number_indices
+        ]
+
+        self.play(Write(int_expr))
+        self.wait(1)
+        self.play(*[FadeIn(glow) for glow in glows])
+
+        expr = Tex("a + b").scale(2)
+        expr.next_to(int_expr, DOWN * 2)
+        plus_part = expr[1]
+
+        # Create glow: white circle behind +
+        glow = Circle(
+            radius=0.5, color=WHITE, fill_opacity=0.3, stroke_opacity=0
+        ).move_to(plus_part.get_center())
+
+        self.play(Write(expr))
+        self.wait(0.5)
+        self.play(FadeIn(glow), plus_part.animate.set_color(YELLOW).scale(1.2))
+        self.wait(2)
+
+        # Step 4: Text: "여러번의 구체적인 경험 → 이상적인 파트너"
+        text1 = Text(
+            "여러번의 경험을 개념화 ---> 발명",
+            font="BM Hanna 11yrs Old",
+            font_size=40,
+        )
+        text1.next_to(expr, DOWN * 2)
+        text1.set_color_by_text("발명", GREEN)
+
+        self.play(Write(text1))
+        self.wait(2)
+
+        # Step 6: New Text: "각인 → 여러번의 경험"
+        text2 = Text("원래 있던것 ---> 발견", font="BM Hanna 11yrs Old", font_size=40)
+        text2.set_color_by_text("발견", ORANGE)
+
+        text2.next_to(text1, DOWN)
+        self.play(Write(text2))
+        self.wait(3)
+
+
+class UniverseAndN(Scene):
+    def construct(self):
+        # Step 1: Universe illustration
+        universe = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/universe.png"
+        )
+        universe.scale(1.8).set_opacity(0.4)
+        self.play(FadeIn(universe))
+        self.wait(2)
+
+        # Step 2: Pose the universe question
+        q1 = Text("우주는 무한할까?", font="BM Hanna 11yrs Old").scale(1.5)
+
+        q1.to_edge(UP, buff=1)
+        self.play(Write(q1))
+        self.wait(1)
+        self.play(FadeOut(q1))
+
+        particle_text = Text(
+            "무한한 수의 입자가 존재할까?",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.5)
+        particle_text.next_to(q1, DOWN)
+        self.play(Write(particle_text))
+        self.wait(2)
+
+        # Step 3: Fade to dark
+
+        # Step 4: Show ℕ
+        n_text = Text(
+            "ℕ = {1, 2, 3, 4, 5, ...}",
+            font="BM Hanna 11yrs Old",
+        ).scale(2.0)
+
+        self.play(Write(n_text))
+        self.wait(2)
+
+        text2 = Text("발견 or 발명?", font="BM Hanna 11yrs Old").scale(2.0)
+        text2.set_color_by_text("발명", GREEN)
+        text2.set_color_by_text("발견", ORANGE)
+        n_text.set_color_by_text("ℕ", YELLOW)
+
+        text2.next_to(n_text, DOWN * 3)
+
+        self.play(Write(text2))
+        self.wait(3)
+
+        self.play(
+            FadeOut(text2), FadeOut(n_text), FadeOut(particle_text), FadeOut(universe)
+        )
+
+        corpus = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/corpus.png"
+        )
+        corpus.scale(1.2).to_edge(LEFT, buff=1.3).shift(UP)
+        self.play(FadeIn(corpus))
+        self.wait(1)
+
+        embedding = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/embedding.png"
+        )
+        embedding.scale(1.2).to_edge(RIGHT, buff=1.3).shift(UP)
+        self.play(FadeIn(embedding))
+        self.wait(2)
+
+        q1 = Text("각각의 단어를 숫자로 표현함", font="BM Hanna 11yrs Old").scale(1.5)
+
+        q1.shift(3 * DOWN)
+        self.play(Write(q1))
+        self.wait(1)
+
+        # # Step 7: Fade to insight
+        # self.play(FadeOut(particle_text))
+        # insight = Text(
+        #     "ℕ은 어쩌면, 우리의 '창조물'일지도 모른다.",
+        #     font="BM Hanna 11yrs Old",
+        #     font_size=44,
+        # )
+        # self.play(Write(insight))
+        # self.wait(3)
+
+
+class PiTablesManimGL(Scene):
+    def construct(self):
+        # First table: 200 billion digits of pi
+
+        pi = Tex(r"\pi ").scale(2).set_color(GREEN)
+        t2 = Text(
+            "의 랜덤성",
+            font="BM Hanna 11yrs Old",
+            font_size=44,
+        ).scale(1.5)
+        pi_g = VGroup(pi, t2).arrange(RIGHT, buff=0.2).shift(UP * 3.1)
+
+        self.play(FadeIn(pi_g))
+
+        im1 = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/pi_frequency.png"
+        )
+        im1.scale(1.2).to_edge(LEFT, buff=1)
+        self.play(FadeIn(im1))
+        self.wait(1)
+
+        im2 = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/pi_card.png"
+        )
+        im2.scale(1.2).to_edge(RIGHT, buff=1)
+
+        l2 = Text(
+            "연속 5자리를 포커패로 구분",
+            font="BM Hanna 11yrs Old",
+            font_size=44,
+        )
+        l2.next_to(im2, DOWN)
+
+        self.play(FadeIn(im2))
+        self.play(Write(l2))
+        self.wait(2)
+
+        g = VGroup(pi_g, l2)
+
+        self.play(FadeOut(g), FadeOut(im1), FadeOut(im2))
+
+        l2 = (
+            Text(
+                "랜덤한 수가 나오는데,",
+                font="BM Hanna 11yrs Old",
+            )
+            .shift(UP)
+            .scale(1.5)
+        )
+
+        l3 = Text(
+            "뭐가 나올지는 이미 정해져 있음",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.5)
+        l3.next_to(l2, DOWN)
+
+        l4 = Text(
+            "정해진 랜덤?",
+            font="BM Hanna 11yrs Old",
+            font_size=50,
+        ).scale(2.0)
+
+        l4.next_to(l3, DOWN)
+
+        l4.set_color_by_text("정해진", GREEN)
+        l4.set_color_by_text("랜덤", ORANGE)
+
+        self.play(Write(l2))
+        self.wait(0.5)
+        self.play(Write(l3))
+        self.wait(0.5)
+        self.play(Write(l4))
+
+        self.wait(2)
+
+        g = VGroup(l2, l3, l4)
+
+        self.play(FadeOut(g))
+
+        l1 = (
+            Text(
+                "양자얽힘",
+                font="BM Hanna 11yrs Old",
+            )
+            .shift(UP * 3)
+            .scale(2)
+        )
+
+        self.play(Write(l1))
+
+        both = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/updown.png"
+        )
+
+        up = ImageMobject("/Users/eugenekim/projects/dance-with/first-project/up.png")
+        down = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/down.png"
+        )
+
+        bl = both.copy().scale(1).shift(LEFT * 4)
+
+        br = both.copy().scale(1).shift(RIGHT * 4)
+        self.play(FadeIn(br), FadeIn(bl))
+        self.wait()
+
+        up = up.move_to(bl)
+        down = down.move_to(br)
+        self.play(ReplacementTransform(br, down))
+        self.wait(2)
+
+        self.play(ReplacementTransform(bl, up))
+
+        self.wait(2)
+
+        self.play(ReplacementTransform(up, bl), ReplacementTransform(down, br))
+
+        self.wait(2)
+        up = up.move_to(br)
+        down = down.move_to(bl)
+
+        self.play(ReplacementTransform(br, up))
+
+        self.wait(2)
+        self.play(ReplacementTransform(bl, down))
+
+        self.wait(2)
+
+        self.play(ReplacementTransform(up, br), ReplacementTransform(down, bl))
+        self.wait(2)
+        self.play(ReplacementTransform(br, up))
+
+        self.wait(1)
+
+        l2 = Text(
+            "랜덤한데,",
+            font="BM Hanna 11yrs Old",
+            font_size=48,
+        ).shift(DOWN)
+
+        l3 = Text(
+            "뭐가 나올지는 이미 정해져 있음",
+            font="BM Hanna 11yrs Old",
+            font_size=48,
+        )
+        l3.next_to(l2, DOWN)
+
+        l4 = Text(
+            "정해진 랜덤",
+            font="BM Hanna 11yrs Old",
+            font_size=52,
+        )
+
+        l4.next_to(l3, DOWN)
+
+        l4.set_color_by_text("정해진", GREEN)
+        l4.set_color_by_text("랜덤", ORANGE)
+
+        self.play(Write(l2))
+        self.wait(0.5)
+        self.play(Write(l3))
+        self.wait(0.5)
+        self.play(Write(l4))
+
+
+class ZenoStep1(Scene):
+    def construct(self):
+        # Define points
+        title = Text(
+            "Zeno 파라독스",
+            font="BM Hanna 11yrs Old",
+        ).scale(2.0)
+        title.shift(UP * 3)
+
+        self.add(title)
+
+        start = LEFT * 6 + UP * 0.7
+        end = RIGHT * 6 + UP * 0.7
+
+        # Generate key points by halving repeatedly
+        halfway = (start + end) / 2
+        quarter = (halfway + end) / 2
+        eighth = (quarter + end) / 2
+        sixteenth = (eighth + end) / 2
+
+        up_s = UP * 1.3  # vertical offset for dog image
+
+        # Draw line
+
+        line = Line(start, end, color=YELLOW, stroke_width=7)
+        self.play(FadeIn(line))
+
+        # Goal label and dog bones
+
+        bones = (
+            ImageMobject("/Users/eugenekim/projects/dance-with/first-project/bones.png")
+            .scale(0.5)
+            .next_to(end, RIGHT)
+        )
+
+        self.play(FadeIn(bones))
+
+        # Load transparent dog image
+        character = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/dog-zeno.png"
+        ).scale(0.5)
+        character.set_opacity(0.8)  # make dog slightly transparent
+        character.move_to(start + up_s)
+        self.add(character)
+
+        # Function to create step animation
+        def do_step(start_pt, end_pt, label_text):
+            line_seg = Line(start_pt, end_pt)
+            brace = Brace(line_seg, DOWN)
+            label = brace.get_text(label_text)
+            self.play(GrowFromCenter(brace), Write(label))
+            self.play(character.animate.move_to(end_pt + up_s), run_time=1)
+            self.wait(0.3)
+
+        # Do four steps: 1/2, 1/4, 1/8, 1/16
+        do_step(start, halfway, "1/2")
+        do_step(halfway, quarter, "1/4")
+        do_step(quarter, eighth, "1/8")
+        do_step(eighth, sixteenth, "1/16")
+
+        # Add "..." to imply infinity
+        dots = Text("...", font_size=60).move_to((sixteenth + end) / 2 + DOWN * 1.5)
+        self.play(FadeIn(dots))
+        self.wait(1.5)
+
+        lp = Tex(r"L_p = 1.616\,199 \times 10^{-35} \ \mathrm{m}")
+        lp.shift(DOWN)
+        self.play(Write(lp))
+
+        t1 = (
+            Text(
+                "물리적으로 이보다 짧은 거리는 이동불가",
+                font="BM Hanna 11yrs Old",
+            )
+            .scale(1.2)
+            .next_to(lp, DOWN)
+        )
+        self.play(Write(t1))
+
+        self.wait(2)
+
+        question = Text(
+            "ℝ 은 발명 or 발견?",
+            font="BM Hanna 11yrs Old",
+        ).scale(2.0)
+        question.set_color_by_text("발명", GREEN)
+        question.set_color_by_text("발견", ORANGE)
+        question.set_color_by_text("ℝ", YELLOW)
+
+        question.next_to(t1, DOWN * 1.3)
+        self.play(Write(question))
