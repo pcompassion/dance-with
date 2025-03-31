@@ -515,8 +515,8 @@ class ZeroPhilosophy(Scene):
         self.wait(2)
 
 
-
 from manimlib import *
+
 
 class ZeroPhilosophy(Scene):
     def construct(self):
@@ -524,10 +524,16 @@ class ZeroPhilosophy(Scene):
             ("text", "없다는 것을 표현하는 0"),
             ("text", "자연수: 1, 2, 3 이 아니다"),
             ("tex", r"\text{실수:} 0.23, \pi, 5 \text{ 가 아니다.}"),
-            ("tex", r"\text{복소수:} 3 + 4i \text{ 가 아니다. } \quad 0 + 0i \text{ 이다.}"),
+            (
+                "tex",
+                r"\text{복소수:} 3 + 4i \text{ 가 아니다. } \quad 0 + 0i \text{ 이다.}",
+            ),
             ("text", ""),  # spacer
             ("text", "아무 것도 아닌 것의 대상이 바뀌고, 형태가 바뀐다."),
-            ("tex", r"\text{모양이 변하는 0은 } \textbf{발견한 것인가} \quad \textbf{발명한 것인가}?"),
+            (
+                "tex",
+                r"\text{모양이 변하는 0은 } \textbf{발견한 것인가} \quad \textbf{발명한 것인가}?",
+            ),
         ]
 
         text_objs = []
@@ -560,7 +566,9 @@ class ZeroPhilosophy(Scene):
 
         self.wait(2)
 
+
 from manimlib import *
+
 
 class ZeroPhilosophy(Scene):
     def construct(self):
@@ -597,7 +605,7 @@ class ZeroPhilosophy(Scene):
         for i, t in enumerate(text_objs):
             if t is None:
                 continue
-            t.shift(UP*2).shift(DOWN * spacing * i)
+            t.shift(UP * 2).shift(DOWN * spacing * i)
 
         # Animate sequentially
         for t in text_objs:
@@ -609,7 +617,9 @@ class ZeroPhilosophy(Scene):
 
         self.wait(2)
 
+
 from manimlib import *
+
 
 class ZeroPhilosophy(Scene):
     def construct(self):
@@ -698,9 +708,9 @@ class ZeroPhilosophy(Scene):
 
         self.wait(2)
 
-        
 
 from manimlib import *
+
 
 class ZeroPhilosophy(Scene):
     def construct(self):
@@ -721,7 +731,9 @@ class ZeroPhilosophy(Scene):
         line2 = VGroup(keyword2, pre2, pi, post2).arrange(RIGHT, buff=0.15)
 
         # 복소수 줄
-        line3 = Text("복소수: 3 + 4i 가 아니다.   0 + 0i 이다.", font="BM Hanna 11yrs Old").scale(1.2)
+        line3 = Text(
+            "복소수: 3 + 4i 가 아니다.   0 + 0i 이다.", font="BM Hanna 11yrs Old"
+        ).scale(1.2)
         line3.set_color_by_text("복소수", BLUE)
 
         # Align colons
@@ -747,6 +759,7 @@ class ZeroPhilosophy(Scene):
 
 from manimlib import *
 
+
 class ZeroPhilosophy(Scene):
     def construct(self):
         # Title (크게, 위에 위치)
@@ -756,7 +769,7 @@ class ZeroPhilosophy(Scene):
         # 자연수 줄
         line1 = Text("자연수: 1, 2, 3 이 아니다", font="BM Hanna 11yrs Old").scale(1.2)
         line1.set_color_by_text("자연수", RED)
-        line1.next_to(title, DOWN, aligned_edge=LEFT, buff=)
+        line1.next_to(title, DOWN, aligned_edge=LEFT, buff=1)
 
         # 실수 줄 (with \pi)
         keyword2 = Text("실수:", font="BM Hanna 11yrs Old").scale(1.2).set_color(GREEN)
@@ -768,7 +781,9 @@ class ZeroPhilosophy(Scene):
         line2.next_to(line1, DOWN, aligned_edge=LEFT, buff=0.9)
 
         # 복소수 줄
-        line3 = Text("복소수: 3 + 4i 가 아니다.   0 + 0i 이다.", font="BM Hanna 11yrs Old").scale(1.2)
+        line3 = Text(
+            "복소수: 3 + 4i 가 아니다.   0 + 0i 이다.", font="BM Hanna 11yrs Old"
+        ).scale(1.2)
         line3.set_color_by_text("복소수", BLUE)
         line3.next_to(line2, DOWN, aligned_edge=LEFT, buff=0.9)
 
@@ -783,99 +798,709 @@ class ZeroPhilosophy(Scene):
         self.wait(2)
 
 
+from manimlib import *
 
-class GaltonHistogram(Scene):
+
+class EntropyParticlesWithRadius(Scene):
     def construct(self):
-        # Histogram config
+        boundary_width = 6
+        boundary_height = 4
+        radius = 0.08
 
+        # 경계 박스
+        boundary = Rectangle(width=boundary_width, height=boundary_height, color=WHITE)
+        self.add(boundary)
 
-        num_bins = 13
-        bin_range = (-4, 4)
-        bin_width = (bin_range[1] - bin_range[0]) / num_bins
-        bin_edges = [bin_range[0] + i * bin_width for i in range(num_bins + 1)]
-        bin_centers = [(bin_edges[i] + bin_edges[i+1]) / 2 for i in range(num_bins)]
+        num_particles = 15
+        particles = VGroup()
+        velocities = []
 
-        # Axes
-        axes = Axes(
-
-            x_range=(bin_range[0], bin_range[1]),
-            y_range=(0, 24),
-            axis_config={"include_tip": False},
-        )
-        axes.to_edge(DOWN)
-
-        self.add(axes)
-
-        # Bars (initially height 0)
-        bars = VGroup()
-        bar_width = bin_width * 0.9
-        for center in bin_centers:
-            bar = Rectangle(
-                width=bar_width,
-                height=0.01,
-                fill_color=BLUE,
-                fill_opacity=0.7,
-                stroke_width=0
+        for _ in range(num_particles):
+            x = random.uniform(
+                -boundary_width / 2 + radius, boundary_width / 2 - radius
             )
-            bar.move_to(axes.c2p(center, 0), DOWN)
-            bars.add(bar)
+            y = random.uniform(
+                -boundary_height / 2 + radius, boundary_height / 2 - radius
+            )
+            dot = Dot(point=np.array([x, y, 0]), radius=radius, color=YELLOW)
+            particles.add(dot)
 
-        self.add(bars)
+            vx = random.uniform(-0.05, 0.05)
+            vy = random.uniform(-0.05, 0.05)
+            velocities.append(np.array([vx, vy, 0]))
 
-        # Histogram bin counts
-        counts = [0 for _ in range(num_bins)]
-        max_height = 20
+        self.add(particles)
 
-        # Animation loop: drop samples and grow bars
-        for i in range(200):
-            sample = random.gauss(0, 1.5)  # Normal distribution
-            # Bin it
-            for j in range(num_bins):
-                if bin_edges[j] <= sample < bin_edges[j+1]:
-                    counts[j] += 1
-                    break
-            else:
-                # Clip to edge bins
-                if sample < bin_edges[0]:
-                    counts[0] += 1
-                elif sample >= bin_edges[-1]:
-                    counts[-1] += 1
+        def update_particles(mob, dt):
+            for i, dot in enumerate(mob):
+                dot.shift(velocities[i])
+                pos = dot.get_center()
 
-            # Update bars visually
-            updated_bars = VGroup()
-            for j, count in enumerate(counts):
-                # height = min(count, max_height)
-                height = count
-                bar = Rectangle(
-                    width=bar_width,
-                    height=height * 0.2,  # Scale to fit y axis
-                    fill_color=BLUE,
-                    fill_opacity=0.7,
-                    stroke_width=0
-                )
-                bar.move_to(axes.c2p(bin_centers[j], 0), DOWN)
-                updated_bars.add(bar)
+                # X축 튕김 (경계에서 radius만큼 안쪽에서 반사)
+                if abs(pos[0]) > (boundary_width / 2 - radius):
+                    velocities[i][0] *= -1
+                    dot.shift(velocities[i])
 
-            self.play(Transform(bars, updated_bars), run_time=0.02)
+                # Y축 튕김
+                if abs(pos[1]) > (boundary_height / 2 - radius):
+                    velocities[i][1] *= -1
+                    dot.shift(velocities[i])
+
+        particles.add_updater(update_particles)
+        self.add(particles)
+
+        self.wait(6)
+
+
+from manimlib import *
+import random
+import numpy as np
+
+
+from manimlib import *
+
+
+class StoryPerspectiveQuestion(Scene):
+    def construct(self):
+
+        # 문장 1
+        line1 = Text(
+            "입자의 스토리에는 (물리법칙)", font="BM Hanna 11yrs Old", color=WHITE
+        ).scale(1.2)
+        line1_2 = Text(
+            "시간의 방향이 없다.", font="BM Hanna 11yrs Old", color=WHITE
+        ).scale(1.2)
+
+        # 문장 2
+        line2 = Text(
+            "공간을 바라봐야만 스토리에, 시간의 방향이 생긴다.",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.2)
+        line2.set_fill(GREY)
+
+        # 문장 3 (질문)
+        line3 = Text(
+            "그렇다면, 중요한 질문은,", font="BM Hanna 11yrs Old", color=WHITE
+        ).scale(1.2)
+        line3_2 = Text(
+            "하나의 story 에서, 다른 스토리로", font="BM Hanna 11yrs Old", color=WHITE
+        ).scale(1.2)
+        line3_3 = Text(
+            "어떻게 우리가 관점을 이동할 수 있는가 이다.",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.2)
+        line3_3.set_color_by_text("관점을 이동", ORANGE)
+
+        # 배치
+        line1.move_to(UP * 2.5)
+        line1_2.next_to(line1, DOWN, buff=0.3)
+        line2.next_to(line1_2, DOWN, buff=0.7)
+        line3.next_to(line2, DOWN, buff=1)
+        line3_2.next_to(line3, DOWN, buff=0.3)
+        line3_3.next_to(line3_2, DOWN, buff=0.3)
+
+        # 애니메이션
+        self.play(FadeIn(line1))
+        self.play(FadeIn(line1_2))
+        self.wait(1)
+
+        self.play(FadeIn(line2))
+        self.wait(1.5)
+
+        self.play(FadeIn(line3))
+        self.play(FadeIn(line3_2))
+        self.play(FadeIn(line3_3))
+        self.wait(2)
+
+
+class ZenoStep2(Scene):
+    def construct(self):
+        # Define points
+        title = Text(
+            "Zeno 역설",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.5)
+        title.shift(UP * 3)
+
+        self.add(title)
+
+        start = LEFT * 6 + UP * 0.7
+        end = RIGHT * 5 + UP * 0.7
+
+        # Generate key points by halving repeatedly
+        halfway = (start + end) / 2
+        quarter = (halfway + end) / 2
+        eighth = (quarter + end) / 2
+        sixteenth = (eighth + end) / 2
+        t32 = (sixteenth + end) / 2
+
+        up_s = UP * 1.3  # vertical offset for dog image
+
+        # Draw line
+
+        line = Line(start, end, color=YELLOW, stroke_width=7)
+        bones = (
+            ImageMobject("/Users/eugenekim/projects/dance-with/first-project/bones.png")
+            .scale(0.5)
+            .next_to(end, RIGHT)
+        )
+
+        self.play(FadeIn(line), FadeIn(bones))
+
+        # Goal label and dog bones
+
+        # Load transparent dog image
+        character = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/dog-zeno.png"
+        ).scale(0.5)
+        character.set_opacity(0.8)  # make dog slightly transparent
+        character.move_to(start + up_s)
+        self.add(character)
+
+        # Function to create step animation
+        def do_step(start_pt, end_pt, label_text):
+            line_seg = Line(start_pt, end_pt)
+            brace = Brace(line_seg, DOWN)
+            label = brace.get_text(label_text)
+            self.play(GrowFromCenter(brace), Write(label))
+            self.play(character.animate.move_to(end_pt + up_s), run_time=1)
+            self.wait(0.3)
+
+        # Do four steps: 1/2, 1/4, 1/8, 1/16
+        do_step(start, halfway, "1/2")
+        do_step(halfway, quarter, "1/4")
+        do_step(quarter, eighth, "1/8")
+        do_step(eighth, sixteenth, "1/16")
+        do_step(sixteenth, t32, "...")
+
+        # Add "..." to imply infinity
+        # dots = Text("...", font_size=60).move_to((sixteenth + end) / 2 )
+        # self.play(FadeIn(dots))
+        self.wait(1.5)
+
+        t1 = Text(
+            "이동하는 입장이 아니라 밖에서 바라보면",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.2)
+        t1.shift(DOWN)
+        self.play(Write(t1))
 
         self.wait(2)
-        self.play(bars.animate.set_fill(opacity=0.2), run_time=1)
 
-
-        l5 = Text(
-            "확률 분포라는 것도",
+        t2 = Text(
+            "몇번을 가든, 시간도 그만큼 잘게 쪼개 보겠다는 것이다",
             font="BM Hanna 11yrs Old",
-            font_size=52,
+        ).scale(1.2)
+
+        t2.next_to(t1, DOWN * 1.3)
+
+        self.play(Write(t2))
+        self.wait(1)
+
+        t3 = Text(
+            "몇번을 쪼개서 보든, 전체 시간은 정해져 있다",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.2)
+
+        t3.next_to(t2, DOWN * 1.3)
+        t3.set_color_by_text("", BLUE)
+
+        self.play(Write(t3))
+        self.wait(1)
+
+
+from manim import *
+import random
+import math
+
+from manimlib import *
+
+
+class PrisonerDilemmaMatrix(Scene):
+    def construct(self):
+        cell_size = 2
+
+        # Grid base: 2x2 payoff matrix
+        grid = VGroup()
+        for i in range(2):
+            for j in range(2):
+                cell = Square(side_length=cell_size)
+                cell.move_to(RIGHT * (j * cell_size) + DOWN * (i * cell_size))
+                grid.add(cell)
+        grid.move_to(ORIGIN)
+        self.add(grid)
+
+        # Diagonal lines in each cell
+        diagonals = VGroup()
+        for i in range(2):
+            for j in range(2):
+                start = grid[i * 2 + j].get_corner(UL)
+                end = grid[i * 2 + j].get_corner(DR)
+                line = Line(start, end, stroke_opacity=0.4)
+                diagonals.add(line)
+        self.add(diagonals)
+
+        # Payoff labels
+        payoffs = [
+            ("5", "5"),
+            ("1", "10"),
+            ("10", "1"),
+            ("2", "2"),
+        ]
+        labels = VGroup()
+        for idx, (a, b) in enumerate(payoffs):
+            cell = grid[idx]
+            a_text = Text(a, fill_color=YELLOW).scale(1)
+            b_text = Text(b, fill_color=GREEN).scale(1)
+
+            a_text.next_to(cell.get_corner(DL), direction=UP + RIGHT, buff=0.2)
+            b_text.next_to(cell.get_corner(UR), direction=DOWN + LEFT, buff=0.2)
+
+            labels.add(a_text, b_text)
+
+        self.add(labels)
+
+        # 죄수 A title
+        a_title = Text("죄수 A", fill_color=YELLOW, font="BM Hanna 11yrs Old").scale(
+            1.1
+        )
+        a_actions = (
+            VGroup(
+                Text("배신", font="BM Hanna 11yrs Old"),
+                Text("협력", font="BM Hanna 11yrs Old"),
+            )
+            .arrange(DOWN, buff=1)
+            .next_to(grid, LEFT)
         )
 
-        l6 = Text(
-            "전체의 그림은 정해져 있다는 것",
-            font="BM Hanna 11yrs Old",
-            font_size=52,
+        self.add(a_title.next_to(a_actions, LEFT))
+        self.add(a_actions)
+
+        # 죄수 B title
+        b_title = Text("죄수 B", fill_color=GREEN, font="BM Hanna 11yrs Old").scale(1.1)
+        b_actions = (
+            VGroup(
+                Text("배신", font="BM Hanna 11yrs Old"),
+                Text("협력", font="BM Hanna 11yrs Old"),
+            )
+            .arrange(RIGHT, buff=2)
+            .next_to(grid, UP)
         )
-        l5.shift(UP)
 
-        l6.next_to(l5, DOWN)
+        self.add(b_title.next_to(b_actions, UP * 1.5))
+        self.add(b_actions)
 
-        self.play(Write(l5))
-        self.play(Write(l6))
+
+from manim import *
+
+
+class PrisonerDilemmaWithNash(Scene):
+    def construct(self):
+        cell_size = 2
+
+        # Grid base: 2x2 payoff matrix
+        grid = VGroup()
+        for i in range(2):
+            for j in range(2):
+                cell = Square(side_length=cell_size)
+                cell.move_to(RIGHT * (j * cell_size) + DOWN * (i * cell_size))
+                grid.add(cell)
+        grid.move_to(ORIGIN)
+        self.add(grid)
+
+        # Diagonal lines in each cell
+        diagonals = VGroup()
+        for i in range(2):
+            for j in range(2):
+                start = grid[i * 2 + j].get_corner(UL)
+                end = grid[i * 2 + j].get_corner(DR)
+                line = Line(start, end, stroke_opacity=0.4)
+                diagonals.add(line)
+        self.add(diagonals)
+
+        # Payoff labels
+        payoffs = [
+            ("5", "5"),
+            ("1", "10"),
+            ("10", "1"),
+            ("2", "2"),
+        ]
+        labels = VGroup()
+        a_texts = []
+        b_texts = []
+
+        for idx, (a, b) in enumerate(payoffs):
+            cell = grid[idx]
+            a_text = Text(a, fill_color=YELLOW).scale(1)
+            b_text = Text(b, fill_color=GREEN).scale(1)
+
+            a_text.next_to(cell.get_corner(DL), direction=UP + RIGHT, buff=0.2)
+            b_text.next_to(cell.get_corner(UR), direction=DOWN + LEFT, buff=0.2)
+
+            a_texts.append(a_text)
+            b_texts.append(b_text)
+            labels.add(a_text, b_text)
+
+        self.add(labels)
+
+        # 죄수 A title
+        a_title = Text("죄수 A", fill_color=YELLOW, font="BM Hanna 11yrs Old").scale(
+            1.1
+        )
+        a_actions = (
+            VGroup(
+                Text("배신", font="BM Hanna 11yrs Old"),
+                Text("협력", font="BM Hanna 11yrs Old"),
+            )
+            .arrange(DOWN, buff=1)
+            .next_to(grid, LEFT)
+        )
+
+        self.add(a_title.next_to(a_actions, LEFT))
+        self.add(a_actions)
+
+        # 죄수 B title
+        b_title = Text("죄수 B", fill_color=GREEN, font="BM Hanna 11yrs Old").scale(1.1)
+        b_actions = (
+            VGroup(
+                Text("배신", font="BM Hanna 11yrs Old"),
+                Text("협력", font="BM Hanna 11yrs Old"),
+            )
+            .arrange(RIGHT, buff=2)
+            .next_to(grid, UP)
+        )
+
+        self.add(b_title.next_to(b_actions, UP * 1.5))
+        self.add(b_actions)
+
+        # --- Player B's best response animation
+
+        # Case 1: A 배신 (row 0, grid[0] and grid[1])
+        row0 = VGroup(grid[0], grid[1], a_texts[0], b_texts[0], a_texts[1], b_texts[1])
+        # self.play(row0.set_opacity, 0.2)
+        self.play(row0.animate.set_opacity(0.2))
+
+        self.wait(0.5)
+
+        highlight_b0 = SurroundingRectangle(b_texts[0], color=GREEN, buff=0.15)
+        self.play(FadeIn(highlight_b0))
+        self.wait(1)
+        self.play(FadeOut(highlight_b0))
+        self.play(row0.animate.set_opacity(1))
+        # self.play(row0.set_opacity, 1)
+
+        # Case 2: A 협력 (row 1, grid[2] and grid[3])
+        row1 = VGroup(grid[2], grid[3], a_texts[2], b_texts[2], a_texts[3], b_texts[3])
+        # self.play(row1.set_opacity, 0.2)
+        self.play(row1.animate.set_opacity(0.2))
+
+        self.wait(0.5)
+
+        highlight_b3 = SurroundingRectangle(b_texts[3], color=GREEN, buff=0.15)
+        self.play(FadeIn(highlight_b3))
+        self.wait(1)
+        self.play(FadeOut(highlight_b3))
+        # self.play(row1.set_opacity, 1)
+        self.play(row1.animate.set_opacity(1))
+
+        # --- Player A's best response animation
+
+        # Case 1: B 배신 (col 0, grid[0] and grid[2])
+        col0 = VGroup(grid[0], grid[2], a_texts[0], b_texts[0], a_texts[2], b_texts[2])
+        # self.play(col0.set_opacity, 0.2)
+        self.play(col0.animate.set_opacity(0.2))
+
+        self.wait(0.5)
+
+        highlight_a0 = SurroundingRectangle(a_texts[0], color=YELLOW, buff=0.15)
+        self.play(FadeIn(highlight_a0))
+        self.wait(1)
+        self.play(FadeOut(highlight_a0))
+        # self.play(col0.set_opacity, 1)
+        self.play(col0.animate.set_opacity(1))
+
+        # Case 2: B 협력 (col 1, grid[1] and grid[3])
+        col1 = VGroup(grid[1], grid[3], a_texts[1], b_texts[1], a_texts[3], b_texts[3])
+        # self.play(col1.set_opacity, 0.2)
+        self.play(col1.animate.set_opacity(0.2))
+
+        self.wait(0.5)
+
+        highlight_a3 = SurroundingRectangle(a_texts[3], color=YELLOW, buff=0.15)
+        self.play(FadeIn(highlight_a3))
+        self.wait(1)
+        self.play(FadeOut(highlight_a3))
+        # self.play(col1.set_opacity, 1)
+        self.play(col1.animate.set_opacity(1))
+
+        self.wait(2)
+
+
+from manim import *
+
+
+class PrisonerDilemmaWithHighlight(Scene):
+    def construct(self):
+        cell_size = 2
+
+        # Grid base: 2x2 payoff matrix
+        grid = VGroup()
+        for i in range(2):
+            for j in range(2):
+                cell = Square(side_length=cell_size)
+                cell.move_to(RIGHT * (j * cell_size) + DOWN * (i * cell_size))
+                grid.add(cell)
+        grid.move_to(ORIGIN)
+        self.add(grid)
+
+        # Diagonal lines in each cell
+        for i in range(2):
+            for j in range(2):
+                start = grid[i * 2 + j].get_corner(UL)
+                end = grid[i * 2 + j].get_corner(DR)
+                line = Line(start, end, stroke_opacity=0.4)
+                self.add(line)
+
+        # Payoff labels
+        payoffs = [
+            ("5", "5"),
+            ("1", "10"),
+            ("10", "1"),
+            ("2", "2"),
+        ]
+        a_texts = []
+        b_texts = []
+
+        for idx, (a, b) in enumerate(payoffs):
+            cell = grid[idx]
+            a_text = Text(a, fill_color=YELLOW).scale(1)
+            b_text = Text(b, fill_color=GREEN).scale(1)
+            a_text.next_to(cell.get_corner(DL), direction=UP + RIGHT, buff=0.2)
+            b_text.next_to(cell.get_corner(UR), direction=DOWN + LEFT, buff=0.2)
+            a_texts.append(a_text)
+            b_texts.append(b_text)
+            self.add(a_text, b_text)
+
+        # Titles and actions
+        a_title = Text("죄수 A", fill_color=YELLOW, font="BM Hanna 11yrs Old").scale(
+            1.1
+        )
+        a_actions = (
+            VGroup(
+                Text("배신", font="BM Hanna 11yrs Old"),
+                Text("협력", font="BM Hanna 11yrs Old"),
+            )
+            .arrange(DOWN, buff=1)
+            .next_to(grid, LEFT)
+        )
+        self.add(a_title.next_to(a_actions, LEFT), a_actions)
+
+        b_title = Text("죄수 B", fill_color=GREEN, font="BM Hanna 11yrs Old").scale(1.1)
+        b_actions = (
+            VGroup(
+                Text("배신", font="BM Hanna 11yrs Old"),
+                Text("협력", font="BM Hanna 11yrs Old"),
+            )
+            .arrange(RIGHT, buff=2)
+            .next_to(grid, UP)
+        )
+        self.add(b_title.next_to(b_actions, UP * 1.5), b_actions)
+
+        # --- Player B's best response animation
+
+        # Case 1: A 배신 (grid[0] vs grid[1])
+        self.wait(0.5)
+        self.play(b_texts[1].animate.set_opacity(0.2))
+        highlight_b0 = SurroundingRectangle(b_texts[0], color=GREEN, buff=0.15)
+        self.play(FadeIn(highlight_b0))
+        self.wait(1)
+        self.play(FadeOut(highlight_b0), b_texts[1].animate.set_opacity(1))
+
+        # Case 2: A 협력 (grid[2] vs grid[3])
+        self.wait(0.5)
+        self.play(b_texts[2].animate.set_opacity(0.2))
+        highlight_b3 = SurroundingRectangle(b_texts[3], color=GREEN, buff=0.15)
+        self.play(FadeIn(highlight_b3))
+        self.wait(1)
+        self.play(FadeOut(highlight_b3), b_texts[2].animate.set_opacity(1))
+
+        # --- Player A's best response animation
+
+        # Case 1: B 배신 (grid[0] vs grid[2])
+        self.wait(0.5)
+        self.play(a_texts[2].animate.set_opacity(0.2))
+        highlight_a0 = SurroundingRectangle(a_texts[0], color=YELLOW, buff=0.15)
+        self.play(FadeIn(highlight_a0))
+        self.wait(1)
+        self.play(FadeOut(highlight_a0), a_texts[2].animate.set_opacity(1))
+
+        # Case 2: B 협력 (grid[1] vs grid[3])
+        self.wait(0.5)
+        self.play(a_texts[1].animate.set_opacity(0.2))
+        highlight_a3 = SurroundingRectangle(a_texts[3], color=YELLOW, buff=0.15)
+        self.play(FadeIn(highlight_a3))
+        self.wait(1)
+        self.play(FadeOut(highlight_a3), a_texts[1].animate.set_opacity(1))
+
+        self.wait(2)
+
+
+from manim import *
+
+
+class PrisonerDilemmaWithHighlight(Scene):
+    def construct(self):
+        cell_size = 2
+
+        # Grid base: 2x2 payoff matrix
+        grid = VGroup()
+        for i in range(2):
+            for j in range(2):
+                cell = Square(side_length=cell_size)
+                cell.move_to(RIGHT * (j * cell_size) + DOWN * (i * cell_size))
+                grid.add(cell)
+        grid.move_to(ORIGIN)
+        self.add(grid)
+
+        # Diagonal lines in each cell
+        for i in range(2):
+            for j in range(2):
+                start = grid[i * 2 + j].get_corner(UL)
+                end = grid[i * 2 + j].get_corner(DR)
+                line = Line(start, end, stroke_opacity=0.4)
+                self.add(line)
+
+        # Payoff labels
+        payoffs = [
+            ("5", "5"),
+            ("1", "10"),
+            ("10", "1"),
+            ("2", "2"),
+        ]
+        a_texts = []
+        b_texts = []
+
+        for idx, (a, b) in enumerate(payoffs):
+            cell = grid[idx]
+            a_text = Text(a, fill_color=YELLOW).scale(1)
+            b_text = Text(b, fill_color=GREEN).scale(1)
+            a_text.next_to(cell.get_corner(DL), direction=UP + RIGHT, buff=0.2)
+            b_text.next_to(cell.get_corner(UR), direction=DOWN + LEFT, buff=0.2)
+            a_texts.append(a_text)
+            b_texts.append(b_text)
+            self.add(a_text, b_text)
+
+        # Titles and actions
+        a_title = Text("죄수 A", fill_color=YELLOW, font="BM Hanna 11yrs Old").scale(
+            1.1
+        )
+        a_actions = (
+            VGroup(
+                Text("배신", font="BM Hanna 11yrs Old"),
+                Text("협력", font="BM Hanna 11yrs Old"),
+            )
+            .arrange(DOWN, buff=1)
+            .next_to(grid, LEFT)
+        )
+        self.add(a_title.next_to(a_actions, LEFT), a_actions)
+
+        b_title = Text("죄수 B", fill_color=GREEN, font="BM Hanna 11yrs Old").scale(1.1)
+        b_actions = (
+            VGroup(
+                Text("배신", font="BM Hanna 11yrs Old"),
+                Text("협력", font="BM Hanna 11yrs Old"),
+            )
+            .arrange(RIGHT, buff=2)
+            .next_to(grid, UP)
+        )
+        self.add(b_title.next_to(b_actions, UP * 1.5), b_actions)
+
+        # --- Add highlight rectangles for rows and columns ---
+        row_highlights = [
+            Rectangle(
+                width=4, height=2, fill_color=BLACK, fill_opacity=0, stroke_opacity=0
+            ).move_to(grid[0].get_center() + RIGHT * cell_size / 2),
+            Rectangle(
+                width=4, height=2, fill_color=BLACK, fill_opacity=0, stroke_opacity=0
+            ).move_to(grid[2].get_center() + RIGHT * cell_size / 2),
+        ]
+        col_highlights = [
+            Rectangle(
+                width=2, height=4, fill_color=BLACK, fill_opacity=0, stroke_opacity=0
+            ).move_to(grid[0].get_center() + DOWN * cell_size / 2),
+            Rectangle(
+                width=2, height=4, fill_color=BLACK, fill_opacity=0, stroke_opacity=0
+            ).move_to(grid[1].get_center() + DOWN * cell_size / 2),
+        ]
+
+        self.add(*row_highlights, *col_highlights)
+
+        # --- Player B's best response animation
+        self.wait(0.5)
+        self.play(row_highlights[0].animate.set_fill(opacity=0.7))
+        highlight_b0 = SurroundingRectangle(b_texts[0], color=GREEN, buff=0.15)
+        self.play(FadeIn(highlight_b0))
+        self.wait(1)
+        self.play(FadeOut(highlight_b0), row_highlights[0].animate.set_fill(opacity=0))
+
+        self.wait(0.5)
+        self.play(row_highlights[1].animate.set_fill(opacity=0.7))
+        highlight_b3 = SurroundingRectangle(b_texts[3], color=GREEN, buff=0.15)
+        self.play(FadeIn(highlight_b3))
+        self.wait(1)
+        self.play(FadeOut(highlight_b3), row_highlights[1].animate.set_fill(opacity=0))
+
+        # --- Player A's best response animation
+        self.wait(0.5)
+        self.play(col_highlights[0].animate.set_fill(opacity=0.7))
+        highlight_a0 = SurroundingRectangle(a_texts[0], color=YELLOW, buff=0.15)
+        self.play(FadeIn(highlight_a0))
+        self.wait(1)
+        self.play(FadeOut(highlight_a0), col_highlights[0].animate.set_fill(opacity=0))
+
+        self.wait(0.5)
+        self.play(col_highlights[1].animate.set_fill(opacity=0.7))
+        highlight_a3 = SurroundingRectangle(a_texts[3], color=YELLOW, buff=0.15)
+        self.play(FadeIn(highlight_a3))
+        self.wait(1)
+        self.play(FadeOut(highlight_a3), col_highlights[1].animate.set_fill(opacity=0))
+
+        self.wait(2)
+
+
+from manim import *
+
+
+class DilemmaTopics(Scene):
+    def construct(self):
+        # Title
+        title = Tex(r"1 + 1 = -1").scale(1.5)
+
+        title.to_edge(UP)
+        self.play(FadeIn(title))
+
+        # List of examples
+        items = [
+            "1. 기후위기",
+            "2. 환경오염",
+            "3. 핵",
+            "4. AI",
+            "5. 마케팅 / 정치 / 뉴스 / sns",
+            "6. 비만 / 사교육 / 금융",
+        ]
+
+        text_lines = VGroup()
+        for i, item in enumerate(items):
+            line = Text(item, font="BM Hanna 11yrs Old").scale(1.1)
+            if i % 2 == 1:
+                line.set_fill(GREY)
+            text_lines.add(line)
+
+        text_lines.arrange(DOWN, aligned_edge=LEFT, buff=0.5)
+        text_lines.next_to(title, DOWN * 2, aligned_edge=LEFT).shift(LEFT * 2)
+
+        # Animate each line appearing
+        for line in text_lines:
+            self.play(FadeIn(line), run_time=0.5)
+
+        self.wait(2)

@@ -4148,35 +4148,34 @@ class ZenoStep1(Scene):
         self.add(title)
 
         start = LEFT * 6 + UP * 0.7
-        end = RIGHT * 6 + UP * 0.7
+        end = RIGHT * 5 + UP * 0.7
 
         # Generate key points by halving repeatedly
         halfway = (start + end) / 2
         quarter = (halfway + end) / 2
         eighth = (quarter + end) / 2
         sixteenth = (eighth + end) / 2
+        t32 = (sixteenth + end) / 2
 
-        up_s = UP * 1.3  # vertical offset for dog image
+        up_s = UP * 1  # vertical offset for dog image
 
         # Draw line
 
         line = Line(start, end, color=YELLOW, stroke_width=7)
-        self.play(FadeIn(line))
-
-        # Goal label and dog bones
-
         bones = (
             ImageMobject("/Users/eugenekim/projects/dance-with/first-project/bones.png")
-            .scale(0.5)
+            .scale(0.3)
             .next_to(end, RIGHT)
         )
 
-        self.play(FadeIn(bones))
+        self.play(FadeIn(line), FadeIn(bones))
+
+        # Goal label and dog bones
 
         # Load transparent dog image
         character = ImageMobject(
             "/Users/eugenekim/projects/dance-with/first-project/dog-zeno.png"
-        ).scale(0.5)
+        ).scale(0.3)
         character.set_opacity(0.8)  # make dog slightly transparent
         character.move_to(start + up_s)
         self.add(character)
@@ -4195,10 +4194,11 @@ class ZenoStep1(Scene):
         do_step(halfway, quarter, "1/4")
         do_step(quarter, eighth, "1/8")
         do_step(eighth, sixteenth, "1/16")
+        do_step(sixteenth, t32, "...")
 
         # Add "..." to imply infinity
-        dots = Text("...", font_size=60).move_to((sixteenth + end) / 2 + DOWN * 1.5)
-        self.play(FadeIn(dots))
+        # dots = Text("...", font_size=60).move_to((sixteenth + end) / 2 )
+        # self.play(FadeIn(dots))
         self.wait(1.5)
 
         lp = Tex(r"L_p = 1.616\,199 \times 10^{-35} \ \mathrm{m}")
@@ -4775,4 +4775,723 @@ class WhichExplanation(Scene):
         self.play(FadeIn(line2))
         self.wait(1.2)
         self.play(Write(line3), run_time=1.5)
+        self.wait(2)
+
+
+class EntropyBoxExpansion(Scene):
+    def construct(self):
+        radius = 0.08
+        init_width = 3
+        height = 4
+        expanded_width = 5.5
+        num_particles = 15
+
+        # --- 왼쪽 박스
+        box_left = Rectangle(width=init_width, height=height, color=WHITE)
+        box_left.shift(LEFT * 4)
+
+        # --- 오른쪽 박스 (처음엔 동일)
+        box_right = Rectangle(width=init_width, height=height, color=WHITE)
+        box_right.shift(RIGHT * 2)
+
+        self.add(box_left, box_right)
+
+        # --- 입자 생성 함수
+        def create_particles(center_shift, box_width):
+            particles = VGroup()
+            velocities = []
+            for _ in range(num_particles):
+                x = random.uniform(-box_width / 2 + radius, box_width / 2 - radius)
+                y = random.uniform(-height / 2 + radius, height / 2 - radius)
+                pos = np.array([x, y, 0]) + center_shift
+                dot = Dot(point=pos, radius=radius, color=YELLOW)
+                particles.add(dot)
+                vx = random.uniform(-0.05, 0.05)
+                vy = random.uniform(-0.05, 0.05)
+                velocities.append(np.array([vx, vy, 0]))
+            return particles, velocities
+
+        # 왼쪽 입자
+        particles_left, vels_left = create_particles(LEFT * 4, init_width)
+        self.add(particles_left)
+
+        # 오른쪽 입자 (복사)
+        particles_right, vels_right = create_particles(RIGHT * 2, init_width)
+        self.add(particles_right)
+
+        # --- 업데이트 함수
+        def make_updater(velocities, center_shift, width):
+            def updater(mob, dt):
+                for i, dot in enumerate(mob):
+                    dot.shift(velocities[i])
+                    pos = dot.get_center() - center_shift
+
+                    # Bounce X
+                    if abs(pos[0]) > (width / 2 - radius):
+                        velocities[i][0] *= -1
+                        dot.shift(velocities[i])
+                    # Bounce Y
+                    if abs(pos[1]) > (height / 2 - radius):
+                        velocities[i][1] *= -1
+                        dot.shift(velocities[i])
+
+            return updater
+
+        particles_left.add_updater(make_updater(vels_left, LEFT * 4, init_width))
+        particles_right.add_updater(make_updater(vels_right, RIGHT * 2, init_width))
+        self.wait(2)
+
+        # --- 오른쪽 박스 확장 애니메이션
+        new_box_right = Rectangle(width=expanded_width, height=height, color=WHITE)
+        new_box_right.shift(RIGHT * 2)
+
+        self.play(Transform(box_right, new_box_right), run_time=5)
+
+        self.wait(2)
+
+        # 업데이트된 우측 입자 경계 반영
+        particles_right.clear_updaters()
+        particles_right.add_updater(make_updater(vels_right, RIGHT * 2, expanded_width))
+
+        self.wait(4)
+
+
+class ReversibleParticles(Scene):
+    def construct(self):
+        radius = 0.08
+        box_width = 6
+        box_height = 4
+        num_particles = 15
+        duration = 6  # seconds forward + reverse
+
+        # --- 박스 경계
+        boundary = Rectangle(width=box_width, height=box_height, color=WHITE)
+        self.add(boundary)
+
+        # --- 입자 생성
+        particles = VGroup()
+        velocities = []
+
+        for _ in range(num_particles):
+            x = random.uniform(-box_width / 2 + radius, box_width / 2 - radius)
+            y = random.uniform(-box_height / 2 + radius, box_height / 2 - radius)
+            dot = Dot(point=np.array([x, y, 0]), radius=radius, color=YELLOW)
+            particles.add(dot)
+
+            vx = random.uniform(-0.05, 0.05)
+            vy = random.uniform(-0.05, 0.05)
+            velocities.append(np.array([vx, vy, 0]))
+
+        self.add(particles)
+
+        original_velocities = velocities.copy()
+
+        # --- 카메라 줌인 (한 입자 추적)
+        tracked = particles[0]
+        frame = self.camera.frame
+        frame.save_state()
+        self.play(frame.animate.scale(0.2).move_to(tracked.get_center()), run_time=2)
+        # 추적용 updater 저장
+        track_updater = lambda m: m.move_to(tracked.get_center())
+        frame.add_updater(track_updater)
+
+        # --- 입자 업데이트 함수 (전진)
+        def forward_update(mob, dt):
+            for i, dot in enumerate(mob):
+                dot.shift(velocities[i])
+                pos = dot.get_center()
+
+                if abs(pos[0]) > (box_width / 2 - radius):
+                    velocities[i][0] *= -1
+                    dot.shift(velocities[i])
+                if abs(pos[1]) > (box_height / 2 - radius):
+                    velocities[i][1] *= -1
+                    dot.shift(velocities[i])
+
+        # --- Play icon (▶)
+        play_icon = Text("▶", font="Arial").scale(1.5)
+        play_icon.to_corner(DR).shift(LEFT * 0.3 + UP * 0.3)
+        play_icon.fix_in_frame()
+        self.play(FadeIn(play_icon))
+
+        particles.add_updater(forward_update)
+        self.wait(duration)
+
+        # ...
+
+        # 제거할 때
+        frame.remove_updater(track_updater)
+
+        # --- 멈추고 카메라 줌아웃
+        particles.remove_updater(forward_update)
+        self.play(Restore(frame), run_time=2)
+        self.wait(0.5)
+
+        # --- 되감기: 속도 반전
+        for i in range(num_particles):
+            velocities[i] = -original_velocities[i]
+
+        def reverse_update(mob, dt):
+            for i, dot in enumerate(mob):
+                dot.shift(velocities[i])
+                pos = dot.get_center()
+
+                if abs(pos[0]) > (box_width / 2 - radius):
+                    velocities[i][0] *= -1
+                    dot.shift(velocities[i])
+                if abs(pos[1]) > (box_height / 2 - radius):
+                    velocities[i][1] *= -1
+                    dot.shift(velocities[i])
+
+        particles.remove_updater(forward_update)
+        rewind_icon = Text("⏪", font="Arial").scale(1.5)
+        rewind_icon.fix_in_frame()
+
+        rewind_icon.move_to(play_icon)
+
+        self.play(Transform(play_icon, rewind_icon))
+
+        frame = self.camera.frame
+        frame.save_state()
+        self.play(frame.animate.scale(0.2).move_to(tracked.get_center()), run_time=2)
+        # 추적용 updater 저장
+        track_updater = lambda m: m.move_to(tracked.get_center())
+        frame.add_updater(track_updater)
+
+        particles.add_updater(reverse_update)
+        self.wait(duration)
+        particles.remove_updater(reverse_update)
+        frame.remove_updater(track_updater)
+
+        self.wait(1)
+        self.play(Restore(frame), run_time=2)
+        self.wait(0.5)
+
+
+class StoryPerspectiveQuestion(Scene):
+    def construct(self):
+
+        # 문장 1
+        line1 = Text(
+            "입자의 스토리에는 (물리법칙)", font="BM Hanna 11yrs Old", color=WHITE
+        ).scale(1.2)
+        line1_2 = Text(
+            "시간의 방향이 없다.", font="BM Hanna 11yrs Old", color=WHITE
+        ).scale(1.2)
+
+        # 문장 2
+        line2 = Text(
+            "공간을 바라봐야만 스토리에, 시간의 방향이 생긴다.",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.2)
+        line2.set_fill(GREY)
+
+        # 문장 3 (질문)
+        line3 = Text(
+            "그렇다면, 중요한 질문은,", font="BM Hanna 11yrs Old", color=WHITE
+        ).scale(1.2)
+        line3_2 = Text(
+            "하나의 story 에서, 다른 스토리로", font="BM Hanna 11yrs Old", color=WHITE
+        ).scale(1.2)
+        line3_3 = Text(
+            "어떻게 우리가 관점을 이동할 수 있는가 이다.",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.2)
+        line3_3.set_color_by_text("관점을 이동", ORANGE)
+
+        # 배치
+        line1.move_to(UP * 2.5)
+        line1_2.next_to(line1, DOWN, buff=0.3)
+        line2.next_to(line1_2, DOWN, buff=0.7)
+        line3.next_to(line2, DOWN, buff=1)
+        line3_2.next_to(line3, DOWN, buff=0.3)
+        line3_3.next_to(line3_2, DOWN, buff=0.3)
+
+        # 애니메이션
+        self.play(FadeIn(line1))
+        self.play(FadeIn(line1_2))
+        self.wait(1)
+
+        self.play(FadeIn(line2))
+        self.wait(1.5)
+
+        self.play(FadeIn(line3))
+        self.play(FadeIn(line3_2))
+        self.play(FadeIn(line3_3))
+        self.wait(2)
+
+
+class ZenoStep2(Scene):
+    def construct(self):
+        # Define points
+        title = Text(
+            "Zeno 역설",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.5)
+        title.shift(UP * 3)
+
+        self.add(title)
+
+        start = LEFT * 6 + UP * 0.7
+        end = RIGHT * 5 + UP * 0.7
+
+        # Generate key points by halving repeatedly
+        halfway = (start + end) / 2
+        quarter = (halfway + end) / 2
+        eighth = (quarter + end) / 2
+        sixteenth = (eighth + end) / 2
+        t32 = (sixteenth + end) / 2
+
+        up_s = UP * 1  # vertical offset for dog image
+
+        # Draw line
+
+        line = Line(start, end, color=YELLOW, stroke_width=7)
+        bones = (
+            ImageMobject("/Users/eugenekim/projects/dance-with/first-project/bones.png")
+            .scale(0.3)
+            .next_to(end, RIGHT)
+        )
+
+        self.play(FadeIn(line), FadeIn(bones))
+
+        # Goal label and dog bones
+
+        # Load transparent dog image
+        character = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/dog-zeno.png"
+        ).scale(0.3)
+        character.set_opacity(0.8)  # make dog slightly transparent
+        character.move_to(start + up_s)
+        self.add(character)
+
+        # Function to create step animation
+        def do_step(start_pt, end_pt, label_text):
+            line_seg = Line(start_pt, end_pt)
+            brace = Brace(line_seg, DOWN)
+            label = brace.get_text(label_text)
+            self.play(GrowFromCenter(brace), Write(label))
+            self.play(character.animate.move_to(end_pt + up_s), run_time=1)
+            self.wait(0.3)
+
+        # Do four steps: 1/2, 1/4, 1/8, 1/16
+        do_step(start, halfway, "1/2")
+        do_step(halfway, quarter, "1/4")
+        do_step(quarter, eighth, "1/8")
+        do_step(eighth, sixteenth, "1/16")
+        do_step(sixteenth, t32, "...")
+
+        # Add "..." to imply infinity
+        # dots = Text("...", font_size=60).move_to((sixteenth + end) / 2 )
+        # self.play(FadeIn(dots))
+        self.wait(1.5)
+
+        t1 = Text(
+            "이동하는 입장이 아니라 밖에서 바라보면",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.2)
+        t1.shift(DOWN)
+        self.play(Write(t1))
+
+        self.wait(2)
+
+        t2 = Text(
+            "몇번을 가든, 시간도 그만큼 잘게 쪼개 보겠다는 것이다",
+            font="BM Hanna 11yrs Old",
+        ).scale(1)
+        t2.set_fill(GREY)
+
+        t2.next_to(t1, DOWN * 1.3)
+
+        self.play(Write(t2))
+        self.wait(1)
+
+        t3 = Text(
+            "몇번을 쪼개서 보든, 전체 시간은 정해져 있다",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.2)
+
+        t3.next_to(t2, DOWN * 1.3)
+        t3.set_color_by_text("전체 시간", BLUE)
+
+        self.play(Write(t3))
+        self.wait(1)
+
+
+class Scene01_MathAndPhysicsSplit(Scene):
+
+    def construct(self):
+        math_b = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/math_f.png"
+        ).scale(1.2)
+
+        math_b.shift(LEFT * 3 + DOWN * 0.5)
+
+        self.play(FadeIn(math_b))
+
+        physics_b = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/physics_f.png"
+        ).scale(1.2)
+
+        physics_b.shift(RIGHT * 3 + DOWN * 0.5)
+
+        self.play(FadeIn(physics_b))
+
+        t1 = Text(
+            "수학",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.5)
+
+        t1.next_to(math_b, UP)
+
+        self.play(Write(t1))
+
+        t2 = Text(
+            "물리",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.5)
+
+        t2.next_to(physics_b, UP)
+
+        self.play(Write(t2))
+
+
+class CircleNetwork(Scene):
+    def construct(self):
+        # Parameters
+        num_outer = 20
+        num_inner = 30
+        radius = 3
+        jitter_amount = 0.002
+        connection_threshold = 2.0
+
+        # Circle base
+        circle = Circle(radius=radius, color=GREY)
+        self.add(circle)
+
+        # Dot positions
+        outer_dots = []
+        inner_dots = []
+
+        for i in range(num_outer):
+            angle = 1 * i
+            x = radius * math.cos(angle)
+            y = radius * math.sin(angle)
+            dot = Dot(point=np.array([x, y, 0]), radius=0.07, color=BLUE)
+            outer_dots.append(dot)
+
+        for _ in range(num_inner):
+            angle = random.uniform(0, 2 * PI)
+            r = random.uniform(0, radius)
+            x = r * math.cos(angle)
+            y = r * math.sin(angle)
+            dot = Dot(point=np.array([x, y, 0]), radius=0.07, color=GREEN)
+            inner_dots.append(dot)
+
+        all_dots = outer_dots + inner_dots
+        self.add(*all_dots)
+
+        # Connect close dots
+        # Connect all pairs (complete graph)
+        lines = VGroup()
+        dot_pairs = []
+
+        for i in range(len(all_dots)):
+            for j in range(i + 1, len(all_dots)):
+                p1 = all_dots[i].get_center()
+                p2 = all_dots[j].get_center()
+                line = Line(p1, p2, stroke_opacity=0.1)
+                lines.add(line)
+                dot_pairs.append((i, j))  # Store the pair for updates
+
+        self.add(lines)
+
+        # --- Jitter animation
+        def jitter_update(mobj, dt):
+
+            for i, dot in enumerate(all_dots):
+                if i < num_outer:
+                    # Move slightly along tangent (circular motion)
+                    pos = dot.get_center()
+                    angle = math.atan2(pos[1], pos[0])
+                    delta_angle = random.uniform(-0.002, 0.002)
+                    new_angle = angle + delta_angle
+                    new_x = radius * math.cos(new_angle)
+                    new_y = radius * math.sin(new_angle)
+                    dot.move_to([new_x, new_y, 0])
+                else:
+                    shift_x = random.uniform(-jitter_amount, jitter_amount)
+                    shift_y = random.uniform(-jitter_amount, jitter_amount)
+                    dot.shift([shift_x, shift_y, 0])
+
+            # Update line positions (using dot_pairs list)
+            for k, (i, j) in enumerate(dot_pairs):
+                lines[k].put_start_and_end_on(
+                    all_dots[i].get_center(), all_dots[j].get_center()
+                )
+
+        tracker = ValueTracker(0)
+
+        # Dummy mobject just to use add_updater
+        dummy = VectorizedPoint()
+        dummy.add_updater(lambda m, dt: tracker.increment_value(dt))
+        self.add(dummy)
+
+        dummy.add_updater(jitter_update)
+        self.wait(6)
+        dummy.remove_updater(jitter_update)
+
+
+class SiddharthaScene(Scene):
+    def construct(self):
+
+        def make_wave_curve():
+            # Simple sinusoidal wave line
+            points = []
+            for x in np.linspace(-7, 7, 200):
+                y = 0.2 * math.sin(x * 2)
+                points.append(np.array([x, y, 0]))
+
+            return VMobject().set_points_as_corners(points)
+
+        # --- 명언 본문
+        quote = (
+            Text("강은 어디에나 동시에 존재한다.", font="BM Hanna 11yrs Old")
+            .scale(1.4)
+            .set_color(BLUE_A)
+        )
+
+        # --- 물결형 라인 (곡선 흐름 애니메이션)
+        wave = make_wave_curve()
+        wave.set_color(BLUE_D).set_opacity(0.5)
+        wave.shift(DOWN * 2)
+
+        # --- 애니메이션
+        self.add(quote)
+
+        self.add(wave)
+        self.play(wave.animate.shift(LEFT * 1), run_time=10, rate_func=linear)
+
+        self.wait(3)
+
+
+class SurvivalOfFittest(Scene):
+    def construct(self):
+
+        # 생명체 점 10개 생성
+        num = 15
+        dots = VGroup()
+        for _ in range(num):
+            x = random.uniform(-5, 5)
+            y = random.uniform(-2.5, 2.5)
+            dot = Dot(point=[x, y, 0], color=BLUE, radius=0.15)
+            dots.add(dot)
+
+        self.play(LaggedStartMap(FadeIn, dots, lag_ratio=0.1))
+        self.wait(1)
+
+        # 하나씩 제거 (생존 경쟁)
+
+        for i in range(num - 1):
+            if i < num - 5:  # First phase: speed up
+                t = i / (num - 6)  # normalize to [0, 1]
+                speed = interpolate(0.6, 0.2, t)
+            else:  # Second phase: slow down
+                t = (i - (num - 5)) / 4  # normalize last 4 steps
+                speed = interpolate(0.2, 0.6, t)
+
+            self.play(FadeOut(dots[i]), run_time=speed)
+        # 마지막 남은 하나 강조
+        survivor = dots[-1]
+        self.play(survivor.animate.set_color(RED).scale(1.6))
+        self.wait(0.5)
+
+        self.wait(2)
+
+
+class PrisonerDilemmaWithHighlight(Scene):
+    def construct(self):
+        cell_size = 2
+
+        # Grid base: 2x2 payoff matrix
+        grid = VGroup()
+        for i in range(2):
+            for j in range(2):
+                cell = Square(side_length=cell_size)
+                cell.move_to(RIGHT * (j * cell_size) + DOWN * (i * cell_size))
+                grid.add(cell)
+        grid.move_to(ORIGIN)
+        self.add(grid)
+
+        # Diagonal lines in each cell
+        for i in range(2):
+            for j in range(2):
+                start = grid[i * 2 + j].get_corner(UL)
+                end = grid[i * 2 + j].get_corner(DR)
+                line = Line(start, end, stroke_opacity=0.4)
+                self.add(line)
+
+        # Payoff labels
+        payoffs = [
+            ("5", "5"),
+            ("1", "10"),
+            ("10", "1"),
+            ("2", "2"),
+        ]
+        a_texts = []
+        b_texts = []
+
+        for idx, (a, b) in enumerate(payoffs):
+            cell = grid[idx]
+            a_text = Text(a, fill_color=YELLOW).scale(1)
+            b_text = Text(b, fill_color=GREEN).scale(1)
+            a_text.next_to(cell.get_corner(DL), direction=UP + RIGHT, buff=0.2)
+            b_text.next_to(cell.get_corner(UR), direction=DOWN + LEFT, buff=0.2)
+            a_texts.append(a_text)
+            b_texts.append(b_text)
+            self.add(a_text, b_text)
+
+        # Titles and actions
+        a_title = Text("죄수 A", fill_color=YELLOW, font="BM Hanna 11yrs Old").scale(
+            1.1
+        )
+        a_actions = (
+            VGroup(
+                Text("배신", font="BM Hanna 11yrs Old"),
+                Text("협력", font="BM Hanna 11yrs Old"),
+            )
+            .arrange(DOWN, buff=1)
+            .next_to(grid, LEFT)
+        )
+        self.add(a_title.next_to(a_actions, LEFT), a_actions)
+
+        b_title = Text("죄수 B", fill_color=GREEN, font="BM Hanna 11yrs Old").scale(1.1)
+        b_actions = (
+            VGroup(
+                Text("배신", font="BM Hanna 11yrs Old"),
+                Text("협력", font="BM Hanna 11yrs Old"),
+            )
+            .arrange(RIGHT, buff=2)
+            .next_to(grid, UP)
+        )
+        self.add(b_title.next_to(b_actions, UP * 1.5), b_actions)
+
+        # --- Add highlight rectangles for rows and columns ---
+        row_highlights = [
+            Rectangle(
+                width=4, height=2, fill_color=BLACK, fill_opacity=0, stroke_opacity=0
+            ).move_to(grid[0].get_center() + RIGHT * cell_size / 2),
+            Rectangle(
+                width=4, height=2, fill_color=BLACK, fill_opacity=0, stroke_opacity=0
+            ).move_to(grid[2].get_center() + RIGHT * cell_size / 2),
+        ]
+        col_highlights = [
+            Rectangle(
+                width=2, height=4, fill_color=BLACK, fill_opacity=0, stroke_opacity=0
+            ).move_to(grid[0].get_center() + DOWN * cell_size / 2),
+            Rectangle(
+                width=2, height=4, fill_color=BLACK, fill_opacity=0, stroke_opacity=0
+            ).move_to(grid[1].get_center() + DOWN * cell_size / 2),
+        ]
+
+        self.add(*row_highlights, *col_highlights)
+
+        # --- Player B's best response animation
+
+        # Case 1: A 배신 — dim other row (row 1), highlight payoff on row 0
+        self.wait(1)
+        self.play(row_highlights[1].animate.set_fill(opacity=0.7))
+        highlight_b0 = SurroundingRectangle(b_texts[0], color=GREEN, buff=0.15)
+        self.play(FadeIn(highlight_b0))
+        self.wait(1)
+        self.play(FadeOut(highlight_b0), row_highlights[1].animate.set_fill(opacity=0))
+
+        # Case 2: A 협력 — dim other row (row 0), highlight payoff on row 1
+        self.wait(1)
+        self.play(row_highlights[0].animate.set_fill(opacity=0.7))
+        highlight_b3 = SurroundingRectangle(b_texts[2], color=GREEN, buff=0.15)
+        self.play(FadeIn(highlight_b3))
+        self.wait(1)
+        self.play(FadeOut(highlight_b3), row_highlights[0].animate.set_fill(opacity=0))
+
+        highlight_b = SurroundingRectangle(b_actions[0], color=GREEN, buff=0.15)
+        self.play(FadeIn(highlight_b))
+
+        # --- Player A's best response animation
+
+        # Case 1: B 배신 — dim other col (col 1), highlight payoff on col 0
+        self.wait(1)
+        self.play(col_highlights[1].animate.set_fill(opacity=0.7))
+        highlight_a0 = SurroundingRectangle(a_texts[0], color=YELLOW, buff=0.15)
+        self.play(FadeIn(highlight_a0))
+        self.wait(1)
+        self.play(FadeOut(highlight_a0), col_highlights[1].animate.set_fill(opacity=0))
+
+        # Case 2: B 협력 — dim other col (col 0), highlight payoff on col 1
+        self.wait(1)
+        self.play(col_highlights[0].animate.set_fill(opacity=0.7))
+        highlight_a3 = SurroundingRectangle(a_texts[1], color=YELLOW, buff=0.15)
+        self.play(FadeIn(highlight_a3))
+        self.wait(1)
+        self.play(FadeOut(highlight_a3), col_highlights[0].animate.set_fill(opacity=0))
+
+        highlight_a = SurroundingRectangle(a_actions[0], color=YELLOW, buff=0.15)
+        self.play(FadeIn(highlight_a))
+
+        self.wait(2)
+
+        eq = SurroundingRectangle(grid[0], color=RED, buff=0)
+        self.play(FadeIn(eq))
+
+        self.wait(1)
+
+        opt = SurroundingRectangle(grid[3], color=BLUE, buff=0)
+        self.play(FadeIn(opt))
+
+        self.wait(2)
+
+        # self.play(grid.animate.set_opacity(0.2))
+
+        for m in self.mobjects:
+            m.set_opacity(0.1)
+
+        eq = Tex(r"1 + 1 = -1").scale(2)
+        self.play(Write(eq))
+        self.wait(2)
+
+
+class DilemmaTopics(Scene):
+    def construct(self):
+        # Title
+        title = Text(r"1 + 1 = -1").scale(1.5)
+
+        title.set_color_by_text("-1", RED)
+
+        title.to_edge(UP)
+        self.play(FadeIn(title))
+
+        # List of examples
+        items = [
+            "1. 기후위기",
+            "2. 환경오염",
+            "3. 핵",
+            "4. AI",
+            "5. 마케팅 / 정치 / 뉴스 / sns",
+            "6. 비만 / 사교육 / 금융",
+        ]
+
+        text_lines = VGroup()
+        for i, item in enumerate(items):
+            line = Text(item, font="BM Hanna 11yrs Old").scale(1.1)
+            if i % 2 == 1:
+                line.set_fill(GREY_B)
+            text_lines.add(line)
+
+        text_lines.arrange(DOWN, aligned_edge=LEFT, buff=0.5)
+        text_lines.next_to(title, DOWN * 2, aligned_edge=LEFT).shift(LEFT * 2)
+
+        # Animate each line appearing
+        for line in text_lines:
+            self.play(FadeIn(line), run_time=0.5)
+
         self.wait(2)
