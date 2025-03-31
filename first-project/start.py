@@ -3895,14 +3895,254 @@ class PiTablesManimGL(Scene):
         self.wait(0.5)
         self.play(Write(l4))
 
+        self.wait(2)
+
+
+class GaltonHistogram(Scene):
+    def construct(self):
+        # Histogram config
+
+        num_bins = 13
+        bin_range = (-4, 4)
+        bin_width = (bin_range[1] - bin_range[0]) / num_bins
+        bin_edges = [bin_range[0] + i * bin_width for i in range(num_bins + 1)]
+        bin_centers = [(bin_edges[i] + bin_edges[i + 1]) / 2 for i in range(num_bins)]
+
+        # Axes
+        axes = Axes(
+            x_range=(bin_range[0], bin_range[1]),
+            y_range=(0, 24),
+            axis_config={"include_tip": False},
+        )
+        axes.to_edge(DOWN)
+
+        self.add(axes)
+
+        # Bars (initially height 0)
+        bars = VGroup()
+        bar_width = bin_width * 0.9
+        for center in bin_centers:
+            bar = Rectangle(
+                width=bar_width,
+                height=0.01,
+                fill_color=BLUE,
+                fill_opacity=0.7,
+                stroke_width=0,
+            )
+            bar.move_to(axes.c2p(center, 0), DOWN)
+            bars.add(bar)
+
+        self.add(bars)
+
+        # Histogram bin counts
+        counts = [0 for _ in range(num_bins)]
+        max_height = 20
+
+        # Animation loop: drop samples and grow bars
+        for i in range(200):
+            sample = random.gauss(0, 1.5)  # Normal distribution
+            # Bin it
+            for j in range(num_bins):
+                if bin_edges[j] <= sample < bin_edges[j + 1]:
+                    counts[j] += 1
+                    break
+            else:
+                # Clip to edge bins
+                if sample < bin_edges[0]:
+                    counts[0] += 1
+                elif sample >= bin_edges[-1]:
+                    counts[-1] += 1
+
+            # Update bars visually
+            updated_bars = VGroup()
+            for j, count in enumerate(counts):
+                # height = min(count, max_height)
+                height = count
+                bar = Rectangle(
+                    width=bar_width,
+                    height=height * 0.2,  # Scale to fit y axis
+                    fill_color=BLUE,
+                    fill_opacity=0.7,
+                    stroke_width=0,
+                )
+                bar.move_to(axes.c2p(bin_centers[j], 0), DOWN)
+                updated_bars.add(bar)
+
+            self.play(Transform(bars, updated_bars), run_time=0.02)
+
+        self.wait(2)
+        self.play(bars.animate.set_fill(opacity=0.2), run_time=1)
+
+        l5 = Text(
+            "확률 분포라는 것도",
+            font="BM Hanna 11yrs Old",
+            font_size=52,
+        )
+
+        l6 = Text(
+            "전체의 그림은 정해져 있다는 것",
+            font="BM Hanna 11yrs Old",
+            font_size=52,
+        )
+        l5.shift(UP)
+
+        l6.next_to(l5, DOWN)
+
+        self.play(Write(l5))
+        self.play(Write(l6))
+
+
+class RiemannScene(Scene):
+    def construct(self):
+        # 1. Complex Plane Setup
+        plane = (
+            ComplexPlane(
+                x_range=[-2, 6, 1],
+                y_range=[-1, 6, 1],
+                background_line_style={
+                    "stroke_color": BLUE_E,
+                    "stroke_opacity": 0.8,
+                    "stroke_width": 1,
+                },
+            )
+            .scale(1)
+            .shift(RIGHT * 2)
+        )
+        self.add(plane)
+
+        zeta_tex = (
+            Tex(
+                r"""\begin{aligned}
+                \zeta(s) &= \frac{1}{1^s} + \frac{1}{2^s} + \frac{1}{3^s} + \frac{1}{4^s} + \cdots \\
+                &= 0
+                \end{aligned}""",
+                tex_to_color_map={"s": YELLOW},
+            )
+            .scale(0.8)
+            .to_corner(UL)
+            .shift(DOWN * 0.3)
+        )
+
+        self.add(zeta_tex)
+
+        # 3. Prime number label (top-right)
+        prime_tex = Tex("").to_corner(UR).shift(DOWN * 0.3)
+        self.add(prime_tex)
+
+        # 4. Actual imaginary parts of first non-trivial zeros
+        zeros_actual = [
+            14.134725,
+            21.022040,
+            25.010857,
+            30.424876,
+            32.935061,
+            37.586178,
+            40.918719,
+        ]
+        scale = 0.12  # compress vertically for visibility
+        visual_ys = [z * scale for z in zeros_actual]
+
+        # 5. Dots on critical line
+        x_pos = 0.5
+        primes = [2, 3, 5, 7, 11, 13, 17]  # same number of items as zeros
+        zero_dots = []
+
+        for i, y in enumerate(visual_ys):
+            dot = Dot(plane.n2p(complex(x_pos, y)), color=WHITE)
+            zero_dots.append(dot)
+
+            new_prime_tex = Tex(",".join(str(p) for p in primes[: i + 1]) + ",\\dots")
+            new_prime_tex.to_corner(UR).shift(DOWN * 0.3)
+
+            self.play(FadeIn(dot), Transform(prime_tex, new_prime_tex), run_time=0.5)
+
+        # 6. Vertical yellow strip (optional, aesthetic)
+        highlight_strip = Rectangle(
+            height=6, width=0.1, fill_color=YELLOW, fill_opacity=0.3, stroke_width=0
+        ).move_to(plane.n2p(complex(x_pos, 3)))
+        self.wait()
+        self.add(highlight_strip)
+
+        # 7. Yellow vertical line (grows after dots)
+        line_origin = plane.n2p(complex(x_pos, 0))
+        line_up = plane.n2p(complex(x_pos, 6))
+        line_down = plane.n2p(complex(x_pos, -1))
+
+        critical_line_up = Line(
+            start=line_origin,
+            end=line_origin,
+            color=YELLOW,
+            stroke_width=4,
+        )
+        critical_line_down = Line(
+            start=line_origin,
+            end=line_origin,
+            color=YELLOW,
+            stroke_width=4,
+        )
+
+        self.add(critical_line_up, critical_line_down)
+
+        self.play(
+            critical_line_up.animate.put_start_and_end_on(line_origin, line_up),
+            critical_line_down.animate.put_start_and_end_on(line_origin, line_down),
+            run_time=1.2,
+        )
+
+        self.wait()
+
+
+class RandomImpossible(Scene):
+    def construct(self):
+
+        t1 = (
+            Text(
+                "수학적으로",
+                font="BM Hanna 11yrs Old",
+            )
+            .scale(1.3)
+            .shift(UP)
+        )
+
+        t2 = Text(
+            "Random 을 구현할 수 없음",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.3)
+        t2.set_color_by_text("Random", ORANGE)
+
+        t2.next_to(t1, DOWN)
+
+        self.play(Write(t1))
+        self.play(Write(t2))
+        self.wait(2)
+
+        t3 = Text(
+            "Random 은 발견했지만",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.4)
+        t3.set_color_by_text("발견", GREEN)
+
+        t3.next_to(t2, DOWN * 2)
+
+        t4 = Text(
+            "표현할 수 없는 것인가?",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.4)
+
+        t4.next_to(t3, DOWN)
+
+        self.play(Write(t3))
+        self.play(Write(t4))
+        self.wait(2)
+
 
 class ZenoStep1(Scene):
     def construct(self):
         # Define points
         title = Text(
-            "Zeno 파라독스",
+            "Zeno 역설",
             font="BM Hanna 11yrs Old",
-        ).scale(2.0)
+        ).scale(1.5)
         title.shift(UP * 3)
 
         self.add(title)
@@ -3987,3 +4227,262 @@ class ZenoStep1(Scene):
 
         question.next_to(t1, DOWN * 1.3)
         self.play(Write(question))
+
+
+class ShowCube(ThreeDScene):
+    def construct(self):
+        # Camera
+        frame = self.camera.frame
+        light = self.camera.light_source
+        light.move_to([-10, -10, 20])
+
+        # Plane and axes
+        plane = NumberPlane(
+            x_range=(-2, 2, 1),
+            y_range=(-2, 2, 1),
+            height=15,
+            width=15,
+            faded_line_ratio=3,
+            axis_config={"include_tip": False},
+        )
+        plane.add_coordinate_labels()
+        plane.coordinate_labels.set_stroke(width=0)
+
+        axes = ThreeDAxes(
+            x_range=(-2, 2, 1),
+            y_range=(-2, 2, 1),
+            z_range=(-2, 2, 1),
+            height=15,
+            width=15,
+            depth=15,
+        )
+        axes.apply_depth_test()
+
+        # Vertices and edges
+        vert_coords = [(n % 2, (n // 2) % 2, (n // 4) % 2) for n in range(8)]
+        verts = [axes.c2p(*coords) for coords in vert_coords]
+
+        # Vertex spheres (removed later)
+        spheres = SGroup()
+        for vert in verts:
+            sphere = Sphere(radius=0.1, resolution=(9, 9), color=GREY)
+            sphere.move_to(vert)
+            spheres.add(sphere)
+
+        # Edges of the cube
+        edge_indices = [
+            (0, 1),
+            (0, 2),
+            (0, 4),
+            (1, 3),
+            (1, 5),
+            (2, 3),
+            (2, 6),
+            (3, 7),
+            (4, 5),
+            (4, 6),
+            (5, 7),
+            (6, 7),
+        ]
+        edges = VGroup(
+            *[Line(verts[i], verts[j], color=WHITE) for i, j in edge_indices]
+        )
+
+        # 2D cube
+        frame.move_to(1.5 * UP)
+        self.add(plane)
+        self.play(
+            LaggedStartMap(GrowFromCenter, edges[:4]),
+        )
+        self.wait()
+
+        # Transition to 3D
+        frame.generate_target()
+        frame.target.set_euler_angles(-25 * DEGREES, 70 * DEGREES)
+        frame.target.move_to([1, 2, 0])
+        frame.target.set_height(10)
+
+        to_grow = Group(*edges[4:], *spheres[4:])
+        to_grow.save_state()
+        to_grow.set_depth(0, about_edge=IN, stretch=True)
+
+        rf = squish_rate_func(smooth, 0.5, 1)
+        self.play(
+            MoveToTarget(frame),
+            # REMOVE: ShowCreation(axes.z_axis),  # << this is the vertical bar you wanted to remove
+            Restore(to_grow, rate_func=rf),
+            run_time=3,
+        )
+
+        # Keep 3D camera rotating
+        # frame.start_time = self.time
+        # frame.scene = self
+        # frame.add_updater(
+        #     lambda m: m.set_theta(
+        #         -25 * DEGREES * math.cos((m.scene.time - m.start_time) * PI / 60)
+        #     )
+        # )
+
+        self.add(axes)  # full coordinate axes
+        self.remove(spheres)  # no corner vertex spheres
+
+        # --- Add particles inside the cube
+        particles = Group()
+        for _ in range(15):
+            x = random.uniform(0.1, 0.9)
+            y = random.uniform(0.1, 0.9)
+            z = random.uniform(0.1, 0.9)
+            pos = axes.c2p(x, y, z)
+            p = Sphere(radius=0.05, resolution=(6, 6), color=YELLOW)
+            p.move_to(pos)
+            particles.add(p)
+
+        self.play(LaggedStartMap(GrowFromCenter, particles, lag_ratio=0.1))
+        self.wait(3)
+        self.play(LaggedStartMap(FadeOut, particles, lag_ratio=0.1))
+        self.wait(2)
+
+        # --- 3D vector field using Arrow (ManimGL-compatible)
+        vector_field = VGroup()
+        grid_steps = [0.2, 0.4, 0.6, 0.8]  # Controls density of arrows
+
+        for x in grid_steps:
+            for y in grid_steps:
+                for z in grid_steps:
+                    start = axes.c2p(x, y, z)
+                    direction = normalize(ORIGIN - start)  # inward pointing
+                    end = start + 0.3 * direction
+                    arrow = Arrow(
+                        start=start,
+                        end=end,
+                        buff=0,
+                        color=BLUE_E,
+                        stroke_width=2,
+                        # preserve_tip_size_when_scaling=False
+                    )
+                    vector_field.add(arrow)
+
+        # vector_field.set_shade_in_3d(True)
+
+        self.play(LaggedStartMap(GrowArrow, vector_field, lag_ratio=0.01), run_time=2)
+        self.wait(2)
+        self.play(LaggedStartMap(FadeOut, vector_field, lag_ratio=0.3))
+        self.wait(2)
+
+        # --- Collapse cube: animate height dropping to the plane
+        flatten_group = Group(*edges)
+        self.play(
+            flatten_group.animate.stretch(
+                0.01, dim=2, about_point=ORIGIN
+            ),  # dim=2 = Z-axis
+            run_time=2,
+        )
+        self.wait(0.3)
+        self.play(FadeOut(flatten_group), run_time=1)
+        self.wait(2)
+
+        self.play(Write(plane))
+
+        self.wait(1)
+
+        # --- Representing "nothingness" outside the universe
+        nothing_pos = axes.c2p(0.5, 0.5, 0.4)
+        nothing_dot = Sphere(radius=0.2, resolution=(6, 6), color=BLUE)
+        nothing_dot.move_to(nothing_pos)
+
+        # Arrow pointing to the dot (from the right side)
+        arrow_start = axes.c2p(0.8, 0.8, 0.6)
+        arrow = Arrow(
+            start=arrow_start, end=nothing_pos, buff=0.05, stroke_width=3, color=WHITE
+        )
+
+        self.play(FadeIn(nothing_dot), GrowArrow(arrow))
+        self.wait()
+
+
+class ZeroPhilosophy(Scene):
+    def construct(self):
+        # Title (가운데 정렬, 크게)
+        title = Text("없다는 것을 표현하는 0", font="BM Hanna 11yrs Old").scale(1.6)
+        title.to_edge(UP).shift(DOWN * 0.8)
+
+        # 자연수 줄
+        line1 = Text("자연수: 1, 2, 3 이 아니다", font="BM Hanna 11yrs Old").scale(1.2)
+        line1.set_color_by_text("자연수", RED)
+        line1.shift(LEFT * 2.5 + UP)
+
+        # 실수 줄 (with \pi)
+        keyword2 = Text("실수:", font="BM Hanna 11yrs Old").scale(1.2).set_color(GREEN)
+        pre2 = Text("0.23,", font="BM Hanna 11yrs Old").scale(1.2)
+        pi = Tex(r"\pi").scale(1.2)
+        post2 = Text(", 5 가 아니다.", font="BM Hanna 11yrs Old").scale(1.2)
+
+        line2 = VGroup(keyword2, pre2, pi, post2).arrange(RIGHT, buff=0.15)
+        line2.next_to(line1, DOWN, aligned_edge=LEFT, buff=0.8)
+
+        # 복소수 줄
+        line3 = Text(
+            "복소수: 3 + 4i 가 아니다.   0 + 0i 이다.", font="BM Hanna 11yrs Old"
+        ).scale(1.2)
+        line3.set_color_by_text("복소수", BLUE)
+        line3.next_to(line2, DOWN, aligned_edge=LEFT, buff=0.8)
+
+        # 애니메이션
+        self.play(FadeIn(title))
+        self.wait(1)
+        self.play(FadeIn(line1))
+        self.wait(1)
+        self.play(FadeIn(line2))
+        self.wait(1)
+        self.play(FadeIn(line3))
+        self.wait(2)
+
+
+class PhysicsScene(Scene):
+    def construct(self):
+        # Title
+        title = Text("Physics", font="BM Hanna 11yrs Old").scale(1.6)
+        title.to_edge(UP).shift(DOWN * 0.8)
+
+        # Content lines
+        line1 = Text("빛은 입자이고 파동이다", font="BM Hanna 11yrs Old").scale(1)
+        line2 = Text("물질은 에너지이다", font="BM Hanna 11yrs Old").scale(1)
+        line3 = Text(
+            "고양이는 죽어있고 살아있다 (중첩)", font="BM Hanna 11yrs Old"
+        ).scale(1)
+        line4 = Text(
+            "수는 쪼개져있고 (quantum) 이어져있다 (continuous)",
+            font="BM Hanna 11yrs Old",
+        ).scale(1)
+
+        lines = [line1, line2, line3, line4]
+
+        # Position lines
+        line1.shift(LEFT * 3 + UP)
+        for i in range(1, len(lines)):
+            lines[i].next_to(lines[i - 1], DOWN, aligned_edge=LEFT, buff=0.2)
+
+        # Final sentence
+        final = Text(
+            "물리적 세계는 이해하기 어려울정도로 이상하다.", font="BM Hanna 11yrs Old"
+        ).scale(1.2)
+        final.next_to(line4, DOWN, aligned_edge=LEFT, buff=1.3)
+
+        # Optional: image next to final sentence (e.g., 당황한 얼굴)
+        face = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/confused_face2.png"
+        ).scale(0.4)
+        face.next_to(final, RIGHT)
+
+        # Animate
+        self.play(FadeIn(title))
+        self.wait(1)
+
+        for line in lines:
+            self.play(FadeIn(line))
+            self.wait(1)
+
+        self.play(FadeIn(final))
+        self.wait(0.5)
+        self.play(FadeIn(face))
+        self.wait(2)
