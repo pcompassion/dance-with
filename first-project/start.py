@@ -4442,7 +4442,7 @@ class PhysicsScene(Scene):
     def construct(self):
         # Title
         title = Text("Physics", font="BM Hanna 11yrs Old").scale(1.6)
-        title.to_edge(UP).shift(DOWN * 0.8)
+        title.to_edge(UP)
 
         # Content lines
         line1 = Text("빛은 입자이고 파동이다", font="BM Hanna 11yrs Old").scale(1)
@@ -4458,7 +4458,7 @@ class PhysicsScene(Scene):
         lines = [line1, line2, line3, line4]
 
         # Position lines
-        line1.shift(LEFT * 3 + UP)
+        line1.shift(LEFT * 3 + UP * 1.5)
         for i in range(1, len(lines)):
             lines[i].next_to(lines[i - 1], DOWN, aligned_edge=LEFT, buff=0.2)
 
@@ -4485,4 +4485,294 @@ class PhysicsScene(Scene):
         self.play(FadeIn(final))
         self.wait(0.5)
         self.play(FadeIn(face))
+        self.wait(2)
+
+
+class MathematicsScene(Scene):
+    def construct(self):
+        # Title
+        title = Text("Mathematics", font="BM Hanna 11yrs Old").scale(1.6)
+        title.to_edge(UP)
+
+        # Line 1
+        line1 = Text("0 은 있는 것의 그림자이다.", font="BM Hanna 11yrs Old").scale(1.2)
+
+        # Line 2 (π만 Tex)
+        line2 = Text(
+            "random 은 불확실하지만, 이를 담는 그릇은 정해져있다",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.2)
+
+        # Line 3
+        line3 = Text(
+            "무한한 것으로 유한한 것을 감쌀 수 없다.", font="BM Hanna 11yrs Old"
+        ).scale(1.2)
+
+        # Line 4 (강조)
+        line4 = Text(
+            "N, R 이 발견인것도 같고 발명인것도 같다", font="BM Hanna 11yrs Old"
+        ).scale(1.2)
+        line4.set_color_by_text("발견", YELLOW)
+        line4.set_color_by_text("발명", ORANGE)
+
+        # Line positions (left aligned)
+        line1.shift(LEFT * 3 + UP * 1.5)
+        line2.next_to(line1, DOWN, aligned_edge=LEFT, buff=0.2)
+        line3.next_to(line2, DOWN, aligned_edge=LEFT, buff=0.2)
+        line4.next_to(line3, DOWN, aligned_edge=LEFT, buff=0.2)
+
+        # Final two lines (centered + 강조)
+        final1 = (
+            Text("수학적 개념도, 이상하다.", font="BM Hanna 11yrs Old")
+            .scale(1.3)
+            .set_color(GREY_A)
+        )
+        final2 = (
+            Text("상반되는 A 와 B 가 함께 존재한다.", font="BM Hanna 11yrs Old")
+            .scale(1.3)
+            .set_color(GREY_A)
+        )
+        # final
+        final1.next_to(line4, DOWN, aligned_edge=LEFT, buff=1.3)
+        final2.move_to(final1, aligned_edge=LEFT)
+
+        face = ImageMobject(
+            "/Users/eugenekim/projects/dance-with/first-project/confused_face2.png"
+        ).scale(0.4)
+        face.next_to(final2, RIGHT)
+
+        # Animation
+        self.play(FadeIn(title))
+        self.wait(1)
+
+        for line in [line1, line2, line3, line4]:
+            self.play(FadeIn(line))
+            self.wait(1)
+
+        self.play(FadeIn(final1, run_time=1.5))
+
+        self.play(ReplacementTransform(final1, final2))
+        self.wait(0.5)
+        self.play(FadeIn(face))
+
+        self.wait(2)
+
+
+class NegativeNegativeEueler(Scene):
+    def construct(self):
+        # Step 1: Show "-1 × -1" in the center
+        question = Tex(r"-1 \times -1", font_size=96)
+        self.play(FadeIn(question))
+        self.wait(1)
+
+        # Step 2: Move it up
+        self.play(question.animate.shift(UP * 3))
+        self.wait(0.5)
+
+        euler_label = Text("Euler", font="BM Hanna 11yrs Old").scale(0.8)
+        euler_label.set_color_by_text("Euler", GREY_A)
+
+        euler_label.next_to(question, RIGHT * 4)
+        self.play(FadeIn(euler_label))
+
+        # Step 3: First explanation (Euler-like logic)
+        step1 = Text(
+            "-1 x -1 은 1 혹은 -1 일 수 있다", font="BM Hanna 11yrs Old"
+        ).scale(1.2)
+        step2 = Text("하지만 -1 x 1 = -1 이다", font="BM Hanna 11yrs Old").scale(1.2)
+        step3 = Text(
+            "따라서 -1 x -1 은 -1 일 수 없다", font="BM Hanna 11yrs Old"
+        ).scale(1.2)
+        step4 = (
+            Text("결국, -1 x -1 = 1 이다", font="BM Hanna 11yrs Old")
+            .scale(1.2)
+            .set_color(YELLOW)
+        )
+
+        # Positioning steps under the question
+        step1.next_to(question, DOWN, buff=1.0)
+        step2.next_to(step1, DOWN, aligned_edge=LEFT, buff=0.5)
+        step3.next_to(step2, DOWN, aligned_edge=LEFT, buff=0.5)
+        step4.next_to(step3, DOWN, aligned_edge=LEFT, buff=0.7)
+
+        # Animate explanation step-by-step
+        self.play(FadeIn(step1))
+        self.wait(1)
+        self.play(FadeIn(step2))
+        self.wait(1)
+        self.play(FadeIn(step3))
+        self.wait(1)
+        self.play(FadeIn(step4))
+        self.wait(2)
+
+
+class DeriveNegative(Scene):
+    def construct(self):
+        # Step 1
+        step1 = Tex(r"-1 \times (1 - 1) = -1 \times 1 + (-1) \times (-1)").scale(1.2)
+        step1.to_edge(UP).shift(DOWN * 0.5)
+        self.play(Write(step1))
+        self.wait(1)
+
+        # Step 2: copy full line and animate it appearing below
+        step2 = step1.copy()
+        step2.next_to(step1, DOWN, aligned_edge=LEFT, buff=0.6)
+        # self.add(step2)  # <== important!
+        self.play(TransformFromCopy(step1, step2))
+        self.wait(0.5)
+
+        # Step 2: replace (1 - 1) → 0
+        new_lhs = (
+            Tex(r"-1 \times 0 ")
+            .scale(1.2)
+            .move_to(
+                step2[4:7],
+            )
+        )
+        self.play(Transform(step2[0:8], new_lhs))
+        self.wait(1)
+
+        # Step 3: copy again
+        step3 = step2.copy()
+        step3.next_to(step2, DOWN, aligned_edge=LEFT, buff=0.6)
+        # self.add(step3)
+        self.play(TransformFromCopy(step2, step3))
+        self.wait(0.5)
+
+        # Step 3: replace whole LHS with just 0
+        final_lhs = (
+            Tex(r"0 ")
+            .scale(1.2)
+            .move_to(
+                step3[6:7],
+            )
+        )
+        self.play(Transform(step3[0:8], final_lhs))
+        self.wait(1)
+
+        # Step 4: copy again
+        step4 = step3.copy()
+        step4.next_to(step3, DOWN, aligned_edge=LEFT, buff=0.6)
+        self.play(TransformFromCopy(step3, step4))
+        self.wait(0.5)
+
+        # Transform "-1 \times 1" to "-1"
+        minus_one = Tex(r"-1 ").scale(1.2).move_to(step4[11:12])
+        self.play(Transform(step4[9:13], minus_one))  # "-1 × 1" becomes "-1"
+        self.wait(1)
+
+        # Step 5: final form (-1) × (-1) = 1
+        final_eq = Tex(r"(-1) \times (-1) = 1").scale(1.4).set_color(YELLOW)
+        final_eq.next_to(step4, DOWN, aligned_edge=LEFT, buff=0.8)
+        self.play(Write(final_eq))
+        self.wait(2)
+
+
+class MultiplyNegativeOneTwice(Scene):
+    def construct(self):
+        # --- Number plane
+        plane = (
+            NumberPlane(
+                x_range=[-1, 1, 1],
+                y_range=[-1, 1, 1],
+                background_line_style={"stroke_opacity": 0.3},
+            )
+            .scale(3)
+            .shift(RIGHT * 3)
+        )
+        self.add(plane)
+
+        # --- Title label (shows × (-1) at each stage)
+        # title = Tex(r"\times (-1)").scale(1.1).to_edge(UP)
+        # self.play(FadeIn(title))
+
+        # --- Step 1: base arrow from origin to +1
+        origin = plane.c2p(0, 0)
+        right = plane.c2p(1, 0)
+
+        arrow = Arrow(origin, right, buff=0, fill_color=GREEN)
+        self.play(GrowArrow(arrow))
+
+        # --- Copy to right side (reference +1 arrow)
+        base_copy = arrow.copy()
+        base_copy.next_to(plane, LEFT, aligned_edge=LEFT).shift(LEFT * 3 + UP * 2)
+        base_label = Tex("+1").scale(0.8).next_to(base_copy.get_end(), RIGHT)
+
+        self.play(GrowArrow(base_copy), FadeIn(base_label))
+        self.wait(1)
+
+        # --- Step 2: Rotate origin arrow 180° (× -1)
+        self.play(
+            Rotate(arrow, angle=PI, about_point=origin),
+            arrow.animate.set_fill(ORANGE),
+            run_time=1,
+        )
+
+        # --- Copy downward with label -1
+        arrow.set_fill(ORANGE)
+        neg_arrow = arrow.copy()
+        neg_arrow.next_to(base_copy, DOWN)
+        label_minus1 = (
+            Tex(r"1 \times (-1)").scale(0.8).next_to(neg_arrow.get_end(), LEFT)
+        )
+
+        self.play(
+            GrowArrow(neg_arrow), FadeIn(label_minus1), arrow.animate.set_fill(GREEN)
+        )
+        arrow.set_fill(GREEN)
+
+        self.wait(1)
+
+        # --- Step 3: Show title × (-1) again
+
+        # --- Rotate again (× -1)
+        self.play(Rotate(arrow, angle=PI, about_point=origin), run_time=1)
+
+        # --- Final: Copy downward with label (-1) × (-1) = 1
+        pos_arrow = arrow.copy()
+        pos_arrow.next_to(neg_arrow, DOWN)
+        label_result = (
+            Tex(r"(-1) \times (-1) = 1").scale(0.8).next_to(pos_arrow.get_end(), RIGHT)
+        )
+
+        self.play(GrowArrow(pos_arrow), FadeIn(label_result))
+        self.wait(2)
+
+
+from manimlib import *
+
+
+class WhichExplanation(Scene):
+    def construct(self):
+        # Title
+        title = Text("어느 설명이 맞는 것일까?", font="BM Hanna 11yrs Old").scale(1.5)
+        title.shift(UP * 2.5)
+
+        # Lines of thought
+        line1 = Text("다 맞다고 볼 수도 있지 않나?", font="BM Hanna 11yrs Old").scale(
+            1.2
+        )
+        line2 = Text("그럴듯한 story 가 있으니까", font="BM Hanna 11yrs Old").scale(1.2)
+        line3 = (
+            Text(
+                "이해한다는 것은, story 를 만들어내는 것 아닐까",
+                font="BM Hanna 11yrs Old",
+            )
+            .scale(1.2)
+            .set_color(GREY_A)
+        )
+
+        # Align lines left under each other
+        line1.shift(LEFT * 2.5 + UP)
+        line2.next_to(line1, DOWN, aligned_edge=LEFT, buff=0.5)
+        line3.next_to(line2, DOWN, aligned_edge=LEFT, buff=0.5)
+
+        # Animation
+        self.play(FadeIn(title))
+        self.wait(1)
+        self.play(FadeIn(line1))
+        self.wait(1)
+        self.play(FadeIn(line2))
+        self.wait(1.2)
+        self.play(Write(line3), run_time=1.5)
         self.wait(2)
