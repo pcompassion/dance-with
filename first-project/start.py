@@ -3973,6 +3973,30 @@ class GaltonHistogram(Scene):
         self.wait(2)
         self.play(bars.animate.set_fill(opacity=0.2), run_time=1)
 
+        # Add normal distribution curve (yellow)
+        curve_points = []
+        scale_y = 6.0  # Scaling factor for visual height
+        for x in np.linspace(bin_range[0], bin_range[1], 300):
+            y = math.exp(-((x / 1.5) ** 2) / 2) * scale_y
+            curve_points.append(axes.c2p(x, y))
+
+        curve = VMobject(color=YELLOW)
+        curve.set_points_smoothly(curve_points)
+        self.play(FadeIn(curve), run_time=2)
+        self.wait(0.5)
+
+        # Add explanation text
+        l5 = Text("확률 분포라는 것도", font="BM Hanna 11yrs Old", font_size=52)
+        l6 = Text(
+            "전체의 그림은 정해져 있다는 것", font="BM Hanna 11yrs Old", font_size=52
+        )
+        l5.shift(UP)
+        l6.next_to(l5, DOWN)
+
+        self.play(Write(l5))
+        self.play(Write(l6))
+        self.wait(2)
+
         l5 = Text(
             "확률 분포라는 것도",
             font="BM Hanna 11yrs Old",
@@ -4739,9 +4763,6 @@ class MultiplyNegativeOneTwice(Scene):
         self.wait(2)
 
 
-from manimlib import *
-
-
 class WhichExplanation(Scene):
     def construct(self):
         # Title
@@ -5495,3 +5516,661 @@ class DilemmaTopics(Scene):
             self.play(FadeIn(line), run_time=0.5)
 
         self.wait(2)
+
+
+class FinalScene(Scene):
+    def construct(self):
+        import math
+
+        # 👾 1. Function to generate wave points with a phase shift
+        def generate_wave_points(phase=0):
+            points = []
+            for x in np.linspace(-7, 7, 200):
+                y = 0.2 * math.sin(2 * x + phase)
+                points.append(np.array([x, y, 0]))
+            return points
+
+        # 👾 2. Create the wave VMobject
+        wave = VMobject()
+        wave.set_points_as_corners(generate_wave_points())
+        wave.set_color(BLUE_D).set_opacity(0.5).shift(DOWN * 1.5)
+
+        # 👾 3. Phase tracker
+        phase = ValueTracker(0)
+
+        # 👾 4. Updater for the wave
+        def update_wave(mob):
+            mob.set_points_as_corners(generate_wave_points(phase.get_value()))
+
+        wave.add_updater(update_wave)
+
+        # 🧠 5. Text animations
+        # text1 = Text("Don't look up", font="BM Hanna 11yrs Old").scale(1.2).move_to(UP * 2)
+        # text2 = Text("Don't add up", font="BM Hanna 11yrs Old").scale(1.2).move_to(text1)
+        text3 = Tex("1 + 1 = -1").scale(1.5)
+        text3.shift(UP * 1.5)
+
+        # self.play(FadeIn(text1, run_time=2))
+        # self.wait(1.5)
+        # self.play(ReplacementTransform(text1, text2),FadeIn(text3))
+
+        self.play(Write(text3))
+
+        self.wait(1)
+
+        # self.play(FadeOut(text2))
+
+        # Add wave and phase tracker to scene
+        self.add(wave)
+        self.add(phase)  # ⬅️ This makes phase update with dt
+        phase.add_updater(lambda m, dt: m.increment_value(2 * dt))
+
+        self.wait(2)
+        # Let wave move while we show final text
+        final_text = Tex("1 + 1 = 2").scale(1.5).shift(DOWN * 1.5)
+        self.play(Write(final_text), run_time=2)
+
+        self.wait(9)
+
+        # Cleanup
+        wave.remove_updater(update_wave)
+        phase.clear_updaters()
+
+        self.wait(1)
+
+
+class GabrielHorn(ThreeDScene):
+    def construct(self):
+        eq = Tex(r"y = \frac{1}{x}").scale(1.2)
+        eq.shift(UP * 2.5)
+        eq.fix_in_frame()
+        self.play(Write(eq))
+
+        # === 1. Axes ===
+        axes = ThreeDAxes(
+            x_range=[0, 16, 2],
+            y_range=[-1, 2, 0.5],
+            z_range=[-2, 2, 0.5],
+        )
+        self.add(axes)
+
+        class Graph1OverX(VMobject):
+            def __init__(self, axes, x_min=1, x_max=15, **kwargs):
+                super().__init__(**kwargs)
+                points = []
+                for x in np.linspace(x_min, x_max, 200):
+                    point = axes.c2p(x, 0, 1 / x)
+                    points.append(point)
+                self.set_points_as_corners(points)
+
+        # Optional: label 2D curve
+        # label = Text("y = 1/x", font_size=32)
+        # label.move_to(axes.c2p(4, 0.6, 0) + 0.5 * UP)
+        # self.add(label)
+
+        # === 2. Camera Setup ===
+        frame = self.camera.frame
+
+        frame.set_euler_angles(
+            theta=0, phi=PI / 2.5
+        )  # φ = π/2.5 ≈ 72° (slightly tilted)
+        frame.move_to(axes.c2p(6, 0, 0))  # center on curve
+
+        # === 3. 2D Curve y = 1/x from x = 1 to 15 ===
+        curve = Graph1OverX(axes)
+        curve.set_color(YELLOW)
+
+        self.play(ShowCreation(curve), run_time=2)
+        self.wait(0.5)
+
+        # === 4. Rotate camera for 3D view ===
+        # self.play(
+        #     frame.animate.set_euler_angles(theta=-PI/4, phi=PI/6).move_to(axes.c2p(6, 0, 0)),
+        #     run_time=2
+        # )
+
+        # === 5. Animate surface sweep (rotation) ===
+        sweep = ValueTracker(0)
+
+        def get_rotating_surface():
+            return (
+                ParametricSurface(
+                    lambda u, v: axes.c2p(
+                        u, (1 / u) * np.cos(v + PI / 2), (1 / u) * np.sin(v + PI / 2)
+                    ),
+                    u_range=[1, 15],
+                    v_range=[0, sweep.get_value()],
+                    resolution=(60, 20),
+                )
+                .set_color(BLUE_A)
+                .set_opacity(0.6)
+            )
+
+        rotating_horn = always_redraw(get_rotating_surface)
+
+        self.add(rotating_horn)
+
+        self.play(sweep.animate.set_value(TAU), run_time=1)
+        self.remove(rotating_horn)
+
+        # === 6. Add full horn after rotation completes ===
+        full_horn = ParametricSurface(
+            lambda u, v: axes.c2p(u, (1 / u) * np.cos(v), (1 / u) * np.sin(v)),
+            u_range=[1, 15],
+            v_range=[0, TAU],
+            resolution=(100, 30),
+        )
+        full_horn.set_color(BLUE_A)
+        full_horn.set_opacity(0.7)
+
+        self.add(full_horn)
+        self.play(Restore(self.camera.frame))
+
+        self.wait(1)
+
+        # for m in self.mobjects:
+        #     self.remove(m)
+
+        self.play(FadeOut(curve), FadeOut(axes))
+
+        # Axes
+
+        max_x = 15
+        axes = ThreeDAxes(
+            x_range=[0, max_x, 1],
+            y_range=[-1.5, 1.5, 0.5],
+            z_range=[-1.5, 1.5, 0.5],
+        )
+        axes.shift(LEFT)
+        # axes.add_coordinate_labels()
+
+        # self.add(axes)
+
+        # Horn surface using .c2p()
+        horn = ParametricSurface(
+            lambda u, v: axes.c2p(u, (1 / u) * np.cos(v), (1 / u) * np.sin(v)),
+            u_range=[1, max_x + 2],
+            v_range=[0, TAU],
+            resolution=(100, 30),
+        )
+        horn.set_color(BLUE_A)
+        horn.set_opacity(0.7)
+        self.play(ReplacementTransform(full_horn, horn), run_time=1.5)
+        # self.add(horn)
+
+        # Camera setup
+        frame = self.camera.frame
+        frame.move_to(axes.c2p(2, 0, 0))  # move camera focus near horn base
+
+        frame.save_state()
+
+        self.play(
+            frame.animate.set_euler_angles(theta=-PI / 6, gamma=PI / 2), run_time=1
+        )
+        # frame.set_euler_angles(theta=-PI / 6, gamma=PI / 2)
+
+        self.camera.light_source.move_to([-10, -10, 20])
+
+        # Fill the horn with solid disks
+        num_disks = 100
+        height = max_x / num_disks  # to fill x from 1 to 10
+        disks = Group()
+
+        # new_eq = Text("부피",font="BM Hanna 11yrs Old").scale(1.2)
+        new_eq = Tex(r"\text{volume} = \pi").scale(1.2)
+        new_eq.fix_in_frame()
+        new_eq.move_to(eq.get_center())  # or wherever you want
+
+        self.play(ReplacementTransform(eq, new_eq), run_time=1)
+
+        # Start filling
+        for i in reversed(range(num_disks)):
+            u = 1 + i * height
+            r = 1 / u
+            center = axes.c2p(u, 0, 0)
+            scene_hvec = 0.5 * height * RIGHT
+
+            # Make the disk cap
+            bottom = Circle(radius=r)
+            bottom.rotate(PI / 2, axis=UP)
+            bottom.move_to(center)
+            bottom.set_color(BLUE_C)
+            bottom.set_opacity(0.8)
+
+            disks.add(bottom)
+
+            # Add the disk after droplet
+            # self.add(bottom)
+
+            # Slightly rotate the horn each time
+
+        # Animate fill
+        visible_disks = Group()
+        self.add(visible_disks)
+
+        previous_i = 0
+        for i in range(45, num_disks + 1, 3):
+            if i > num_disks - 3:
+                i = num_disks
+            new_disks = Group(*disks[previous_i:i])
+            self.add(new_disks)
+
+            # Droplet
+            droplet = Sphere(radius=0.15, resolution=(16, 16))
+            droplet.set_color(BLUE_D)
+            start_point = axes.c2p(-1, 0, 0)
+            end_point = axes.c2p(1.5, 0, 0)
+            droplet.move_to(start_point)
+            self.add(droplet)
+
+            self.play(
+                droplet.animate.move_to(end_point), run_time=0.3, rate_func=linear
+            )
+            self.remove(droplet)
+
+        # horn.set_color(BLUE_A)
+
+        self.wait(2)
+        self.play(Restore(self.camera.frame))
+
+        # new_eq2 = Text("표면적",font="BM Hanna 11yrs Old").scale(1.2)
+        new_eq2 = Tex(r"\text{area} = \infty").scale(1.2)
+
+        new_eq2.fix_in_frame()
+        new_eq2.move_to(eq.get_center())  # or wherever you want
+
+        self.play(ReplacementTransform(new_eq, new_eq2), run_time=1)
+
+        self.wait(1)
+
+        self.play(FadeOut(disks))
+        self.wait(1)
+
+        num_rings = 100
+        ring_width = max_x / num_rings  # from x = 1 to 10
+
+        for i in range(num_rings):
+            u_min = 1 + i * ring_width
+            u_max = u_min + ring_width
+
+            ring = ParametricSurface(
+                lambda u, v: axes.c2p(
+                    u, (1 / u) * np.cos(v) * 1.01, (1 / u) * np.sin(v) * 1.01
+                ),
+                u_range=[u_min, u_max],
+                v_range=[0, TAU],
+                resolution=(10, 30),
+            )
+            ring.set_color(ORANGE)
+            ring.set_opacity(0.6)
+
+            self.add(ring)
+            self.wait(0.03)
+
+        self.wait(1)
+
+
+class NormalCurveScene(ThreeDScene):
+    def construct(self):
+
+        plane_g = VGroup()
+
+        plane = NumberPlane(
+            x_range=[-10, 10, 1],
+            y_range=[0, 1, 1],
+            faded_line_ratio=2,
+            background_line_style={"stroke_opacity": 0.3},
+        ).scale(1.8)
+        # plane.add_coordinate_labels()
+
+        self.play(FadeIn(plane))
+        self.wait()
+
+        plane_g.add(plane)
+
+        # === 2. Normal distribution function ===
+        mu = 0
+        sigma = 0.5
+
+        def normal_pdf(x):
+            return (1 / (sigma * np.sqrt(2 * PI))) * np.exp(
+                -((x - mu) ** 2) / (2 * sigma**2)
+            )
+
+        # Partial curve (will grow outward from center)
+        full_curve = VMobject()
+        full_curve.set_color(BLUE)
+        points = []
+
+        for x in np.linspace(0, 3, 200):
+            y = normal_pdf(x)
+            points.append(plane.c2p(x, y))
+        for x in np.linspace(-3, 0, 200):
+            y = normal_pdf(x)
+            points.insert(0, plane.c2p(x, y))
+
+        full_curve.set_points_smoothly(points)
+
+        # Draw the curve symmetrically
+        curve_left = VMobject(color=BLUE)
+        curve_right = VMobject(color=BLUE)
+
+        curve_left.set_points_smoothly(points[:200])
+        curve_right.set_points_smoothly(points[200:])
+
+        self.play(ShowCreation(curve_right), ShowCreation(curve_left), run_time=2)
+
+        self.wait()
+
+        plane_g.add(curve_left, curve_right)
+
+        # === 3. Shading under the curve ===
+        def get_area(x_min, x_max):
+            resolution = 50
+            xs = np.linspace(x_min, x_max, resolution)
+            verts = [plane.c2p(x, normal_pdf(x)) for x in xs]
+            verts += [plane.c2p(x_max, 0), plane.c2p(x_min, 0)]
+            area = Polygon(*verts)
+            area.set_fill(BLUE_E, opacity=0.4)
+            area.set_stroke(width=0)
+            # plane_g.add(area)
+            return area
+
+        # Animate area shading from center outward
+
+        prev_i = 0
+        areas_g = VGroup()
+        for i in np.linspace(0, 2, 40):
+            area_left = get_area(-i, prev_i)
+            area_right = get_area(prev_i, i)
+            areas_g.add(area_left, area_right)
+            self.play(FadeIn(area_right), FadeIn(area_left), run_time=0.1)
+            prev_i = i
+
+        plane.get_x_axis().set_stroke(BLUE)
+
+        t1 = Tex(r"\text{area} = 1").scale(1.2)
+        t1.shift(UP * 2.5)
+        t1.fix_in_frame()
+        self.play(Write(t1))
+
+        self.wait(1)
+        plane_g.add(areas_g)
+        # self.play(FadeOut(areas_g))
+
+        self.play(
+            plane_g.animate.rotate(
+                angle=PI / 6,  # rotation angle
+                axis=UP,  # rotation axis: RIGHT = x-axis, UP = y-axis, OUT = z-axis
+                about_point=plane.c2p(0, 0, 0),  # pivot point
+            )
+        )
+
+        new_eq = Tex(r"\text{length = ?}").scale(1.2)
+        new_eq.fix_in_frame()
+        new_eq.move_to(t1.get_center())  # or wherever you want
+        self.play(ReplacementTransform(t1, new_eq), run_time=1)
+
+        line_length = 10
+        num_segments = 50
+        segment_length = line_length / num_segments
+
+        # Create segments with gradient color
+        segments = VGroup()
+
+        for i in range(num_segments):
+            start_x = i * segment_length
+            end_x = (i + 1) * segment_length
+            line = Line(
+                plane.c2p(start_x, 0),
+                plane.c2p(end_x, 0),
+                stroke_width=6,
+                color=interpolate_color(ORANGE, BLACK, i / num_segments),
+            )
+            segments.add(line)
+            plane_g.add(segments)
+
+            self.play(FadeIn(line, run_time=0.1))
+
+        new_eq2 = Tex(r"\text{length} = \infty").scale(1.2)
+        new_eq2.fix_in_frame()
+        new_eq2.move_to(new_eq.get_center())  # or wherever you want
+        self.play(ReplacementTransform(new_eq, new_eq2), run_time=1)
+
+        self.wait(2)
+
+
+class StickManWalkScene(ThreeDScene):
+    def construct(self):
+
+        class StickMan(VGroup):
+            def __init__(
+                self,
+                axes: ThreeDAxes,
+                radius=0.3,
+                height=1.2,
+                leg_length=0.5,
+                color=WHITE,
+                **kwargs,
+            ):
+                super().__init__(**kwargs)
+                self.axes = axes
+                self.facing_right = True
+                self.rotation_angle = 0
+
+                # Build stickman upright in axes coordinates
+
+                self.unit_x = axes.c2p(1, 0, 0) - axes.c2p(0, 0, 0)
+                self.unit_y = axes.c2p(0, 1, 0) - axes.c2p(0, 0, 0)
+                self.unit_z = axes.c2p(0, 0, 1) - axes.c2p(0, 0, 0)
+
+                self.up = up = self.unit_y
+                self.down = down = -self.unit_y
+                self.left = left = -self.unit_z
+                self.right = right = -left
+
+                self.body_top = ORIGIN + up * (height / 2)
+                self.body_bottom = ORIGIN + down * (height / 2)
+
+                self.head = Circle(radius=radius, color=color)
+                self.head.shift(self.body_top + up * radius)
+
+                self.body = Line(self.body_top, self.body_bottom, color=color)
+
+                self.left_leg = Line(
+                    start=self.body_bottom,
+                    end=self.body_bottom + down * leg_length + left * leg_length * 0.5,
+                    color=color,
+                )
+                self.right_leg = Line(
+                    start=self.body_bottom,
+                    end=self.body_bottom + down * leg_length + right * leg_length * 0.5,
+                    color=color,
+                )
+
+                self.add(self.head, self.body, self.left_leg, self.right_leg)
+
+            def get_body_bottom(self):
+                return self.body.get_end()
+
+            def move_to_feet(self, point):
+                shift = np.array(point) - self.get_body_bottom()
+                self.shift(shift)
+
+            def face_point(self, point):
+                my_x = self.axes.p2c(self.get_center())[0]
+                target_x = self.axes.p2c(point)[0]
+                should_face_right = target_x >= my_x
+
+                if self.facing_right != should_face_right:
+                    self.rotate(
+                        PI,
+                        axis=self.axes.y_axis.get_vector(),
+                        about_point=self.get_body_bottom(),
+                    )
+                    self.facing_right = should_face_right
+
+            def walk_to(self, scene, point, duration=2):
+                start = self.get_body_bottom()
+                end = self.axes.c2p(*point)
+
+                self.face_point(end)
+
+                up = self.up
+                down = self.down
+                left = self.left
+                right = self.right
+
+                bounce = lambda t: 0.05 * np.sin(8 * PI * t)
+                swing_angle = lambda t: 0.4 * np.sin(8 * PI * t)
+
+                dummy = VMobject()
+
+                def update_mob(mob, alpha):
+                    foot_pos = interpolate(start, end, alpha)
+                    bounce_offset = bounce(alpha) * up
+
+                    lean_dir = 1 if self.facing_right else -1
+                    lean_angle = lean_dir * interpolate(0, -PI / 16, np.sin(PI * alpha))
+
+                    self.move_to(foot_pos + up * 0.6 + bounce_offset)
+                    self.rotate(
+                        lean_angle - self.rotation_angle,
+                        axis=self.axes.z_axis.get_vector(),
+                        about_point=self.get_body_bottom(),
+                    )
+                    self.rotation_angle = lean_angle
+
+                    body_bottom = self.get_body_bottom()
+
+                    leg_len = 0.5
+                    horiz = 0.25
+
+                    self.left_leg.become(
+                        Line(
+                            start=body_bottom,
+                            end=body_bottom + down * leg_len + left * horiz,
+                            color=self.left_leg.get_color(),
+                        )
+                    )
+                    self.right_leg.become(
+                        Line(
+                            start=body_bottom,
+                            end=body_bottom + down * leg_len + right * horiz,
+                            color=self.right_leg.get_color(),
+                        )
+                    )
+                    self.left_leg.rotate(swing_angle(alpha), about_point=body_bottom)
+                    self.right_leg.rotate(-swing_angle(alpha), about_point=body_bottom)
+
+                scene.play(
+                    UpdateFromAlphaFunc(dummy, update_mob),
+                    run_time=duration,
+                    rate_func=linear,
+                )
+
+        axes = ThreeDAxes(
+            x_range=[-7, 9, 1],
+            y_range=[-2, 5, 0.5],
+            z_range=[-10, 8, 0.5],
+        )
+
+        axes.x_axis.set_color(GREY_A)
+        axes.y_axis.set_color(GREY_A)
+        axes.z_axis.set_color(GREY_A)
+        axes.x_axis.set_opacity(0.4)
+        axes.y_axis.set_opacity(0.4)
+        axes.z_axis.set_opacity(0.4)
+
+        self.add(axes)
+
+        axes.rotate(
+            angle=PI / 6,
+            axis=UP,
+            about_point=axes.c2p(0, 0, 0),
+        )
+
+        axes.rotate(
+            angle=PI / 12,  # rotation angle
+            axis=RIGHT,  # rotation axis: RIGHT = x-axis, UP = y-axis, OUT = z-axis
+            about_point=axes.c2p(0, 0, 0),  # pivot point
+        )
+
+        man = StickMan(axes)
+        man.move_to_feet(axes.c2p(10, 0, -10))
+        self.add(man)
+
+        frame = self.camera.frame
+        frame.save_state()
+
+        # frame.set_euler_angles(
+        #     theta=0, phi=PI / 12, gamma=0
+        # )  # φ = π/2.5 ≈ 72° (slightly tilted)
+
+        man.walk_to(self, point=(6, 0, 5), duration=2)
+        self.wait(0.1)
+
+        # Walk left
+        man.walk_to(self, point=(-3, 0, 0), duration=2)
+        self.wait(0.1)
+
+        man.walk_to(self, point=(5, 0, -5), duration=2)
+        self.wait(2)
+
+        # Animate in-between grid lines
+
+        # Add bounding box
+
+        bounding_lines = VGroup(
+            Line(axes.c2p(-7, -2, -10), axes.c2p(9, -2, -10)),
+            Line(axes.c2p(9, -2, -10), axes.c2p(9, 5, -10)),
+            Line(axes.c2p(9, 5, -10), axes.c2p(-7, 5, -10)),
+            Line(axes.c2p(-7, 5, -10), axes.c2p(-7, -2, -10)),
+            Line(axes.c2p(-7, -2, 8), axes.c2p(9, -2, 8)),
+            Line(axes.c2p(9, -2, 8), axes.c2p(9, 5, 8)),
+            Line(axes.c2p(9, 5, 8), axes.c2p(-7, 5, 8)),
+            Line(axes.c2p(-7, 5, 8), axes.c2p(-7, -2, 8)),
+            Line(axes.c2p(-7, -2, -10), axes.c2p(-7, -2, 8)),
+            Line(axes.c2p(9, -2, -10), axes.c2p(9, -2, 8)),
+            Line(axes.c2p(9, 5, -10), axes.c2p(9, 5, 8)),
+            Line(axes.c2p(-7, 5, -10), axes.c2p(-7, 5, 8)),
+        )
+        bounding_lines.set_stroke(opacity=0.7, color=WHITE)
+        self.play(FadeIn(bounding_lines))
+
+        self.wait(1)
+
+        world_g = VGroup()
+        world_g.add(axes, man, bounding_lines)
+
+        world_g_up = world_g.copy()
+        shift_up = axes.c2p(0, 7.5, 0) - axes.c2p(0, 0, 0)
+        world_g_up.shift(shift_up)
+        self.play(Write(world_g_up))
+
+        world_g_down = world_g.copy()
+        shift_down = axes.c2p(0, 0, 0) - axes.c2p(0, 7.5, 0)
+        world_g_down.shift(shift_down)
+        self.play(Write(world_g_down), run_time=0.5)
+
+        world_g_x1 = world_g.copy()
+        shift_x1 = axes.c2p(0, 0, 0) - axes.c2p(16.5, 0, 0)
+        world_g_x1.shift(shift_x1)
+        self.play(Write(world_g_x1), run_time=0.5)
+
+        world_g_x2 = world_g.copy()
+        shift_x2 = axes.c2p(16.5, 0, 0) - axes.c2p(0, 0, 0)
+        world_g_x2.shift(shift_x2)
+        self.play(Write(world_g_x2), run_time=0.5)
+
+        world_g_z1 = world_g.copy()
+        shift_z1 = axes.c2p(0, 0, 0) - axes.c2p(0, 0, 18.5)
+        world_g_z1.shift(shift_z1)
+        self.play(Write(world_g_z1), run_time=0.5)
+
+        world_g_z2 = world_g.copy()
+        shift_z2 = axes.c2p(0, 0, 18.5) - axes.c2p(0, 0, 0)
+        world_g_z2.shift(shift_z2)
+        self.play(Write(world_g_z2), run_time=0.5)
+
+        self.wait(1)
