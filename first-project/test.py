@@ -641,227 +641,640 @@ class StickManWalkScene(ThreeDScene):
         frame.restore()
 
 
-class StickManWalkScene(ThreeDScene):
+class MountainOnSphereScene(ThreeDScene):
+    def construct(self):
+        pass
+        frame = self.camera.frame
+
+        frame.set_euler_angles(phi=70 * DEGREES, theta=30 * DEGREES)
+
+        # self.set_camera_orientation(phi=70 * DEGREES, theta=30 * DEGREES)
+
+        # 1. 지구 (구)
+        earth = Sphere(radius=2, resolution=(30, 30))
+        earth.set_color(BLUE_E)
+        self.add(earth)
+
+        # 2. 산 (적도 근처, 지름 0.4 정도)
+        mountain = ParametricSurface(
+            lambda u, v: self.mountain_func(u, v),
+            u_range=[0, TAU],
+            v_range=[0, 1],
+            resolution=(30, 15),
+        )
+        mountain.set_color(GOLD_B)
+        self.add(mountain)
+
+        # 3. 오염된 지역 (산보다 약 1.5배 넓은 영역)
+        contamination = ParametricSurface(
+            lambda u, v: self.contamination_belt(u, v),
+            u_range=[-PI / 6, PI / 6],
+            v_range=[-PI / 10, PI / 10],
+            resolution=(30, 15),
+        )
+        contamination.set_color(GREY_BROWN)
+        contamination.set_opacity(0.6)
+        self.add(contamination)
+
+        self.wait(3)
+
+    def mountain_func(self, u, v):
+        """
+        Parametric mountain on top of the sphere
+        """
+        # 위치: 위도 30도, 경도 0도
+        theta = PI / 6  # 위도
+        phi = 0  # 경도
+
+        r_base = 2
+        mountain_height = 0.6
+        spread = 0.4
+
+        x = (
+            (r_base + mountain_height * v * (1 - np.cos(u)))
+            * np.cos(theta)
+            * np.cos(phi + spread * np.sin(u))
+        )
+        y = (
+            (r_base + mountain_height * v * (1 - np.cos(u)))
+            * np.cos(theta)
+            * np.sin(phi + spread * np.sin(u))
+        )
+        z = (r_base + mountain_height * v * (1 - np.cos(u))) * np.sin(theta)
+
+        return np.array([x, y, z])
+
+    def contamination_belt(self, u, v):
+        """
+        Parametric patch near the mountain to simulate contamination
+        """
+        r = 2.01  # 살짝 띄워서 지구 위에 덮이게
+        theta = PI / 6 + v  # 산 중심 근처의 위도
+        phi = u  # 산 중심 근처의 경도
+
+        x = r * np.cos(theta) * np.cos(phi)
+        y = r * np.cos(theta) * np.sin(phi)
+        z = r * np.sin(theta)
+
+        return np.array([x, y, z])
+
+
+from manimlib import *
+import numpy as np
+
+
+class MountainOnSphereScene(ThreeDScene):
     def construct(self):
 
-        class StickMan(VGroup):
-            def __init__(
-                self,
-                axes: ThreeDAxes,
-                radius=0.3,
-                height=1.2,
-                leg_length=0.5,
-                color=WHITE,
-                **kwargs,
-            ):
-                super().__init__(**kwargs)
-                self.axes = axes
-                self.facing_right = True
-                self.rotation_angle = 0
+        frame = self.camera.frame
+        frame.set_euler_angles(phi=70 * DEGREES, theta=30 * DEGREES)
 
-                # Build stickman upright in axes coordinates
+        # 1. 지구 (구)
+        earth = Sphere(radius=2, resolution=(30, 30))
+        earth.set_color(BLUE_E)
+        self.add(earth)
 
-                self.unit_x = axes.c2p(1, 0, 0) - axes.c2p(0, 0, 0)
-                self.unit_y = axes.c2p(0, 1, 0) - axes.c2p(0, 0, 0)
-                self.unit_z = axes.c2p(0, 0, 1) - axes.c2p(0, 0, 0)
-
-                self.up = up = self.unit_y
-                self.down = down = -self.unit_y
-                self.left = left = -self.unit_z
-                self.right = right = -left
-
-                self.body_top = ORIGIN + up * (height / 2)
-                self.body_bottom = ORIGIN + down * (height / 2)
-
-                self.head = Circle(radius=radius, color=color)
-                self.head.shift(self.body_top + up * radius)
-
-                self.body = Line(self.body_top, self.body_bottom, color=color)
-
-                self.left_leg = Line(
-                    start=self.body_bottom,
-                    end=self.body_bottom + down * leg_length + left * leg_length * 0.5,
-                    color=color,
-                )
-                self.right_leg = Line(
-                    start=self.body_bottom,
-                    end=self.body_bottom + down * leg_length + right * leg_length * 0.5,
-                    color=color,
-                )
-
-                self.add(self.head, self.body, self.left_leg, self.right_leg)
-
-            def get_body_bottom(self):
-                return self.body.get_end()
-
-            def move_to_feet(self, point):
-                shift = np.array(point) - self.get_body_bottom()
-                self.shift(shift)
-
-            def face_point(self, point):
-                my_x = self.axes.p2c(self.get_center())[0]
-                target_x = self.axes.p2c(point)[0]
-                should_face_right = target_x >= my_x
-
-                if self.facing_right != should_face_right:
-                    self.rotate(
-                        PI,
-                        axis=self.axes.y_axis.get_vector(),
-                        about_point=self.get_body_bottom(),
-                    )
-                    self.facing_right = should_face_right
-
-            def walk_to(self, scene, point, duration=2):
-                start = self.get_body_bottom()
-                end = self.axes.c2p(*point)
-
-                self.face_point(end)
-
-                up = self.up
-                down = self.down
-                left = self.left
-                right = self.right
-
-                bounce = lambda t: 0.05 * np.sin(8 * PI * t)
-                swing_angle = lambda t: 0.4 * np.sin(8 * PI * t)
-
-                dummy = VMobject()
-
-                def update_mob(mob, alpha):
-                    foot_pos = interpolate(start, end, alpha)
-                    bounce_offset = bounce(alpha) * up
-
-                    lean_dir = 1 if self.facing_right else -1
-                    lean_angle = lean_dir * interpolate(0, -PI / 16, np.sin(PI * alpha))
-
-                    self.move_to(foot_pos + up * 0.6 + bounce_offset)
-                    self.rotate(
-                        lean_angle - self.rotation_angle,
-                        axis=self.axes.z_axis.get_vector(),
-                        about_point=self.get_body_bottom(),
-                    )
-                    self.rotation_angle = lean_angle
-
-                    body_bottom = self.get_body_bottom()
-
-                    leg_len = 0.5
-                    horiz = 0.25
-
-                    self.left_leg.become(
-                        Line(
-                            start=body_bottom,
-                            end=body_bottom + down * leg_len + left * horiz,
-                            color=self.left_leg.get_color(),
-                        )
-                    )
-                    self.right_leg.become(
-                        Line(
-                            start=body_bottom,
-                            end=body_bottom + down * leg_len + right * horiz,
-                            color=self.right_leg.get_color(),
-                        )
-                    )
-                    self.left_leg.rotate(swing_angle(alpha), about_point=body_bottom)
-                    self.right_leg.rotate(-swing_angle(alpha), about_point=body_bottom)
-
-                scene.play(
-                    UpdateFromAlphaFunc(dummy, update_mob),
-                    run_time=duration,
-                    rate_func=linear,
-                )
-
-        axes = ThreeDAxes(
-            x_range=[-7, 9, 1],
-            y_range=[-2, 5, 0.5],
-            z_range=[-10, 8, 0.5],
+        # 2. 산 (정규분포를 회전시켜 만든 3D 형상)
+        mountain = ParametricSurface(
+            lambda u, v: rotated_normal_mountain(u, v),
+            u_range=[0, TAU],
+            v_range=[0, 1.5],
+            resolution=(50, 20),
         )
-        self.add(axes)
+        mountain.set_color(GOLD_B)
+        self.add(mountain)
 
-        axes.rotate(
-            angle=PI / 6,
-            axis=UP,
-            about_point=axes.c2p(0, 0, 0),
+        # 3. 오염된 지역 (산보다 약 1.5배 넓은 영역)
+        contamination = ParametricSurface(
+            lambda u, v: contamination_belt(u, v),
+            u_range=[-PI / 6, PI / 6],
+            v_range=[-PI / 10, PI / 10],
+            resolution=(30, 15),
         )
+        contamination.set_color(GREY_BROWN)
+        contamination.set_opacity(0.6)
+        self.add(contamination)
 
-        axes.rotate(
-            angle=PI / 12,  # rotation angle
-            axis=RIGHT,  # rotation axis: RIGHT = x-axis, UP = y-axis, OUT = z-axis
-            about_point=axes.c2p(0, 0, 0),  # pivot point
-        )
+        self.wait(3)
 
-        man = StickMan(axes)
-        man.move_to_feet(axes.c2p(10, 0, -10))
-        self.add(man)
+
+from manimlib import *
+import numpy as np
+
+
+class MountainOnSphereScene(ThreeDScene):
+    def construct(self):
+        # test
+        def rotated_normal_mountain(u, v):
+            """
+            회전된 정규분포 모양의 3D 산 생성
+            u: 회전 각도 (0 to TAU)
+            v: 높이 방향으로의 위치 (0 to something)
+            """
+            # 중심 위치 (위도/경도)
+            theta = PI / 6
+            phi = 0
+
+            # r_base = 2
+            max_height = 1
+            r_base = 2 - 0.9 * max_height
+
+            sigma = 1
+
+            # normal distribution profile (z = height)
+            r = v
+            height_profile = max_height * np.exp(-(r**2) / (2 * sigma**2))
+
+            # cylindrical to cartesian (then projected onto sphere)
+            x_local = r * np.cos(u)
+            y_local = r * np.sin(u)
+            # z_local = height_profile
+            z_local = height_profile
+
+            # convert to global coordinates on sphere
+            # rotate the local frame to (theta, phi) on sphere
+            direction = np.array(
+                [
+                    np.cos(theta) * np.cos(phi),
+                    np.cos(theta) * np.sin(phi),
+                    np.sin(theta),
+                ]
+            )
+            base_point = r_base * direction
+
+            # build local basis (tangent vectors)
+            up = direction
+            right = np.cross(np.array([0, 0, 1]), up)
+            if np.linalg.norm(right) < 1e-6:
+                right = np.array([1, 0, 0])
+            right /= np.linalg.norm(right)
+            forward = np.cross(up, right)
+
+            point = base_point + x_local * right + y_local * forward + z_local * up
+            return point
+
+        def contamination_belt(u, v):
+            """
+            Parametric patch near the mountain to simulate contamination
+            """
+            r = 2.01  # 살짝 띄워서 지구 위에 덮이게
+            theta = PI / 6 + v  # 산 중심 근처의 위도
+            phi = u  # 산 중심 근처의 경도
+
+            x = r * np.cos(theta) * np.cos(phi)
+            y = r * np.cos(theta) * np.sin(phi)
+            z = r * np.sin(theta)
+
+            return np.array([x, y, z])
 
         frame = self.camera.frame
-        frame.save_state()
+        frame.set_euler_angles(phi=70 * DEGREES, theta=30 * DEGREES)
 
-        # frame.set_euler_angles(
-        #     theta=0, phi=PI / 12, gamma=0
-        # )  # φ = π/2.5 ≈ 72° (slightly tilted)
+        # 1. 지구 (구)
+        earth = Sphere(radius=2, resolution=(30, 30))
+        earth.set_color(BLUE_E)
+        self.add(earth)
 
-        man.walk_to(self, point=(6, 0, 5), duration=3)
-        self.wait(0.1)
-
-        # Walk left
-        man.walk_to(self, point=(-3, 0, 0), duration=3)
-        self.wait(0.1)
-
-        man.walk_to(self, point=(5, 0, -5), duration=3)
-        self.wait(2)
-
-        # Animate in-between grid lines
-
-        # Add bounding box
-
-        bounding_lines = VGroup(
-            Line(axes.c2p(-7, -2, -10), axes.c2p(9, -2, -10)),
-            Line(axes.c2p(9, -2, -10), axes.c2p(9, 5, -10)),
-            Line(axes.c2p(9, 5, -10), axes.c2p(-7, 5, -10)),
-            Line(axes.c2p(-7, 5, -10), axes.c2p(-7, -2, -10)),
-            Line(axes.c2p(-7, -2, 8), axes.c2p(9, -2, 8)),
-            Line(axes.c2p(9, -2, 8), axes.c2p(9, 5, 8)),
-            Line(axes.c2p(9, 5, 8), axes.c2p(-7, 5, 8)),
-            Line(axes.c2p(-7, 5, 8), axes.c2p(-7, -2, 8)),
-            Line(axes.c2p(-7, -2, -10), axes.c2p(-7, -2, 8)),
-            Line(axes.c2p(9, -2, -10), axes.c2p(9, -2, 8)),
-            Line(axes.c2p(9, 5, -10), axes.c2p(9, 5, 8)),
-            Line(axes.c2p(-7, 5, -10), axes.c2p(-7, 5, 8)),
+        # 2. 산 (정규분포를 회전시켜 만든 3D 형상)
+        mountain = ParametricSurface(
+            lambda u, v: rotated_normal_mountain(u, v),
+            u_range=[0, TAU],
+            v_range=[0, 1],
+            resolution=(50, 20),
         )
-        bounding_lines.set_stroke(opacity=0.7, color=WHITE)
-        self.play(FadeIn(bounding_lines))
+        mountain.set_color(GOLD_B)
+        self.add(mountain)
 
-        world_g = VGroup()
-        world_g.add(axes, man, bounding_lines)
+        # 3. 오염된 지역 (산보다 약 1.5배 넓은 영역)
+        # contamination = ParametricSurface(
+        #     lambda u, v: contamination_belt(u, v),
+        #     u_range=[-PI / 6, PI / 6],
+        #     v_range=[-PI / 10, PI / 10],
+        #     resolution=(30, 15),
+        # )
+        # contamination.set_color(GREY_BROWN)
+        # contamination.set_opacity(0.6)
+        # self.add(contamination)
 
-        world_g_up = world_g.copy()
-        shift_up = axes.c2p(0, 7.5, 0) - axes.c2p(0, 0, 0)
-        world_g_up.shift(shift_up)
-        self.play(Write(world_g_up))
+        self.wait(3)
 
-        world_g_down = world_g.copy()
-        shift_down = axes.c2p(0, 0, 0) - axes.c2p(0, 7.5, 0)
-        world_g_down.shift(shift_down)
-        self.play(Write(world_g_down))
 
-        world_g_x1 = world_g.copy()
-        shift_x1 = axes.c2p(0, 0, 0) - axes.c2p(16.5, 0, 0)
-        world_g_x1.shift(shift_x1)
-        self.play(Write(world_g_x1))
+from manimlib import *
+import numpy as np
 
-        world_g_x2 = world_g.copy()
-        shift_x2 = axes.c2p(16.5, 0, 0) - axes.c2p(0, 0, 0)
-        world_g_x2.shift(shift_x2)
-        self.play(Write(world_g_x2))
 
-        world_g_z1 = world_g.copy()
-        shift_z1 = axes.c2p(0, 0, 0) - axes.c2p(0, 0, 18.5)
-        world_g_z1.shift(shift_z1)
-        self.play(Write(world_g_z1))
+class MountainOnSphereScene(ThreeDScene):
+    def construct(self):
+        # test
+        def rotated_normal_mountain_generator(sigma):
+            """
+            sigma를 받아서 normal curve 기반의 산을 생성하는 함수 반환
+            """
 
-        world_g_z2 = world_g.copy()
-        shift_z2 = axes.c2p(0, 0, 18.5) - axes.c2p(0, 0, 0)
-        world_g_z2.shift(shift_z2)
-        self.play(Write(world_g_z2))
+            earth_radius = 2
+            pdf_max = 1 / (sigma * np.sqrt(2 * np.pi))
+            max_height = pdf_max * earth_radius
+            r_base = earth_radius - 0.95 * max_height
+            print(max_height)
+            # r_base = 2 - 0.9 * max_height
 
-        self.wait(1)
+            def surface_fn(u, v):
+                theta = PI / 6
+                phi = 0
+
+                r = v
+                height_profile = max_height * np.exp(-(r**2) / (2 * sigma**2))
+
+                x_local = r * np.cos(u)
+                y_local = r * np.sin(u)
+                z_local = height_profile
+
+                direction = np.array(
+                    [
+                        np.cos(theta) * np.cos(phi),
+                        np.cos(theta) * np.sin(phi),
+                        np.sin(theta),
+                    ]
+                )
+                base_point = r_base * direction
+
+                up = direction
+                right = np.cross(np.array([0, 0, 1]), up)
+                if np.linalg.norm(right) < 1e-6:
+                    right = np.array([1, 0, 0])
+                right /= np.linalg.norm(right)
+                forward = np.cross(up, right)
+
+                point = base_point + x_local * right + y_local * forward + z_local * up
+                return point
+
+            return surface_fn
+
+        def contamination_belt(u, v):
+            r = 2.01
+            theta = PI / 6 + v
+            phi = u
+
+            x = r * np.cos(theta) * np.cos(phi)
+            y = r * np.cos(theta) * np.sin(phi)
+            z = r * np.sin(theta)
+
+            return np.array([x, y, z])
+
+        frame = self.camera.frame
+        frame.set_euler_angles(phi=70 * DEGREES, theta=30 * DEGREES)
+
+        earth = Sphere(radius=2, resolution=(30, 30))
+        earth.set_color(BLUE_E)
+        self.add(earth)
+
+        sigma = 1  # 원하는 산 넓이 지정
+        mountain = ParametricSurface(
+            rotated_normal_mountain_generator(sigma),
+            u_range=[0, TAU],
+            v_range=[0, 1],
+            resolution=(50, 20),
+        )
+        mountain.set_color(GOLD_B)
+        self.add(mountain)
+
+        self.wait(3)
+
+
+class MountainOnSphereScene(ThreeDScene):
+    def construct(self):
+        earth_radius = 2  # 지구 반지름을 변수로 통일
+
+        def rotated_normal_mountain_generator(sigma):
+            """
+            sigma를 받아서 normal curve 기반의 산을 생성하는 함수 반환
+            """
+            pdf_max = 1 / (sigma * np.sqrt(2 * np.pi))  # PDF의 최대값
+            max_height = pdf_max * earth_radius
+            r_base = earth_radius - 0.95 * max_height
+            print(max_height)
+
+            def surface_fn(u, v):
+                theta = PI / 6
+                phi = 0
+
+                r = v
+                height_profile = max_height * np.exp(-(r**2) / (2 * sigma**2))
+
+                x_local = r * np.cos(u)
+                y_local = r * np.sin(u)
+                z_local = height_profile
+
+                direction = np.array(
+                    [
+                        np.cos(theta) * np.cos(phi),
+                        np.cos(theta) * np.sin(phi),
+                        np.sin(theta),
+                    ]
+                )
+                base_point = r_base * direction
+
+                up = direction
+                right = np.cross(np.array([0, 0, 1]), up)
+                if np.linalg.norm(right) < 1e-6:
+                    right = np.array([1, 0, 0])
+                right /= np.linalg.norm(right)
+                forward = np.cross(up, right)
+
+                point = base_point + x_local * right + y_local * forward + z_local * up
+                return point
+
+            return surface_fn
+
+        def contamination_belt(u, v):
+            r = earth_radius + 0.01
+            theta = PI / 6 + v
+            phi = u
+
+            x = r * np.cos(theta) * np.cos(phi)
+            y = r * np.cos(theta) * np.sin(phi)
+            z = r * np.sin(theta)
+
+            return np.array([x, y, z])
+
+        frame = self.camera.frame
+        frame.set_euler_angles(phi=70 * DEGREES, theta=30 * DEGREES)
+
+        earth = Sphere(radius=earth_radius, resolution=(30, 30))
+        earth.set_color(BLUE_E)
+        self.add(earth)
+
+        sigma = 1  # 원하는 산 넓이 지정
+        mountain = ParametricSurface(
+            rotated_normal_mountain_generator(sigma),
+            u_range=[0, TAU],
+            v_range=[0, 1.5],
+            resolution=(50, 20),
+        )
+        mountain.set_color(GOLD_B)
+        self.add(mountain)
+
+        self.wait(3)
+
+
+from manimlib import *
+import numpy as np
+
+
+class MountainOnSphereScene(ThreeDScene):
+    def construct(self):
+        earth_radius = 2  # 지구 반지름을 변수로 통일
+
+        def rotated_normal_mountain_generator(sigma):
+            """
+            sigma를 받아서 normal curve 기반의 산을 생성하는 함수 반환
+            """
+            pdf_max = 1 / (sigma * np.sqrt(2 * np.pi))  # PDF의 최대값
+            max_height = pdf_max * earth_radius
+            r_base = earth_radius - 0.95 * max_height
+            print(max_height)
+
+            def surface_fn(u, v):
+                theta = PI / 6
+                phi = 0
+
+                r = v
+                height_profile = max_height * np.exp(-(r**2) / (2 * sigma**2))
+
+                x_local = r * np.cos(u)
+                y_local = r * np.sin(u)
+                z_local = height_profile
+
+                direction = np.array(
+                    [
+                        np.cos(theta) * np.cos(phi),
+                        np.cos(theta) * np.sin(phi),
+                        np.sin(theta),
+                    ]
+                )
+                base_point = r_base * direction
+
+                up = direction
+                right = np.cross(np.array([0, 0, 1]), up)
+                if np.linalg.norm(right) < 1e-6:
+                    right = np.array([1, 0, 0])
+                right /= np.linalg.norm(right)
+                forward = np.cross(up, right)
+
+                point = base_point + x_local * right + y_local * forward + z_local * up
+                return point
+
+            return surface_fn, 2 * sigma  # 최대 반지름도 함께 반환
+
+        def contamination_belt(u, v):
+            r = earth_radius + 0.01
+            theta = PI / 6 + v
+            phi = u
+
+            x = r * np.cos(theta) * np.cos(phi)
+            y = r * np.cos(theta) * np.sin(phi)
+            z = r * np.sin(theta)
+
+            return np.array([x, y, z])
+
+        frame = self.camera.frame
+        frame.set_euler_angles(phi=70 * DEGREES, theta=30 * DEGREES)
+
+        earth = Sphere(radius=earth_radius, resolution=(30, 30))
+        earth.set_color(BLUE_E)
+        self.add(earth)
+
+        sigma = 1  # 원하는 산 넓이 지정
+        surface_fn, max_radius = rotated_normal_mountain_generator(sigma)
+        mountain = ParametricSurface(
+            surface_fn,
+            u_range=[0, TAU],
+            v_range=[0, max_radius],
+            resolution=(50, 20),
+        )
+        mountain.set_color(GOLD_B)
+        self.add(mountain)
+
+        self.wait(3)
+
+
+from manimlib import *
+import numpy as np
+
+
+class MountainOnSphereScene(ThreeDScene):
+    def construct(self):
+        earth_radius = 2  # 지구 반지름을 변수로 통일
+
+        def rotated_normal_mountain_generator(sigma):
+            """
+            sigma를 받아서 normal curve 기반의 산을 생성하는 함수 반환
+            """
+            pdf_max = 1 / (sigma * np.sqrt(2 * np.pi))  # PDF의 최대값
+            max_height = pdf_max
+            r_base = earth_radius * (1 - 0.9) * max_height
+
+            # 정규분포에서 중앙에서 좌우로 약 95% 확률 질량은 [-2σ, 2σ] 범위에 있음
+            cutoff_radius = min(
+                0.8 * sigma, earth_radius * 0.1
+            )  # 95% 확률질량이 포함되는 반지름 범위
+
+            def surface_fn(u, v):
+                theta = PI / 6
+                phi = 0
+
+                r = v * cutoff_radius  # v ∈ [0, 1] → [0, cutoff_radius]로 매핑
+                height_profile = (
+                    pdf_max * earth_radius * np.exp(-(r**2) / (2 * sigma**2))
+                )
+
+                x_local = r * np.cos(u)
+                y_local = r * np.sin(u)
+                z_local = height_profile
+
+                direction = np.array(
+                    [
+                        np.cos(theta) * np.cos(phi),
+                        np.cos(theta) * np.sin(phi),
+                        np.sin(theta),
+                    ]
+                )
+                base_point = r_base * direction
+
+                up = direction
+                right = np.cross(np.array([0, 0, 1]), up)
+                if np.linalg.norm(right) < 1e-6:
+                    right = np.array([1, 0, 0])
+                right /= np.linalg.norm(right)
+                forward = np.cross(up, right)
+
+                point = base_point + x_local * right + y_local * forward + z_local * up
+                return point
+
+            return surface_fn, 1  # v는 [0, 1]로 고정하고 내부에서 scaling
+
+        def contamination_belt(u, v):
+            r = earth_radius + 0.01
+            theta = PI / 6 + v
+            phi = u
+
+            x = r * np.cos(theta) * np.cos(phi)
+            y = r * np.cos(theta) * np.sin(phi)
+            z = r * np.sin(theta)
+
+            return np.array([x, y, z])
+
+        frame = self.camera.frame
+        frame.set_euler_angles(phi=70 * DEGREES, theta=30 * DEGREES)
+
+        earth = Sphere(radius=earth_radius, resolution=(30, 30))
+        earth.set_color(BLUE_E)
+        self.add(earth)
+
+        sigma = 1  # 원하는 산 넓이 지정
+        surface_fn, max_radius = rotated_normal_mountain_generator(sigma)
+        mountain = ParametricSurface(
+            surface_fn,
+            u_range=[0, TAU],
+            v_range=[0, max_radius],
+            resolution=(50, 20),
+        )
+        mountain.set_color(GOLD_B)
+        self.add(mountain)
+
+        self.wait(3)
+
+
+from manimlib import *
+import numpy as np
+
+
+class MountainOnSphereScene(ThreeDScene):
+    def construct(self):
+        earth_radius = 2  # 지구 반지름을 변수로 통일
+
+        def rotated_normal_mountain_generator(sigma):
+            """
+            sigma를 받아서 normal curve 기반의 산을 생성하는 함수 반환
+            """
+            pdf_max = 1 / (sigma * np.sqrt(2 * np.pi))  # PDF의 최대값
+            max_height = pdf_max * earth_radius
+            r_base = earth_radius - 0.95 * max_height
+            print(max_height)
+
+            # 정규분포에서 중앙에서 좌우로 약 95% 확률 질량은 [-2σ, 2σ] 범위에 있음
+            cutoff_radius = 0.7 * sigma  # 95% 확률질량이 포함되는 반지름 범위
+
+            def surface_fn(u, v):
+                theta = PI / 6
+                phi = 0
+
+                r = v * cutoff_radius  # v ∈ [0, 1] → [0, cutoff_radius]로 매핑
+                height_profile = max_height * np.exp(-(r**2) / (2 * sigma**2))
+
+                x_local = r * np.cos(u)
+                y_local = r * np.sin(u)
+                z_local = height_profile
+
+                direction = np.array(
+                    [
+                        np.cos(theta) * np.cos(phi),
+                        np.cos(theta) * np.sin(phi),
+                        np.sin(theta),
+                    ]
+                )
+                base_point = r_base * direction
+
+                up = direction
+                right = np.cross(np.array([0, 0, 1]), up)
+                if np.linalg.norm(right) < 1e-6:
+                    right = np.array([1, 0, 0])
+                right /= np.linalg.norm(right)
+                forward = np.cross(up, right)
+
+                # 초기 점 계산 (tangent 기반 좌표계에서 산 위 점)
+                preliminary_point = (
+                    base_point + x_local * right + y_local * forward + z_local * up
+                )
+
+                # 지구 중심 방향 벡터 기준 보정
+                ray_dir = preliminary_point / np.linalg.norm(preliminary_point)
+                projected_height = np.dot(preliminary_point, ray_dir)
+                true_height = projected_height - earth_radius
+
+                # 구 곡면을 기준으로 최종 산 위 점
+                point = ray_dir * (earth_radius + true_height)
+                return point
+
+            return surface_fn, 1  # v는 [0, 1]로 고정하고 내부에서 scaling
+
+        def contamination_belt(u, v):
+            r = earth_radius + 0.01
+            theta = PI / 6 + v
+            phi = u
+
+            x = r * np.cos(theta) * np.cos(phi)
+            y = r * np.cos(theta) * np.sin(phi)
+            z = r * np.sin(theta)
+
+            return np.array([x, y, z])
+
+        frame = self.camera.frame
+        frame.set_euler_angles(phi=70 * DEGREES, theta=30 * DEGREES)
+
+        earth = Sphere(radius=earth_radius, resolution=(30, 30))
+        earth.set_color(BLUE_E)
+        self.add(earth)
+
+        sigma = 1  # 원하는 산 넓이 지정
+        surface_fn, max_radius = rotated_normal_mountain_generator(sigma)
+        mountain = ParametricSurface(
+            surface_fn,
+            u_range=[0, TAU],
+            v_range=[0, max_radius],
+            resolution=(50, 20),
+        )
+        mountain.set_color(GOLD_B)
+        self.add(mountain)
+
+        self.wait(3)

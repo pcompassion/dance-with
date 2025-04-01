@@ -3661,18 +3661,19 @@ class UniverseAndN(Scene):
         self.wait(2)
 
         # Step 2: Pose the universe question
-        q1 = Text("우주는 무한할까?", font="BM Hanna 11yrs Old").scale(1.5)
+        # q1 = Text("우주는 무한할까?", font="BM Hanna 11yrs Old").scale(1.5)
 
-        q1.to_edge(UP, buff=1)
-        self.play(Write(q1))
-        self.wait(1)
-        self.play(FadeOut(q1))
+        # q1.to_edge(UP, buff=1)
+        # self.play(Write(q1))
+        # self.wait(1)
+        # self.play(FadeOut(q1))
 
         particle_text = Text(
             "무한한 수의 입자가 존재할까?",
             font="BM Hanna 11yrs Old",
         ).scale(1.5)
-        particle_text.next_to(q1, DOWN)
+        # particle_text.next_to(q1, DOWN)
+        particle_text.shift(UP * 2)
         self.play(Write(particle_text))
         self.wait(2)
 
@@ -3704,22 +3705,24 @@ class UniverseAndN(Scene):
         corpus = ImageMobject(
             "/Users/eugenekim/projects/dance-with/first-project/corpus.png"
         )
-        corpus.scale(1.2).to_edge(LEFT, buff=1.3).shift(UP)
+        corpus.scale(1.2).to_edge(LEFT, buff=1.3)
+        # courpus.shift(UP)
         self.play(FadeIn(corpus))
         self.wait(1)
 
         embedding = ImageMobject(
             "/Users/eugenekim/projects/dance-with/first-project/embedding.png"
         )
-        embedding.scale(1.2).to_edge(RIGHT, buff=1.3).shift(UP)
+        embedding.scale(1.2).to_edge(RIGHT, buff=1.3)
+        # embedding.shift(UP)
         self.play(FadeIn(embedding))
         self.wait(2)
 
-        q1 = Text("각각의 단어를 숫자로 표현함", font="BM Hanna 11yrs Old").scale(1.5)
+        # q1 = Text("각각의 단어를 숫자로 표현함", font="BM Hanna 11yrs Old").scale(1.5)
 
-        q1.shift(3 * DOWN)
-        self.play(Write(q1))
-        self.wait(1)
+        # q1.shift(3 * DOWN)
+        # self.play(Write(q1))
+        # self.wait(1)
 
         # # Step 7: Fade to insight
         # self.play(FadeOut(particle_text))
@@ -5484,9 +5487,9 @@ class PrisonerDilemmaWithHighlight(Scene):
 class DilemmaTopics(Scene):
     def construct(self):
         # Title
-        title = Text(r"1 + 1 = -1").scale(1.5)
+        title = Tex(r"1 + 1 = -1").scale(1.5)
 
-        title.set_color_by_text("-1", RED)
+        title[4:7].set_color(RED)
 
         title.to_edge(UP)
         self.play(FadeIn(title))
@@ -5499,21 +5502,54 @@ class DilemmaTopics(Scene):
             "4. AI",
             "5. 마케팅 / 정치 / 뉴스 / sns",
             "6. 비만 / 사교육 / 금융",
+            "7. ...",
         ]
 
         text_lines = VGroup()
         for i, item in enumerate(items):
             line = Text(item, font="BM Hanna 11yrs Old").scale(1.1)
             if i % 2 == 1:
-                line.set_fill(GREY_B)
+                line.set_fill(GREY_C)
             text_lines.add(line)
 
         text_lines.arrange(DOWN, aligned_edge=LEFT, buff=0.5)
-        text_lines.next_to(title, DOWN * 2, aligned_edge=LEFT).shift(LEFT * 2)
+        text_lines.next_to(title, DOWN * 2, aligned_edge=LEFT).shift(LEFT)
 
         # Animate each line appearing
         for line in text_lines:
-            self.play(FadeIn(line), run_time=0.5)
+            self.play(Write(line), run_time=0.5)
+
+        self.wait(2)
+
+        # 기존 텍스트들 왼쪽으로 밀고 흐리게
+        self.play(
+            text_lines.animate.to_edge(LEFT, buff=0.5).set_opacity(0.5), run_time=1
+        )
+
+        # 새 문장들
+        quotes = [
+            "문제를 예방하는 건 돈이 안되고",
+            "문제를 만들면, 누군가 해결하면서 돈이 되곤 한다.",
+            "문제가 커질때까지는 대응을 못한다.",
+        ]
+
+        quote_texts = VGroup()
+        for i, q in enumerate(quotes):
+            quote = Text(q, font="BM Hanna 11yrs Old").scale(1.0)
+            if i == 1:
+                quote.set_color(GREY_B)  # 강조 색상
+
+            if i == 2:
+                quote.set_color(YELLOW_E)  # 강조 색상
+            quote_texts.add(quote)
+
+        # 기존 텍스트 기준으로 오른쪽에 정렬
+        quote_texts.arrange(DOWN, aligned_edge=LEFT, buff=0.4)
+        # quote_texts.next_to(text_lines, RIGHT, buff=1)
+        quote_texts.shift(UP + RIGHT * 2)
+
+        for qt in quote_texts:
+            self.play(FadeIn(qt), run_time=2)
 
         self.wait(2)
 
