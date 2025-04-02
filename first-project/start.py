@@ -3107,106 +3107,6 @@ class GeometricSeriesVisualization(Scene):
         self.wait()
 
 
-class GeometricSeriesVisualization2(Scene):
-    def construct(self):
-        # Geometric series visual proof
-        r = 0.8  # Updated ratio value
-        scale_factor = 2.3  # Rescale the entire image
-        shift_amount = LEFT * 5  # Shift entire graph to the left
-
-        # Base lines
-        left_line = Line([0, 0, 0], [0, 1 * scale_factor, 0], color=WHITE).shift(
-            shift_amount
-        )
-
-        origin = left_line.get_start()
-        # bottom_line = Line(
-        #     origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
-        # )
-
-        # Vertical segment lines at positions 1, 1+r, 1+r+r^2, ...
-        x_pos = 1 * scale_factor
-        x_pos_prev = 0
-
-        vertical_lines = []
-        segment_labels = []
-        vertical_line = None
-        vertical_line_prev = left_line
-        cnt = 0
-        while x_pos < (1 / (1 - r)) * scale_factor - 0.1:
-            cnt += 1
-            run_time = 0.1
-
-            vertical_line = Line(
-                origin + [x_pos, 0, 0],
-                origin + [x_pos, r ** (len(vertical_lines) + 1) * scale_factor, 0],
-                color=WHITE,
-            )
-            vertical_lines.append(vertical_line)
-
-            horizontal_line = Line(
-                origin + [x_pos_prev, 0, 0],
-                origin + [x_pos, 0, 0],
-            )
-            x_pos_prev = x_pos
-
-            len_v = len(vertical_lines)
-            if len_v <= 6:
-                if len_v == 1:
-                    len_t = 1
-                elif len_v == 2:
-                    len_t = "r"
-                elif len_v == 6:
-                    len_t = "..."
-                else:
-                    len_t = f"r^{len_v-1}"
-                text = Tex(f"{len_t}").next_to(
-                    horizontal_line, DOWN, buff=0.3, aligned_edge=DOWN
-                )
-            else:
-                text = None
-
-            if text is not None:
-                self.play(
-                    FadeIn(horizontal_line),
-                    FadeIn(vertical_line_prev),
-                    FadeIn(text),
-                    run_time=run_time,
-                )
-            else:
-                self.play(
-                    FadeIn(horizontal_line),
-                    FadeIn(vertical_line_prev),
-                    run_time=run_time,
-                )
-
-            x_pos += r ** len(vertical_lines) * scale_factor
-            vertical_line_prev = vertical_line
-
-        self.wait(2)
-        bottom_line = Line(
-            origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
-        )
-
-        end = origin + [(1 / (1 - r)) * scale_factor, 0, 0]
-        diagonal_line = Line(
-            origin + [0, 1 * scale_factor, 0],
-            end,
-            color=WHITE,
-        )
-        self.play(FadeIn(diagonal_line), FadeIn(bottom_line), run_time=3)
-
-        self.wait()
-
-        # Dot at bottom-right point
-
-        glow = Dot(point=end, color=BLUE, radius=0.3, fill_opacity=0.2)
-
-        # Add dot + glow
-        self.play(FadeIn(glow))
-        self.wait()
-
-
 class PandaNoiseIllustration(Scene):
     def construct(self):
         # Step 1: Show the washed out panda
@@ -5488,13 +5388,11 @@ class DilemmaTopics(Scene):
     def construct(self):
         # Title
         title = Tex(r"1 + 1 = -1").scale(1.5)
-
         title[4:7].set_color(RED)
-
         title.to_edge(UP)
         self.play(FadeIn(title))
 
-        # List of examples
+        # Items list
         items = [
             "1. 기후위기",
             "2. 환경오염",
@@ -5513,23 +5411,57 @@ class DilemmaTopics(Scene):
             text_lines.add(line)
 
         text_lines.arrange(DOWN, aligned_edge=LEFT, buff=0.5)
-        text_lines.next_to(title, DOWN * 2, aligned_edge=LEFT).shift(LEFT)
+        text_lines.next_to(title, DOWN * 2, aligned_edge=LEFT).shift(LEFT * 2)
 
-        # Animate each line appearing
+        # Step 1: Show all items first
         for line in text_lines:
-            self.play(Write(line), run_time=0.5)
+            self.play(Write(line), run_time=0.4)
 
-        self.wait(2)
+        self.wait(1)
 
-        # 기존 텍스트들 왼쪽으로 밀고 흐리게
+        # Step 2: Animate highlighting in grouped pairs
+        groups = [
+            ([0, 1], "효율적 에너지 생산"),
+            ([2, 3], "물리적, 정보적 우위"),
+            ([4], "감각적, 심리적 우위"),
+            ([5], "경제적 우위"),
+        ]
+
+        group_boxes = VGroup()
+        right_texts = VGroup()
+
+        for idx_list, phrase in groups:
+            self.wait(0.5)
+
+            group = VGroup(*[text_lines[i] for i in idx_list])
+            box = SurroundingRectangle(group, color=YELLOW_E)
+            group_boxes.add(box)
+
+            phrase_text = (
+                Text(phrase, font="BM Hanna 11yrs Old").scale(1).set_color(YELLOW_E)
+            )
+            phrase_text.next_to(box, RIGHT, buff=0.6)
+            right_texts.add(phrase_text)
+
+            self.play(FadeIn(box), run_time=0.3)
+            self.play(Write(phrase_text), run_time=1)
+
+            self.wait(1)
+
+            # Optional: fade out right text/box before next
+            self.play(FadeOut(box), FadeOut(phrase_text), run_time=0.4)
+
+        self.wait(0.5)
+
+        # Step 3: Slide left text & fade
         self.play(
             text_lines.animate.to_edge(LEFT, buff=0.5).set_opacity(0.5), run_time=1
         )
 
-        # 새 문장들
+        # Step 4: Final quotes
         quotes = [
             "문제를 예방하는 건 돈이 안되고",
-            "문제를 만들면, 누군가 해결하면서 돈이 되곤 한다.",
+            "문제를 커지면, 오히려 돈이 되곤 한다.",
             "문제가 커질때까지는 대응을 못한다.",
         ]
 
@@ -5537,15 +5469,13 @@ class DilemmaTopics(Scene):
         for i, q in enumerate(quotes):
             quote = Text(q, font="BM Hanna 11yrs Old").scale(1.0)
             if i == 1:
-                quote.set_color(GREY_B)  # 강조 색상
-
-            if i == 2:
-                quote.set_color(YELLOW_E)  # 강조 색상
+                quote.set_color(GREY_B)
+            elif i == 2:
+                quote.set_color(YELLOW_E)
+                quote.scale(1.2)
             quote_texts.add(quote)
 
-        # 기존 텍스트 기준으로 오른쪽에 정렬
         quote_texts.arrange(DOWN, aligned_edge=LEFT, buff=0.4)
-        # quote_texts.next_to(text_lines, RIGHT, buff=1)
         quote_texts.shift(UP + RIGHT * 2)
 
         for qt in quote_texts:
@@ -6210,3 +6140,179 @@ class StickManWalkScene(ThreeDScene):
         self.play(Write(world_g_z2), run_time=0.5)
 
         self.wait(1)
+
+
+class InfinityNumberLine(Scene):
+    def construct(self):
+        # Title
+        title = Text("큰 수 놀이", font="BM Hanna 11yrs Old").scale(1.4)
+        title.shift(UP * 2.6)
+        title.fix_in_frame()
+        self.play(Write(title))
+
+        frame = self.camera.frame
+        frame.save_state()
+
+        # STEP 1: Number line setup (for growing to the right)
+        number_line = NumberLine(
+            x_range=[0, 200, 1],
+            include_numbers=False,
+            unit_size=0.6,
+            color=WHITE,
+        ).shift(DOWN * 2)
+        number_line.shift(ORIGIN - number_line.number_to_point(0))
+        self.play(Write(number_line))
+
+        def highlight_beyond(number_line, start_n, end_n):
+            target_pos = number_line.number_to_point(start_n)
+            self.play(self.camera.frame.animate.move_to(target_pos), run_time=2)
+
+            dash = DashedLine(
+                target_pos + UP * 1.7, target_pos + DOWN * 0.5, color=YELLOW
+            )
+            self.play(FadeIn(dash))
+            self.wait(0.3)
+
+            # Highlight region from start_n to end_n using Rectangle
+            start_x = number_line.number_to_point(start_n)[0]
+            end_x = number_line.number_to_point(end_n)[0]
+            width = end_x - start_x
+
+            highlight = Rectangle(
+                width=width,
+                height=1,
+                fill_color=BLUE,
+                fill_opacity=0.5,
+                stroke_width=0,
+            )
+            highlight.move_to(
+                (start_x + end_x) / 2 * RIGHT + number_line.number_to_point(0)[1] * UP
+            )
+
+            self.play(FadeIn(highlight))
+            self.wait(0.5)
+            self.play(FadeOut(highlight), FadeOut(dash))
+
+        highlight_beyond(number_line, 30, 45)
+        highlight_beyond(number_line, 60, 75)
+        highlight_beyond(number_line, 90, 110)
+
+        self.play(Restore(self.camera.frame), FadeOut(number_line), FadeOut(title))
+
+        self.wait(1)
+
+        title = Tex(r"0").scale(1.2)
+        title.shift(UP * 2.5)
+        self.play(Write(title))
+
+        # STEP 2: Create number plane for limit visualization
+        full_length = 7
+        plane = NumberPlane(
+            x_range=[0, full_length, 0.1],
+            y_range=[-1, 1, 1],
+            background_line_style={
+                "stroke_color": GREY,
+                "stroke_opacity": 0.5,
+                "stroke_width": 1,
+            },
+            axis_config={
+                "include_ticks": False,
+                "include_tip": False,
+                "stroke_width": 2,
+                "stroke_color": WHITE,
+            },
+        )
+        plane.shift(UP * 1.5)
+        plane.shift(ORIGIN - plane.coords_to_point(0, 0))
+        self.play(Write(plane))
+
+        def cut_and_highlight(x_cut, color, zoom=False):
+            cut_line = DashedLine(
+                start=plane.coords_to_point(x_cut, -0.5),
+                end=plane.coords_to_point(x_cut, 0.5),
+                color=YELLOW,
+                dash_length=0.1,
+            )
+            self.play(FadeIn(cut_line))
+
+            highlight = Rectangle(
+                width=plane.coords_to_point(0, 0)[0]
+                - plane.coords_to_point(x_cut, 0)[0],
+                height=1,
+                fill_color=color,
+                fill_opacity=0.5,
+                stroke_width=0,
+            )
+            highlight.move_to(
+                (plane.coords_to_point(0, 0)[0] + plane.coords_to_point(x_cut, 0)[0])
+                / 2
+                * RIGHT
+                + plane.coords_to_point(0, 0)[1] * UP
+            )
+
+            if zoom:
+                zoom_target = plane.coords_to_point(0, 0)
+                self.camera.frame.save_state()
+                self.play(
+                    self.camera.frame.animate.scale(0.1).move_to(zoom_target),
+                    run_time=2,
+                )
+
+            self.play(FadeIn(highlight))
+            self.wait(0.5)
+            self.play(FadeOut(highlight), FadeOut(cut_line))
+
+            if zoom:
+                self.wait(0.3)
+                self.play(Restore(self.camera.frame))
+
+        cut_and_highlight(2, BLUE)
+        self.wait()
+        cut_and_highlight(1, BLUE)
+        self.wait()
+        cut_and_highlight(0.1, GREEN, zoom=True)
+
+        self.wait(2)
+
+        self.play(FadeOut(plane), FadeOut(title))
+
+        t = Tex(r"\frac{1}{\infty} = 0").scale(1.4).shift(UP * 1.8)
+        self.play(Write(t))
+        self.wait(1)
+
+        # Author data and quotes
+        authors = ["우피니샤드", "반야심경", "도덕경", "성경"]
+        quotes = [
+            "그것은 가득 차 있으나 비어 있고, 비어 있으나 가득 차 있다.",
+            "색즉시공, 공즉시색",
+            "만물은 유에서 생기고, 유는 무에서 생긴다.",
+            "나는 알파요 오메가요, 처음이자 마지막이다.",
+        ]
+
+        author_texts = VGroup()
+        quote_texts = VGroup()
+
+        colors = [BLUE_B, GREY_B, BLUE_B, GREY_B]
+        for i, name in enumerate(authors):
+            color = colors[i]
+            author = Text(name, font="BM Hanna 11yrs Old").set_color(color)
+            quote = Text(quotes[i], font="BM Hanna 11yrs Old").scale(0.8)
+            author_texts.add(author)
+            quote_texts.add(quote)
+
+        author_texts.arrange(RIGHT, buff=0.5)
+        # author_texts.move_to(DOWN)
+        for quote in quote_texts:
+            quote.next_to(author_texts, DOWN * 2, buff=0.3)
+            quote.set_x(0)
+
+        # Animate author + quote one by one
+        for i in range(len(authors)):
+            self.play(Write(author_texts[i]), run_time=0.4)
+            self.play(Write(quote_texts[i]), run_time=1)
+            self.wait(1.2)
+            self.play(FadeOut(quote_texts[i]))
+
+        self.wait(2)
+
+        self.play(FadeOut(t), FadeOut(author_texts))

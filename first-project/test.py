@@ -1200,7 +1200,6 @@ class MountainOnSphereScene(ThreeDScene):
             pdf_max = 1 / (sigma * np.sqrt(2 * np.pi))  # PDF의 최대값
             max_height = pdf_max * earth_radius
             r_base = earth_radius - 0.95 * max_height
-            print(max_height)
 
             # 정규분포에서 중앙에서 좌우로 약 95% 확률 질량은 [-2σ, 2σ] 범위에 있음
             cutoff_radius = 0.7 * sigma  # 95% 확률질량이 포함되는 반지름 범위
@@ -1278,3 +1277,699 @@ class MountainOnSphereScene(ThreeDScene):
         self.add(mountain)
 
         self.wait(3)
+
+
+from manimlib import *
+import numpy as np
+
+
+class MountainOnSphereScene(ThreeDScene):
+    def construct(self):
+        earth_radius = 2  # 지구 반지름을 변수로 통일
+
+        def rotated_normal_mountain_generator(sigma):
+            """
+            sigma를 받아서 normal curve 기반의 산을 생성하는 함수 반환
+            """
+            pdf_peak = 1 / (sigma * np.sqrt(2 * np.pi))  # PDF의 최대값
+            mountain_height = pdf_peak * earth_radius
+            r_base = earth_radius - 0.95 * mountain_height
+
+            # 정규분포에서 중앙에서 좌우로 약 95% 확률 질량은 [-2σ, 2σ] 범위에 있음
+            cutoff_radius = sigma  # 95% 확률질량이 포함되는 반지름 범위
+
+            def surface_fn(u, v):
+                theta = PI / 6
+                phi = 0
+
+                r = v * cutoff_radius  # v ∈ [0, 1] → [0, cutoff_radius]로 매핑
+                height_profile = mountain_height * np.exp(-(r**2) / (2 * sigma**2))
+
+                x_local = r * np.cos(u)
+                y_local = r * np.sin(u)
+                z_local = height_profile
+
+                direction = np.array(
+                    [
+                        np.cos(theta) * np.cos(phi),
+                        np.cos(theta) * np.sin(phi),
+                        np.sin(theta),
+                    ]
+                )
+                base_point = r_base * direction
+
+                up = direction
+                right = np.cross(np.array([0, 0, 1]), up)
+                if np.linalg.norm(right) < 1e-6:
+                    right = np.array([1, 0, 0])
+                right /= np.linalg.norm(right)
+                forward = np.cross(up, right)
+
+                # 초기 점 계산 (tangent 기반 좌표계에서 산 위 점)
+                preliminary_point = (
+                    base_point + x_local * right + y_local * forward + z_local * up
+                )
+
+                # 지구 중심 방향 벡터 기준 보정
+                ray_dir = preliminary_point / np.linalg.norm(preliminary_point)
+                projected_height = np.dot(preliminary_point, ray_dir)
+                true_height = projected_height - earth_radius
+
+                # 구 곡면을 기준으로 최종 산 위 점
+                point = ray_dir * (earth_radius + true_height)
+                return point
+
+            return surface_fn, 1  # v는 [0, 1]로 고정하고 내부에서 scaling
+
+        def contamination_belt(u, v):
+            r = earth_radius + 0.01
+            theta = PI / 6 + v
+            phi = u
+
+            x = r * np.cos(theta) * np.cos(phi)
+            y = r * np.cos(theta) * np.sin(phi)
+            z = r * np.sin(theta)
+
+            return np.array([x, y, z])
+
+        frame = self.camera.frame
+        frame.set_euler_angles(phi=70 * DEGREES, theta=30 * DEGREES)
+
+        earth = Sphere(radius=earth_radius, resolution=(30, 30))
+        earth.set_color(BLUE_E)
+        self.add(earth)
+
+        sigma = 0.7  # 원하는 산 넓이 지정
+        surface_fn, max_radius = rotated_normal_mountain_generator(sigma)
+        mountain = ParametricSurface(
+            surface_fn,
+            u_range=[0, TAU],
+            v_range=[0, max_radius],
+            resolution=(50, 20),
+        )
+        mountain.set_color(GOLD_B)
+        self.add(mountain)
+
+        # base_point 계산 및 시각화
+
+        self.wait(3)
+
+
+class DilemmaTopics(Scene):
+    def construct(self):
+        # Title
+        title = Tex(r"1 + 1 = -1").scale(1.5)
+        title[4:7].set_color(RED)
+        title.to_edge(UP)
+        self.play(FadeIn(title))
+
+
+class GeometricSeriesVisualizationZero(Scene):
+
+    def animate_epsilon_cut(
+        self,
+        origin,
+        vertical_lines,
+        bottom_line,
+        r,
+        scale_factor,
+        epsilon_fraction,
+        y_offset,
+    ):
+        limit_x = (1 / (1 - r)) * scale_factor
+        epsilon_x = limit_x - epsilon_fraction * (limit_x)  # ← cut point
+
+        # STEP 1: Draw vertical epsilon dashed line
+        epsilon_line = DashedLine(
+            start=origin + [epsilon_x, 0, 0],
+            end=origin + [epsilon_x, 1 * scale_factor, 0],
+            color=YELLOW,
+            dash_length=0.1,
+        )
+        self.play(FadeIn(epsilon_line))
+
+        # STEP 2: Brace and ε label (correctly from dashed line to limit point)
+        limit_point = origin + [(1 / (1 - r)) * scale_factor, 0, 0]
+        epsilon_start = origin + [epsilon_x, 0, 0]
+
+        epsilon_segment = Line(epsilon_start, limit_point, color=YELLOW)
+        epsilon_brace = Brace(epsilon_segment, direction=UP, color=YELLOW)
+        epsilon_label = Tex(r"\epsilon").scale(0.8).next_to(epsilon_brace, UP, buff=0.1)
+
+        self.play(FadeIn(epsilon_segment))
+        self.play(GrowFromCenter(epsilon_brace), FadeIn(epsilon_label), run_time=0.8)
+        self.wait(0.5)
+        self.play(
+            FadeOut(epsilon_segment),
+            FadeOut(epsilon_brace),
+            FadeOut(epsilon_label),
+            run_time=0.5,
+        )
+
+        # STEP 3: Collect vertical bars to the right of ε
+        bars_to_copy = []
+        for vline in vertical_lines:
+            if vline.get_start()[0] > origin[0] + epsilon_x:
+                bars_to_copy.append(vline)
+
+        # STEP 4: Copy and scale group
+        copied_group = VGroup(*[bar.copy() for bar in bars_to_copy])
+
+        # Add the bottom segment for visual closure
+        rightmost_x = max([bar.get_start()[0] for bar in bars_to_copy])
+        bottom_segment = Line(
+            [epsilon_x, 0, 0] + origin,
+            [rightmost_x - origin[0], 0, 0] + origin,
+            color=WHITE,
+        )
+
+        copied_group.add(bottom_segment)
+
+        # Scale and shift (half of original triangle height)
+        copied_group.generate_target()
+        copied_group.target.scale(1 / epsilon_fraction * 0.7).next_to(
+            bottom_line, DOWN * y_offset
+        )
+        self.play(MoveToTarget(copied_group), run_time=1)
+
+        self.wait(0.5)
+
+        # Re-highlight copied bars
+
+        for bar in copied_group[:-1]:  # skip the bottom line
+            self.play(bar.animate.set_color(BLUE_E).set_stroke(width=10), run_time=0.1)
+            self.play(bar.animate.set_stroke(width=2), run_time=0.05)
+
+        self.wait(1)
+
+        self.play(FadeOut(copied_group))
+
+    def construct(self):
+        r = 0.8
+        scale_factor = 2.3
+        shift_amount = LEFT * 5
+
+        left_line = Line([0, 0, 0], [0, 1 * scale_factor, 0], color=WHITE).shift(
+            shift_amount
+        )
+        origin = left_line.get_start()
+
+        x_pos = 1 * scale_factor
+        x_pos_prev = 0
+
+        vertical_lines = []
+        vertical_line_prev = left_line
+        while x_pos < (1 / (1 - r)) * scale_factor - 0.01:
+            vertical_line = Line(
+                origin + [x_pos, 0, 0],
+                origin + [x_pos, r ** (len(vertical_lines) + 1) * scale_factor, 0],
+                color=WHITE,
+            )
+            vertical_lines.append(vertical_line)
+
+            horizontal_line = Line(
+                origin + [x_pos_prev, 0, 0],
+                origin + [x_pos, 0, 0],
+            )
+            x_pos_prev = x_pos
+
+            len_v = len(vertical_lines)
+            if len_v <= 6:
+                if len_v == 1:
+                    len_t = 1
+                elif len_v == 2:
+                    len_t = "r"
+                elif len_v == 6:
+                    len_t = "..."
+                else:
+                    len_t = f"r^{{{len_v-1}}}"
+                text = Tex(f"{len_t}").next_to(
+                    horizontal_line, DOWN, buff=0.3, aligned_edge=DOWN
+                )
+                self.play(
+                    FadeIn(horizontal_line),
+                    FadeIn(vertical_line_prev),
+                    FadeIn(text),
+                    run_time=0.1,
+                )
+            else:
+                self.play(
+                    FadeIn(horizontal_line),
+                    FadeIn(vertical_line_prev),
+                    run_time=0.1,
+                )
+
+            x_pos += r ** len(vertical_lines) * scale_factor
+            vertical_line_prev = vertical_line
+
+        bottom_line = Line(
+            origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
+        )
+        end = origin + [(1 / (1 - r)) * scale_factor, 0, 0]
+
+        glow = Dot(point=end, color=BLUE, radius=0.3, fill_opacity=0.4)
+        self.play(FadeIn(glow))
+        self.wait()
+
+        self.play(FadeIn(bottom_line))
+
+        self.animate_epsilon_cut(
+            origin,
+            vertical_lines,
+            bottom_line,
+            r,
+            scale_factor,
+            epsilon_fraction=1 / 8 + 0.01,
+            y_offset=2.5,
+        )
+
+        self.animate_epsilon_cut(
+            origin,
+            vertical_lines,
+            bottom_line,
+            r,
+            scale_factor,
+            epsilon_fraction=1 / 16 + 0.008,
+            y_offset=4,
+        )
+
+
+class InfinityNumberLine(Scene):
+    def highlight_beyond(self, number_line, start_n, end_n):
+        # Move camera
+        target_pos = number_line.number_to_point(start_n)
+        self.play(self.camera.frame.animate.move_to(target_pos), run_time=2)
+
+        # Draw dashed yellow line
+        dash = DashedLine(target_pos + UP * 2, target_pos + DOWN * 0.5, color=YELLOW)
+        self.play(FadeIn(dash), run_time=0.2)
+        self.wait(0.5)
+
+        # Highlight ticks to the right
+        marks = []
+        for i in range(start_n + 1, end_n + 1):
+            tick = Line(
+                number_line.number_to_point(i) + DOWN * 0.15,
+                number_line.number_to_point(i) + UP * 0.15,
+                color=BLUE,
+            ).set_stroke(width=4)
+            marks.append(tick)
+
+        for tick in marks:
+            self.play(GrowFromCenter(tick), run_time=0.1)
+
+        self.wait(0.5)
+        self.play(FadeOut(dash))
+        self.play(*[FadeOut(tick) for tick in marks])
+
+    def construct(self):
+        # STEP 0: Title
+        title = Text("큰 수 놀이", font="BM Hanna 11yrs Old").scale(1.2)
+        title.shift(UP * 2.5)
+        self.play(Write(title))
+
+        # STEP 1: Number line setup
+        number_line = NumberLine(
+            x_range=[0, 200, 1],  # extended to allow multiple moves
+            include_numbers=False,
+            unit_size=0.6,
+            color=WHITE,
+        ).shift(DOWN * 2)
+
+        self.add(number_line)
+
+        self.camera.frame.move_to(number_line.n2p(0))
+
+        self.wait(2)
+
+        # Run steps as loopable function calls
+        self.highlight_beyond(number_line, 30, 50)
+        self.highlight_beyond(number_line, 60, 80)
+        self.highlight_beyond(number_line, 90, 110)
+
+        self.wait(1.5)
+
+
+class InfinityNumberLine(Scene):
+    def highlight_beyond(self, number_line, start_n, end_n):
+        # Move camera
+        target_pos = number_line.number_to_point(start_n)
+        self.play(self.camera.frame.animate.move_to(target_pos), run_time=2)
+
+        # Draw dashed yellow line
+        dash = DashedLine(target_pos + UP * 1.7, target_pos + DOWN * 0.5, color=YELLOW)
+        self.play(FadeIn(dash))
+        self.wait(0.3)
+
+        # Highlight ticks to the right
+        marks = []
+        for i in range(start_n + 1, end_n + 1):
+            tick = Line(
+                number_line.number_to_point(i) + DOWN * 0.15,
+                number_line.number_to_point(i) + UP * 0.15,
+                color=BLUE,
+            ).set_stroke(width=4)
+            marks.append(tick)
+
+        for tick in marks:
+            self.play(GrowFromCenter(tick), run_time=0.1)
+
+        self.wait(0.5)
+        self.play(FadeOut(dash))
+        self.play(*[FadeOut(tick) for tick in marks])
+
+    def construct(self):
+        # STEP 0: Title
+        title = Text("큰 수 놀이", font="BM Hanna 11yrs Old").scale(1.2)
+        title.shift(UP * 2.5)
+        title.fix_in_frame()
+        self.play(Write(title))
+
+        frame = self.camera.frame
+        frame.move_to(number_line.n2p(0))
+        frame.save_state()
+
+        # STEP 1: Number line setup (for growing to the right)
+        number_line = NumberLine(
+            x_range=[0, 200, 1],
+            include_numbers=False,
+            unit_size=0.6,
+            color=WHITE,
+        ).shift(DOWN * 2)
+        number_line.shift(ORIGIN - number_line.number_to_point(0))
+        self.play(Write(number_line))
+
+        self.wait(1)
+
+        self.highlight_beyond(number_line, 30, 45)
+        self.highlight_beyond(number_line, 60, 75)
+        self.highlight_beyond(number_line, 90, 110)
+
+        # STEP 2: New number line from 0 to 30 for approaching 0 from right
+
+        frame.move_to(number_line.n2p(0))
+        self.play(FadeOut(number_line))
+        self.wait(2)
+
+        self.play(FadeOut(title))
+        title = Tex(r"0").scale(1.2)
+        title.shift(UP * 2.5)
+        self.play(Write(title))
+
+        def cut_and_highlight(plane, x_cut, color, zoom=False):
+            # Cut line
+            cut_line = DashedLine(
+                start=plane.coords_to_point(x_cut, -0.5),
+                end=plane.coords_to_point(x_cut, 0.5),
+                color=YELLOW,
+                dash_length=0.1,
+            )
+            self.play(FadeIn(cut_line))
+
+            # Highlight area from x_cut to 0
+            highlight = Rectangle(
+                width=plane.coords_to_point(0, 0)[0]
+                - plane.coords_to_point(x_cut, 0)[0],
+                height=1,
+                fill_color=color,
+                fill_opacity=0.5,
+                stroke_width=0,
+            )
+            highlight.move_to(
+                (plane.coords_to_point(0, 0)[0] + plane.coords_to_point(x_cut, 0)[0])
+                / 2
+                * RIGHT
+                + plane.coords_to_point(0, 0)[1] * UP
+            )
+            if zoom:
+                zoom_target = plane.coords_to_point(0, 0)
+                self.camera.frame.save_state()
+
+                self.play(
+                    self.camera.frame.animate.scale(0.1).move_to(zoom_target),
+                    run_time=2,
+                )
+
+            self.play(FadeIn(highlight))
+            self.wait(0.5)
+
+            self.play(FadeOut(highlight), FadeOut(cut_line))
+
+            if zoom:
+                self.wait(0.3)
+                self.play(Restore(self.camera.frame))
+
+        full_length = 7
+        plane = NumberPlane(
+            x_range=[0, full_length, 0.1],
+            y_range=[-1, 1, 1],
+            background_line_style={
+                "stroke_color": GREY,
+                "stroke_opacity": 0.5,
+                "stroke_width": 1,
+            },
+            axis_config={
+                "include_ticks": False,
+                "include_tip": False,
+                "stroke_width": 2,
+                "stroke_color": WHITE,
+            },
+        )
+        plane.shift(UP * 1.5)
+        plane.shift(ORIGIN - plane.coords_to_point(0, 0))
+        self.play(Write(plane))
+
+        # # Cut at x = 2
+        cut_and_highlight(plane, 2, BLUE)
+        self.wait()
+
+        # # Cut at x = 1
+        cut_and_highlight(plane, 1, BLUE)
+        self.wait()
+
+        cut_and_highlight(plane, 0.1, GREEN, True)
+        # cut_and_highlight(1, GREEN)
+
+        self.wait(2)
+
+
+class InfinityNumberLine(Scene):
+    def construct(self):
+        # Title
+        title = Text("큰 수 놀이", font="BM Hanna 11yrs Old").scale(1.2)
+        title.shift(UP * 2.5)
+        title.fix_in_frame()
+        self.play(Write(title))
+
+        frame = self.camera.frame
+        frame.save_state()
+
+        # STEP 1: Number line setup (for growing to the right)
+        number_line = NumberLine(
+            x_range=[0, 200, 1],
+            include_numbers=False,
+            unit_size=0.6,
+            color=WHITE,
+        ).shift(DOWN * 2)
+        number_line.shift(ORIGIN - number_line.number_to_point(0))
+        self.play(Write(number_line))
+
+        def highlight_beyond(number_line, start_n, end_n):
+            target_pos = number_line.number_to_point(start_n)
+            self.play(self.camera.frame.animate.move_to(target_pos), run_time=2)
+
+            dash = DashedLine(
+                target_pos + UP * 1.7, target_pos + DOWN * 0.5, color=YELLOW
+            )
+            self.play(FadeIn(dash))
+            self.wait(0.3)
+
+            # Highlight region from start_n to end_n using Rectangle
+            start_x = number_line.number_to_point(start_n)[0]
+            end_x = number_line.number_to_point(end_n)[0]
+            width = end_x - start_x
+
+            highlight = Rectangle(
+                width=width,
+                height=1,
+                fill_color=BLUE,
+                fill_opacity=0.5,
+                stroke_width=0,
+            )
+            highlight.move_to(
+                (start_x + end_x) / 2 * RIGHT + number_line.number_to_point(0)[1] * UP
+            )
+
+            self.play(FadeIn(highlight))
+            self.wait(0.5)
+            self.play(FadeOut(highlight), FadeOut(dash))
+
+        highlight_beyond(number_line, 30, 45)
+        highlight_beyond(number_line, 60, 75)
+        highlight_beyond(number_line, 90, 110)
+
+        self.play(Restore(self.camera.frame), FadeOut(number_line), FadeOut(title))
+
+        self.wait(1)
+
+        title = Tex(r"0").scale(1.2)
+        title.shift(UP * 2.5)
+        self.play(Write(title))
+
+        # STEP 2: Create number plane for limit visualization
+        full_length = 7
+        plane = NumberPlane(
+            x_range=[0, full_length, 0.1],
+            y_range=[-1, 1, 1],
+            background_line_style={
+                "stroke_color": GREY,
+                "stroke_opacity": 0.5,
+                "stroke_width": 1,
+            },
+            axis_config={
+                "include_ticks": False,
+                "include_tip": False,
+                "stroke_width": 2,
+                "stroke_color": WHITE,
+            },
+        )
+        plane.shift(UP * 1.5)
+        plane.shift(ORIGIN - plane.coords_to_point(0, 0))
+        self.play(Write(plane))
+
+        def cut_and_highlight(x_cut, color, zoom=False):
+            cut_line = DashedLine(
+                start=plane.coords_to_point(x_cut, -0.5),
+                end=plane.coords_to_point(x_cut, 0.5),
+                color=YELLOW,
+                dash_length=0.1,
+            )
+            self.play(FadeIn(cut_line))
+
+            highlight = Rectangle(
+                width=plane.coords_to_point(0, 0)[0]
+                - plane.coords_to_point(x_cut, 0)[0],
+                height=1,
+                fill_color=color,
+                fill_opacity=0.5,
+                stroke_width=0,
+            )
+            highlight.move_to(
+                (plane.coords_to_point(0, 0)[0] + plane.coords_to_point(x_cut, 0)[0])
+                / 2
+                * RIGHT
+                + plane.coords_to_point(0, 0)[1] * UP
+            )
+
+            if zoom:
+                zoom_target = plane.coords_to_point(0, 0)
+                self.camera.frame.save_state()
+                self.play(
+                    self.camera.frame.animate.scale(0.1).move_to(zoom_target),
+                    run_time=2,
+                )
+
+            self.play(FadeIn(highlight))
+            self.wait(0.5)
+            self.play(FadeOut(highlight), FadeOut(cut_line))
+
+            if zoom:
+                self.wait(0.3)
+                self.play(Restore(self.camera.frame))
+
+        cut_and_highlight(2, BLUE)
+        self.wait()
+        cut_and_highlight(1, BLUE)
+        self.wait()
+        cut_and_highlight(0.1, GREEN, zoom=True)
+
+        self.wait(2)
+
+        self.play(FadeOut(plane), FadeOut(title))
+
+        t = Tex(r"\frac{1}{\infty} = 0").scale(1.4).shift(UP * 1.8)
+        self.play(Write(t))
+        self.wait(1)
+
+        # Author data and quotes
+        authors = ["우피니샤드", "반야심경", "도덕경", "성서"]
+        quotes = [
+            "그것은 가득 차 있으나 비어 있고, 비어 있으나 가득 차 있다.",
+            "색즉시공, 공즉시색",
+            "만물은 유에서 생기고, 유는 무에서 생긴다.",
+            "나는 알파요 오메가요, 처음이자 마지막이다.",
+        ]
+
+        author_texts = VGroup()
+        quote_texts = VGroup()
+
+        colors = [BLUE_B, GREY_B, BLUE_B, GREY_B]
+        for i, name in enumerate(authors):
+            color = colors[i]
+            author = Text(name, font="BM Hanna 11yrs Old").set_color(color)
+            quote = Text(quotes[i], font="BM Hanna 11yrs Old").scale(0.8)
+            author_texts.add(author)
+            quote_texts.add(quote)
+
+        author_texts.arrange(RIGHT, buff=0.5)
+        # author_texts.move_to(DOWN)
+        for quote in quote_texts:
+            quote.next_to(author_texts, DOWN * 2, buff=0.3)
+            quote.set_x(0)
+
+        # Animate author + quote one by one
+        for i in range(len(authors)):
+            self.play(Write(author_texts[i]), run_time=0.4)
+            self.play(Write(quote_texts[i]), run_time=1)
+            self.wait(1.2)
+            self.play(FadeOut(quote_texts[i]))
+
+        self.wait(2)
+
+        self.play(FadeOut(t), FadeOut(author_texts))
+
+
+
+class InfinityNumberLine(Scene):
+    def construct(self):
+        t = Tex(r"\frac{1}{\infty} = 0").scale(1.5).shift(UP)
+        self.play(Write(t))
+        self.wait(1)
+
+        # Author data and quotes
+        authors = ["우피니샤드", "반야심경", "도덕경", "성서"]
+        quotes = [
+            "그는 무한하고, 또 무한이 그를 품고 있다.",
+            "색즉시공, 공즉시색",
+            "무위로써 천하를 다스린다",
+            "마지막은 처음과 같으니, 만물은 그에게서 나왔도다",
+        ]
+
+        author_texts = VGroup()
+        quote_texts = VGroup()
+
+        for i, name in enumerate(authors):
+            color = WHITE if i % 2 == 0 else GREY_B
+            author = Text(name, font="BM Hanna 11yrs Old", color=color)
+            quote = Text(quotes[i], font="BM Hanna 11yrs Old", color=color).scale(0.8)
+            author_texts.add(author)
+            quote_texts.add(quote)
+
+        author_texts.arrange(RIGHT, buff=0.5)
+        author_texts.move_to(DOWN)
+        for quote in quote_texts:
+            quote.next_to(author_texts, DOWN, buff=0.3)
+            quote.set_x(0)
+
+        # Animate author + quote one by one
+        for i in range(len(authors)):
+            self.play(Write(author_texts[i]), run_time=0.4)
+            self.play(Write(quote_texts[i]), run_time=0.4)
+            self.wait(1.2)
+            self.play(FadeOut(quote_texts[i]))
+
+        self.wait(2)
+
+
+class InfinityNumberLine(Scene):
+    def construct(self):
