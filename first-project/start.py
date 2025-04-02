@@ -6142,6 +6142,183 @@ class StickManWalkScene(ThreeDScene):
         self.wait(1)
 
 
+class GeometricSeriesVisualizationZero(Scene):
+
+    def construct(self):
+
+        # test
+        def animate_epsilon_cut(
+            origin,
+            vertical_lines,
+            bottom_line,
+            r,
+            scale_factor,
+            epsilon_fraction,
+            y_offset,
+        ):
+            limit_x = (1 / (1 - r)) * scale_factor
+            epsilon_x = limit_x - epsilon_fraction * (limit_x)  # ← cut point
+
+            # STEP 1: Draw vertical epsilon dashed line
+            epsilon_line = DashedLine(
+                start=origin + [epsilon_x, 0, 0],
+                end=origin + [epsilon_x, 1 * scale_factor, 0],
+                color=YELLOW,
+                dash_length=0.1,
+            )
+            self.play(FadeIn(epsilon_line))
+
+            # STEP 2: Brace and ε label (correctly from dashed line to limit point)
+            limit_point = origin + [(1 / (1 - r)) * scale_factor, 0, 0]
+            epsilon_start = origin + [epsilon_x, 0, 0]
+
+            epsilon_segment = Line(epsilon_start, limit_point, color=YELLOW)
+            epsilon_brace = Brace(epsilon_segment, direction=UP, color=YELLOW)
+            epsilon_label = (
+                Tex(r"\epsilon").scale(0.8).next_to(epsilon_brace, UP, buff=0.1)
+            )
+
+            self.play(FadeIn(epsilon_segment))
+            self.play(
+                GrowFromCenter(epsilon_brace), FadeIn(epsilon_label), run_time=0.8
+            )
+            self.wait(0.5)
+            self.play(
+                FadeOut(epsilon_segment),
+                FadeOut(epsilon_brace),
+                FadeOut(epsilon_label),
+                run_time=0.5,
+            )
+
+            # STEP 3: Collect vertical bars to the right of ε
+            bars_to_copy = []
+            for vline in vertical_lines:
+                if vline.get_start()[0] > origin[0] + epsilon_x:
+                    bars_to_copy.append(vline)
+
+            # STEP 4: Copy and scale group
+            copied_group = VGroup(*[bar.copy() for bar in bars_to_copy])
+
+            # Add the bottom segment for visual closure
+            rightmost_x = max([bar.get_start()[0] for bar in bars_to_copy])
+            bottom_segment = Line(
+                [epsilon_x, 0, 0] + origin,
+                [rightmost_x - origin[0], 0, 0] + origin,
+                color=WHITE,
+            )
+
+            copied_group.add(bottom_segment)
+
+            # Scale and shift (half of original triangle height)
+            copied_group.generate_target()
+            copied_group.target.scale(1 / epsilon_fraction * 0.7).next_to(
+                bottom_line, DOWN * y_offset
+            )
+            self.play(MoveToTarget(copied_group), run_time=1)
+
+            self.wait(0.5)
+
+            # Re-highlight copied bars
+
+            for bar in copied_group[:-1]:  # skip the bottom line
+                self.play(
+                    bar.animate.set_color(BLUE_E).set_stroke(width=6), run_time=0.1
+                )
+                self.play(bar.animate.set_stroke(width=10), run_time=0.05)
+
+            self.wait(1)
+
+            self.play(FadeOut(copied_group))
+
+        r = 0.8
+        scale_factor = 2.3
+        shift_amount = LEFT * 5
+
+        left_line = Line([0, 0, 0], [0, 1 * scale_factor, 0], color=WHITE).shift(
+            shift_amount
+        )
+        origin = left_line.get_start()
+
+        x_pos = 1 * scale_factor
+        x_pos_prev = 0
+
+        vertical_lines = []
+        vertical_line_prev = left_line
+        while x_pos < (1 / (1 - r)) * scale_factor - 0.01:
+            vertical_line = Line(
+                origin + [x_pos, 0, 0],
+                origin + [x_pos, r ** (len(vertical_lines) + 1) * scale_factor, 0],
+                color=WHITE,
+            )
+            vertical_lines.append(vertical_line)
+
+            horizontal_line = Line(
+                origin + [x_pos_prev, 0, 0],
+                origin + [x_pos, 0, 0],
+            )
+            x_pos_prev = x_pos
+
+            len_v = len(vertical_lines)
+            if len_v <= 6:
+                if len_v == 1:
+                    len_t = 1
+                elif len_v == 2:
+                    len_t = "r"
+                elif len_v == 6:
+                    len_t = "..."
+                else:
+                    len_t = f"r^{{{len_v-1}}}"
+                text = Tex(f"{len_t}").next_to(
+                    horizontal_line, DOWN, buff=0.3, aligned_edge=DOWN
+                )
+                self.play(
+                    FadeIn(horizontal_line),
+                    FadeIn(vertical_line_prev),
+                    FadeIn(text),
+                    run_time=0.1,
+                )
+            else:
+                self.play(
+                    FadeIn(horizontal_line),
+                    FadeIn(vertical_line_prev),
+                    run_time=0.1,
+                )
+
+            x_pos += r ** len(vertical_lines) * scale_factor
+            vertical_line_prev = vertical_line
+
+        bottom_line = Line(
+            origin + [0, 0, 0], origin + [1 / (1 - r) * scale_factor, 0, 0], color=WHITE
+        )
+        end = origin + [(1 / (1 - r)) * scale_factor, 0, 0]
+
+        glow = Dot(point=end, color=BLUE, radius=0.3, fill_opacity=0.4)
+        self.play(FadeIn(glow))
+        self.wait()
+
+        self.play(FadeIn(bottom_line))
+
+        animate_epsilon_cut(
+            origin,
+            vertical_lines,
+            bottom_line,
+            r,
+            scale_factor,
+            epsilon_fraction=1 / 8 + 0.01,
+            y_offset=2.5,
+        )
+
+        animate_epsilon_cut(
+            origin,
+            vertical_lines,
+            bottom_line,
+            r,
+            scale_factor,
+            epsilon_fraction=1 / 16 + 0.008,
+            y_offset=4,
+        )
+
+
 class InfinityNumberLine(Scene):
     def construct(self):
         # Title
@@ -6316,3 +6493,104 @@ class InfinityNumberLine(Scene):
         self.wait(2)
 
         self.play(FadeOut(t), FadeOut(author_texts))
+
+
+class MountainOnSphereScene(ThreeDScene):
+    def construct(self):
+        earth_radius = 2  # 지구 반지름을 변수로 통일
+
+        def rotated_normal_mountain_generator(sigma, theta=PI / 6, phi=0):
+            """
+            sigma를 받아서 normal curve 기반의 산을 생성하는 함수 반환
+            """
+            pdf_peak = 1 / (sigma * np.sqrt(2 * np.pi))  # PDF의 최대값
+            mountain_height = pdf_peak * earth_radius
+            r_base = earth_radius - 0.95 * mountain_height
+
+            cutoff_radius = 2 * sigma  # 95% 확률질량이 포함되는 반지름 범위
+
+            def surface_fn(u, v):
+                r = v * cutoff_radius
+                height_profile = mountain_height * np.exp(-(r**2) / (2 * sigma**2))
+
+                x_local = r * np.cos(u)
+                y_local = r * np.sin(u)
+                z_local = height_profile
+
+                direction = np.array(
+                    [
+                        np.cos(theta) * np.cos(phi),
+                        np.cos(theta) * np.sin(phi),
+                        np.sin(theta),
+                    ]
+                )
+                base_point = r_base * direction
+
+                up = direction
+                right = np.cross(np.array([0, 0, 1]), up)
+                if np.linalg.norm(right) < 1e-6:
+                    right = np.array([1, 0, 0])
+                right /= np.linalg.norm(right)
+                forward = np.cross(up, right)
+
+                preliminary_point = (
+                    base_point + x_local * right + y_local * forward + z_local * up
+                )
+                ray_dir = preliminary_point / np.linalg.norm(preliminary_point)
+                projected_height = np.dot(preliminary_point, ray_dir)
+                true_height = projected_height - earth_radius
+                point = ray_dir * (earth_radius + true_height)
+                return point
+
+            return surface_fn, 1
+
+        frame = self.camera.frame
+        frame.set_euler_angles(phi=70 * DEGREES, theta=30 * DEGREES)
+
+        earth = Sphere(radius=earth_radius, resolution=(30, 30))
+        earth.set_color(BLUE_E)
+        self.add(earth)
+
+        # 여러 랜덤 산 생성
+        num_mountains = 40
+        mountains = Group()
+        for i in range(num_mountains):
+
+            sigma = np.random.uniform(0.6, 0.8)
+
+            theta = np.random.normal(
+                loc=PI - PI / 7, scale=PI / 5.5
+            )  # 평균 PI, 90% 정도가 PI±PI/3 안에  # 앞쪽 적도 근처 범위       # 위도 범위
+            phi = np.random.normal(
+                loc=PI / 2 + PI / 6, scale=PI / 5.5
+            )  # 평균 PI/2, 정면 중심  # 카메라 정면 중심         # 경도 범위
+
+            surface_fn, max_radius = rotated_normal_mountain_generator(
+                sigma, theta, phi
+            )
+            mountain = ParametricSurface(
+                surface_fn,
+                u_range=[0, TAU],
+                v_range=[0, max_radius],
+                resolution=(50, 20),
+            )
+
+            color = interpolate_color(BLUE_D, BLACK, 1 / num_mountains)
+
+            mountain.set_color(color)
+            mountain.set_opacity(0.9)
+
+            self.play(FadeIn(mountain), run_time=2 / num_mountains)
+
+            self.play(
+                earth.animate.set_color(
+                    interpolate_color(BLUE_E, GREY_D, 1 / num_mountains * i)
+                ),
+                run_time=1 / num_mountains,
+            )
+            mountains.add(mountain)
+
+        self.wait(1)
+
+        for mountain in mountains:
+            self.play(mountain.animate.set_color(GREY_C), run_time=4 / num_mountains)
