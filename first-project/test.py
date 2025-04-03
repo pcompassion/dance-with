@@ -570,3 +570,1012 @@ class MountainOnSphereScene(ThreeDScene):
 
         for mountain in mountains:
             self.play(mountain.animate.set_color(GREY_C), run_time=4 / num_mountains)
+
+
+class Siddhartha3DWave(ThreeDScene):
+    def construct(self):
+
+        frame = self.camera.frame
+
+        frame.set_euler_angles(
+            phi=60 * DEGREES, theta=-20 * DEGREES
+        )  # φ = π/2.5 ≈ 72° (slightly tilted)
+
+        # Wave surface: like a flowing ribbon
+        def wave_surface(u, v):
+            x = u
+            y = v  # slight width to the ribbon
+            z = 0.2 * math.sin(u * 2)
+            return np.array([x, y, z])
+
+        surface = ParametricSurface(
+            lambda u, v: np.array([u, v, 0.2 * math.sin(u * 2)]),
+            u_range=[-10, 20],
+            v_range=[-10, 10],
+            resolution=(100, 10),
+            # fill_opacity=0.6,
+            # checkerboard_colors=[BLUE_D, BLUE_E],
+        )
+
+        surface.set_color(BLUE_D).set_opacity(0.6)
+
+        # Quote and name
+        quote = Text("강은 어디에나 동시에 존재한다.", font="BM Hanna 11yrs Old").scale(
+            1.4
+        )
+        quote.set_color(BLUE_A).to_edge(UP)
+
+        name = Text("– 싯다르타", font="BM Hanna 11yrs Old").scale(1.1)
+        name.set_color(GREY_B).next_to(quote, DOWN, buff=0.3)
+
+        # Add everything
+        self.add(quote, name)
+        self.add(surface)
+        # self.begin_ambient_camera_rotation(rate=0.1)
+        self.wait(6)
+
+
+class SinglePyramidScene(ThreeDScene):
+    def construct(self):
+        frame = self.camera.frame
+        frame.set_euler_angles(phi=-15 * DEGREES, theta=0 * DEGREES)
+
+        # === Add coordinate system ===
+        axes = ThreeDAxes(
+            x_range=[-3, 3, 1],
+            y_range=[-5, 5, 1],
+            z_range=[0, 5, 1],
+        )
+        self.add(axes)
+
+        axes.rotate(
+            angle=PI / 6,
+            axis=UP,
+            about_point=axes.c2p(0, 0, 0),
+        )
+
+        axes.add_coordinate_labels()
+
+        # === Local helper: vertical text label ===
+        def make_vertical_label(text_str, z_pos):
+            txt = Text(text_str).scale(0.3)
+            # txt.rotate(PI / 2, axis=RIGHT)  # make it vertical in Z
+            txt.move_to(ORIGIN + UP * z_pos)
+            return txt
+
+        # === Local helper: pyramid ===
+        def build_pyramid(label, layers, inverted=False):
+            base_size = 2
+            height = 2
+            base = Square(side_length=base_size).set_color(GREY).set_opacity(0.4)
+            base.rotate(PI / 2, axis=RIGHT)
+            apex = ORIGIN + UP * height
+            corners = base.get_vertices()
+
+            face_colors = [RED, GREEN, BLUE, YELLOW]
+            faces = VGroup(
+                *[
+                    Polygon(corners[i], corners[(i + 1) % 4], apex)
+                    .set_fill(face_colors[i], opacity=0.4)
+                    .set_stroke(WHITE, 0.5)
+                    for i in range(4)
+                ]
+            )
+
+            pyramid = VGroup(base, faces)
+
+            if inverted:
+                pyramid.rotate(PI, axis=RIGHT)
+
+            # Layer labels
+            level_texts = VGroup()
+            for i, txt in enumerate(layers):
+                z = (i - 1) * 0.8
+                level_texts.add(make_vertical_label(txt, z))
+
+            # title = Text(label).scale(0.4).next_to(base, DOWN)
+
+            return VGroup(pyramid, level_texts)
+
+        # === Create one pyramid at specific position ===
+        math_pyramid = build_pyramid(
+            label="Math", layers=["Division", "Set/Logic", "Mathematics"]
+        )
+        math_pyramid.move_to(ORIGIN)  # place it on x-y plane at origin
+        self.add(math_pyramid)
+
+
+class SinglePyramidScene(ThreeDScene):
+    def construct(self):
+        frame = self.camera.frame
+        phi = 75
+        theta = 0
+
+        frame.save_state()
+        frame.set_euler_angles(phi=phi * DEGREES, theta=theta * DEGREES)
+        frame.move_to(axes.c2p(0, 0, 1))  # center on curve
+
+        frame.set_width(10)  # or whatever width fits your pyramids
+
+        # === Add coordinate system ===
+        axes = ThreeDAxes(
+            x_range=[-3, 6, 1],
+            y_range=[-5, 6, 1],
+            z_range=[0, 5, 1],
+        )
+        self.add(axes)
+
+        axes.add_coordinate_labels()
+
+        # === Local helper: vertical text label ===
+        def make_vertical_label(text_str, base_center, z_pos):
+            txt = Text(text_str, font="BM Hanna 11yrs Old").scale(0.8)
+            txt.rotate(PI / 2, axis=RIGHT)  # Stand it up in Z-direction
+
+            z_dir = axes.c2p(0, 0, 1) - axes.c2p(
+                0, 0, 0
+            )  # a proper unit vector in rotated space
+            txt.move_to(base_center + z_dir * z_pos)
+            return txt
+
+        # === Local helper: pyramid ===
+        def build_pyramid(label, layers, base_pos=ORIGIN, inverted=False, color=GREY):
+
+            base_size = 4
+            height = 4
+
+            base = Square(side_length=base_size).set_color(color).set_opacity(0.4)
+
+            base.move_to(base_pos)
+            z_dir = axes.c2p(0, 0, 1) - axes.c2p(
+                0, 0, 0
+            )  # a proper unit vector in rotated space
+
+            apex = base.get_center() + z_dir * height
+            corners = base.get_vertices()
+            face_color = TEAL
+            faces = VGroup(
+                *[
+                    Polygon(corners[i], corners[(i + 1) % 4], apex)
+                    .set_fill(face_color, opacity=0.2)
+                    .set_stroke(WHITE, 0.5)
+                    for i in range(4)
+                ]
+            )
+
+            pyramid = VGroup(base, faces)
+
+            if inverted:
+                pyramid.rotate(PI, axis=RIGHT)
+
+            base_center = base.get_center()
+            print("base_center", base_center)
+            level_texts = VGroup()
+            for i, txt in enumerate(layers):
+                z = (i + 0.5) * (height / len(layers))
+                if inverted:
+                    z = height - z
+                level_texts.add(make_vertical_label(txt, base_center, z))
+
+            return VGroup(pyramid, level_texts)
+
+        diff = 5
+
+        math_pyramid = build_pyramid(
+            label="Math",
+            layers=["Set/논리", "Axiom", "수학"],
+            base_pos=axes.c2p(0, 0, 0),
+            color=GREY,
+        )
+        physics_pyramid = build_pyramid(
+            label="Math",
+            layers=["입자/에너지/정보", "최소단위", "물리"],
+            base_pos=axes.c2p(diff, 0, 0),
+            color=GREY,
+        )
+
+        darwin_pyramid = build_pyramid(
+            label="Darwin",
+            layers=["자연선택/변화/생존", "개체, 유전자", "진화"],
+            base_pos=axes.c2p(diff * 2, 0, 0),
+            color=BLUE,
+        )
+        econ_pyramid = build_pyramid(
+            label="Darwin",
+            layers=["self interest/이익", "개인", "경제"],
+            base_pos=axes.c2p(diff * 3, 0, 0),
+            color=BLUE,
+        )
+
+        hindu_pyramid = build_pyramid(
+            label="Darwin",
+            layers=["개인이 우주", "", "힌두"],
+            base_pos=axes.c2p(diff * 0, 4, 0),
+            color=BLUE,
+            inverted=True,
+        )
+
+        self.add(
+            math_pyramid, physics_pyramid, darwin_pyramid, econ_pyramid, hindu_pyramid
+        )
+
+        # frame.restore()
+
+
+class SinglePyramidScene(ThreeDScene):
+    def construct(self):
+        frame = self.camera.frame
+        phi = 75
+        theta = 0
+
+        # === Add coordinate system ===
+        axes = ThreeDAxes(
+            x_range=[-3, 6, 1],
+            y_range=[-5, 6, 1],
+            z_range=[0, 5, 1],
+        )
+        self.add(axes)
+        axes.add_coordinate_labels()
+
+        # Camera initial state and animation
+        frame.set_euler_angles(phi=phi * DEGREES, theta=theta * DEGREES)
+        frame.set_width(10)
+        self.play(frame.animate.move_to(axes.c2p(0, 0, 1)), run_time=2)
+
+        # === Local helper: vertical text label ===
+        def make_vertical_label(text_str, base_center, z_pos, z_dir):
+            txt = Text(text_str, font="BM Hanna 11yrs Old").scale(0.8)
+            txt.rotate(PI / 2, axis=RIGHT)  # Stand it up in Z-direction
+            txt.move_to(base_center + z_dir * z_pos)
+            return txt
+
+        # === Local helper: pyramid ===
+        def build_pyramid(
+            label, layers, base_size=4, base_pos=ORIGIN, inverted=False, color=GREY
+        ):
+
+            height = base_size
+
+            base = Square(side_length=base_size).set_color(color).set_opacity(0.4)
+            base.move_to(base_pos)
+
+            z_dir = axes.c2p(0, 0, 1) - axes.c2p(0, 0, 0)
+            apex = base.get_center() + z_dir * height
+
+            corners = base.get_vertices()
+            face_color = TEAL
+            faces = VGroup(
+                *[
+                    Polygon(corners[i], corners[(i + 1) % 4], apex)
+                    .set_fill(face_color, opacity=0.2)
+                    .set_stroke(WHITE, 0.5)
+                    for i in range(4)
+                ]
+            )
+
+            pyramid = VGroup(base, faces)
+
+            if inverted:
+                pyramid.rotate(PI, axis=RIGHT)
+
+            base_center = base.get_center()
+            level_texts = VGroup()
+            for i, txt in enumerate(layers):
+                z = (i + 0.5) * (height / len(layers))
+                if inverted:
+                    z = -z  # place labels *inside* inverted pyramid
+                level_texts.add(make_vertical_label(txt, base_center, z, z_dir))
+
+            group = VGroup(pyramid, level_texts)
+            self.play(FadeIn(group, shift=IN), run_time=1.2)
+            return group
+
+        diff = 5
+
+        math_pyramid = build_pyramid(
+            label="Math",
+            layers=["Set/논리", "Axiom", "수학"],
+            base_pos=axes.c2p(0, 0, 0),
+            color=GREY,
+        )
+        physics_pyramid = build_pyramid(
+            label="Physics",
+            layers=["입자/에너지/정보", "최소단위", "물리"],
+            base_pos=axes.c2p(diff, 0, 0),
+            color=GREY,
+        )
+        darwin_pyramid = build_pyramid(
+            label="Darwin",
+            layers=["자연선택/변화/생존", "개체, 유전자", "진화"],
+            base_pos=axes.c2p(diff * 2, 0, 0),
+            color=BLUE,
+        )
+        econ_pyramid = build_pyramid(
+            label="Economics",
+            layers=["self interest/이익", "개인", "경제"],
+            base_pos=axes.c2p(diff * 3, 0, 0),
+            color=BLUE,
+        )
+
+        big_pyramid = build_pyramid(
+            label="Hindu",
+            layers=["흰두교/불교/기독교/도교", "전체", ""],
+            base_size=8,
+            base_pos=axes.c2p(8, 8, 0),
+            color=BLUE,
+            inverted=True,
+        )
+
+        self.play(
+            AnimationGroup(
+                *[
+                    math_pyramid,
+                    physics_pyramid,
+                    darwin_pyramid,
+                    econ_pyramid,
+                    big_pyramid,
+                ],
+                lag_ratio=0.2,
+            )
+        )
+
+
+class SinglePyramidScene(ThreeDScene):
+    def construct(self):
+
+        phi = 75
+        theta = 0
+
+        frame.save_state()
+
+        # Camera initial state and animation
+        frame.set_euler_angles(phi=phi * DEGREES, theta=theta * DEGREES)
+        frame.set_width(20)
+
+        # === Add coordinate system ===
+        axes = ThreeDAxes(
+            x_range=[-3, 6, 1],
+            y_range=[-5, 10, 1],
+            z_range=[0, 5, 1],
+        )
+        self.add(axes)
+        axes.add_coordinate_labels()
+        frame.move_to(axes.c2p(7, -1, 1.5))  # center on curve
+
+        # === Local helper: vertical text label ===
+        def make_vertical_label(text_str, base_center, z_pos, z_dir):
+            txt = Text(text_str, font="BM Hanna 11yrs Old").scale(0.8)
+            txt.rotate(PI / 2, axis=RIGHT)
+            txt.move_to(base_center + z_dir * z_pos)
+            return txt
+
+        # === Local helper: pyramid ===
+        def build_pyramid(
+            label, layers, base_size=4, base_pos=ORIGIN, inverted=False, color=GREY
+        ):
+
+            height = base_size
+
+            base = Square(side_length=base_size).set_color(color).set_opacity(0.4)
+            base.move_to(base_pos)
+
+            z_dir = axes.c2p(0, 0, 1) - axes.c2p(0, 0, 0)
+            apex = base.get_center() + z_dir * height
+
+            corners = base.get_vertices()
+            face_color = TEAL
+            faces = VGroup(
+                *[
+                    Polygon(corners[i], corners[(i + 1) % 4], apex)
+                    .set_fill(face_color, opacity=0.2)
+                    .set_stroke(WHITE, 0.5)
+                    for i in range(4)
+                ]
+            )
+
+            pyramid = VGroup(base, faces)
+
+            if inverted:
+                pyramid.rotate(PI, axis=RIGHT)
+
+            base_center = base.get_center()
+            level_texts = VGroup()
+            for i, txt_src in enumerate(layers):
+                z = (i + 0.5) * (height / len(layers))
+                if inverted:
+                    z = -z
+
+                txt = make_vertical_label(txt_src, base_center, z, z_dir)
+                level_texts.add(txt)
+                if i == len(layers) - 1 and not inverted:
+                    txt.scale(1.5).set_color(color)
+
+                if inverted:
+                    txt.scale(2)
+
+            group = VGroup(pyramid, level_texts)
+            return group
+
+        diff = 5
+
+        # === Create front pyramids with controlled animation ===
+        pyramids = [
+            build_pyramid(
+                "Math",
+                ["Set/논리", "Axiom", "수학"],
+                base_pos=axes.c2p(0, 0, 0),
+                color=ORANGE,
+            ),
+            build_pyramid(
+                "Physics",
+                ["입자/에너지/정보", "최소단위", "물리"],
+                base_pos=axes.c2p(diff, 0, 0),
+                color=ORANGE,
+            ),
+            build_pyramid(
+                "Darwin",
+                ["자연선택/변화/생존", "개체, 유전자", "진화"],
+                base_pos=axes.c2p(diff * 2, 0, 0),
+                color=BLUE,
+            ),
+            build_pyramid(
+                "Economics",
+                ["self interest/이익", "개인", "경제"],
+                base_pos=axes.c2p(diff * 3, 0, 0),
+                color=BLUE,
+            ),
+        ]
+
+        for pyramid in pyramids:
+            self.play(FadeIn(pyramid, shift=IN), run_time=1.2)
+            self.wait(1)
+
+        # === Add reductionist label ===
+
+        self.wait()
+        desc_label = Text(
+            "reductionism: 부분의 합이 전체를 만든다", font="BM Hanna 11yrs Old"
+        ).scale(1.0)
+
+        desc_label.set_color_by_text("부분", ORANGE)
+
+        desc_label.fix_in_frame()
+        desc_label.move_to(DOWN * 2)
+        # desc_label.move_to(axes.c2p(diff * 1, -6, 1))
+        # desc_label.rotate(PI / 2, axis=RIGHT)
+        self.play(Write(desc_label))
+        self.wait(1.0)
+
+        # === Add large back pyramid ===
+        back_pyramid = build_pyramid(
+            label="Spiritual",
+            layers=["힌두교/불교/기독교/도교", "창발/시스템", ""],
+            base_size=7,
+            base_pos=axes.c2p(diff * 1.5, 13, -3),
+            color=BLUE,
+            inverted=True,
+        )
+        self.play(
+            *[p.animate.set_opacity(0.1) for p in pyramids],
+            FadeOut(desc_label),
+            frame.animate.move_to(axes.c2p(7, 5, 1.5)),  # center on curve
+            # frame.animate.set_euler_angles(phi=(phi-5) * DEGREES, theta=theta * DEGREES),
+            FadeIn(back_pyramid, shift=IN),
+            run_time=1.5,
+        )
+
+        desc_label = Text(
+            "holism: 전체 안의 부분이 의미를 가진다", font="BM Hanna 11yrs Old"
+        ).scale(1.0)
+        desc_label.set_color_by_text("전체", GREEN)
+
+        desc_label.fix_in_frame()
+        desc_label.move_to(DOWN * 2)
+        # desc_label.move_to(axes.c2p(diff * 1, -6, 1))
+        # desc_label.rotate(PI / 2, axis=RIGHT)
+        self.play(Write(desc_label))
+        self.wait(1.0)
+        self.wait(2)
+
+
+class SinglePyramidScene(ThreeDScene):
+    def construct(self):
+
+        phi = 75
+        theta = 0
+
+        frame = self.camera.frame
+        frame.save_state()
+
+        frame.set_euler_angles(phi=phi * DEGREES, theta=theta * DEGREES)
+        frame.set_width(20)
+
+        axes = ThreeDAxes(
+            x_range=[-3, 6, 1],
+            y_range=[-5, 10, 1],
+            z_range=[0, 5, 1],
+        )
+        self.add(axes)
+        axes.add_coordinate_labels()
+        frame.move_to(axes.c2p(7, -1, 1.5))
+
+        def make_vertical_label(text_str, base_center, z_pos, z_dir):
+            txt = Text(text_str, font="BM Hanna 11yrs Old").scale(0.8)
+            txt.rotate(PI / 2, axis=RIGHT)
+            txt.move_to(base_center + z_dir * z_pos)
+            return txt
+
+        def build_pyramid(
+            label, layers, base_size=4, base_pos=ORIGIN, inverted=False, color=GREY
+        ):
+            height = base_size
+            base = (
+                Square(side_length=base_size)
+                .set_fill(GREY_C, opacity=0.4)
+                .set_stroke(WHITE, 0.5)
+            )
+            base.move_to(base_pos)
+
+            z_dir = axes.c2p(0, 0, 1) - axes.c2p(0, 0, 0)
+            apex = base.get_center() + z_dir * height
+            corners = base.get_vertices()
+
+            face_colors = [
+                interpolate_color(color, WHITE, alpha) for alpha in [0.1, 0.2, 0.3, 0.4]
+            ]
+
+            faces = VGroup(
+                *[
+                    Polygon(corners[i], corners[(i + 1) % 4], apex)
+                    .set_fill(face_colors[i], opacity=0.4)
+                    .set_stroke(WHITE, 0.5)
+                    for i in range(4)
+                ]
+            )
+
+            pyramid = VGroup(base, faces)
+
+            if inverted:
+                pyramid.rotate(PI, axis=RIGHT)
+
+            base_center = base.get_center()
+            level_texts = VGroup()
+            for i, txt_src in enumerate(layers):
+                z = (i + 0.5) * (height / len(layers))
+                if inverted:
+                    z = -z
+
+                txt = make_vertical_label(txt_src, base_center, z, z_dir)
+                level_texts.add(txt)
+
+                if i == len(layers) - 1 and not inverted:
+                    txt.scale(1.5).set_color(color)
+                if inverted:
+                    txt.scale(2).set_color(WHITE)
+
+            return VGroup(pyramid, level_texts)
+
+        diff = 5
+
+        pyramids = [
+            build_pyramid(
+                "Math",
+                ["Set/논리", "Axiom", "수학"],
+                base_pos=axes.c2p(0, 0, 0),
+                color=ORANGE,
+            ),
+            build_pyramid(
+                "Physics",
+                ["입자/에너지/정보", "최소단위", "물리"],
+                base_pos=axes.c2p(diff, 0, 0),
+                color=ORANGE,
+            ),
+            build_pyramid(
+                "Darwin",
+                ["자연선택/변화/생존", "개체, 유전자", "진화"],
+                base_pos=axes.c2p(diff * 2, 0, 0),
+                color=BLUE,
+            ),
+            build_pyramid(
+                "Economics",
+                ["self interest/이익", "개인", "경제"],
+                base_pos=axes.c2p(diff * 3, 0, 0),
+                color=BLUE,
+            ),
+        ]
+
+        for pyramid in pyramids:
+            self.play(FadeIn(pyramid, shift=IN), run_time=1.2)
+            self.wait(1)
+
+        self.wait()
+        desc_label = Text(
+            "reductionism: 부분의 합이 전체를 만든다", font="BM Hanna 11yrs Old"
+        ).scale(1.0)
+        desc_label.set_color_by_text("부분", ORANGE)
+        desc_label.fix_in_frame()
+        desc_label.move_to(DOWN * 2)
+        self.play(Write(desc_label))
+        self.wait(1.0)
+
+        back_pyramid = build_pyramid(
+            label="Spiritual",
+            layers=["힌두교/불교/기독교/도교", "창발/시스템", ""],
+            base_size=7,
+            base_pos=axes.c2p(diff * 1.5, 13, -3),
+            color=GREEN,
+            inverted=True,
+        )
+
+        self.play(
+            *[p.animate.set_opacity(0.1) for p in pyramids],
+            FadeOut(desc_label),
+            frame.animate.move_to(axes.c2p(7, 5, 1.5)),
+            FadeIn(back_pyramid, shift=IN),
+            run_time=1.5,
+        )
+
+        desc_label = Text(
+            "holism: 전체 안의 부분이 의미를 가진다", font="BM Hanna 11yrs Old"
+        ).scale(1.0)
+        desc_label.set_color_by_text("전체", GREEN)
+        desc_label.fix_in_frame()
+        desc_label.move_to(DOWN * 2)
+        self.play(Write(desc_label))
+        self.wait(3)
+
+
+class SinglePyramidScene(ThreeDScene):
+    def construct(self):
+
+        phi = 75
+        theta = 0
+
+        frame = self.camera.frame
+        frame.save_state()
+
+        frame.set_euler_angles(phi=phi * DEGREES, theta=theta * DEGREES)
+        frame.set_width(20)
+
+        axes = ThreeDAxes(
+            x_range=[-3, 6, 1],
+            y_range=[-5, 10, 1],
+            z_range=[0, 5, 1],
+        )
+        self.add(axes)
+        axes.add_coordinate_labels()
+        frame.move_to(axes.c2p(7, -1, 1.5))
+
+        def make_vertical_label(text_str, base_center, z_pos, z_dir):
+            txt = Text(text_str, font="BM Hanna 11yrs Old").scale(0.8)
+            txt.rotate(PI / 2, axis=RIGHT)
+            txt.move_to(base_center + z_dir * z_pos)
+            return txt
+
+        def build_pyramid(
+            label,
+            layers,
+            base_size=4,
+            base_pos=ORIGIN,
+            inverted=False,
+            color=GREY,
+            text_color=WHITE,
+        ):
+            height = base_size
+            base = (
+                Square(side_length=base_size)
+                .set_fill(color, opacity=0.4)
+                .set_stroke(WHITE, 0.5)
+            )
+            base.move_to(base_pos)
+
+            z_dir = axes.c2p(0, 0, 1) - axes.c2p(0, 0, 0)
+            apex = base.get_center() + z_dir * height
+            corners = base.get_vertices()
+
+            face_colors = [color] * 4
+
+            faces = VGroup(
+                *[
+                    Polygon(corners[i], corners[(i + 1) % 4], apex)
+                    .set_fill(face_colors[i], opacity=0.4)
+                    .set_stroke(WHITE, 0.5)
+                    for i in range(4)
+                ]
+            )
+
+            pyramid = VGroup(base, faces)
+
+            if inverted:
+                pyramid.rotate(PI, axis=RIGHT)
+
+            base_center = base.get_center()
+            level_texts = VGroup()
+            for i, txt_src in enumerate(layers):
+                z = (i + 0.5) * (height / len(layers))
+                if inverted:
+                    z = -z
+
+                txt = make_vertical_label(txt_src, base_center, z, z_dir)
+                level_texts.add(txt)
+
+                if i == len(layers) - 1 and not inverted:
+                    txt.scale(1.5).set_color(text_color)
+                if inverted:
+                    txt.scale(2).set_color(WHITE)
+
+            return VGroup(pyramid, level_texts)
+
+        diff = 5
+
+        pyramids = [
+            build_pyramid(
+                "Math",
+                ["Set/논리", "Axiom", "수학"],
+                base_pos=axes.c2p(0, 0, 0),
+                color=ORANGE,
+            ),
+            build_pyramid(
+                "Physics",
+                ["입자/에너지/정보", "최소단위", "물리"],
+                base_pos=axes.c2p(diff, 0, 0),
+                color=ORANGE,
+            ),
+            build_pyramid(
+                "Darwin",
+                ["자연선택/변화/생존", "개체, 유전자", "진화"],
+                base_pos=axes.c2p(diff * 2, 0, 0),
+                color=BLUE,
+            ),
+            build_pyramid(
+                "Economics",
+                ["self interest/이익", "개인", "경제"],
+                base_pos=axes.c2p(diff * 3, 0, 0),
+                color=BLUE,
+            ),
+        ]
+
+        for pyramid in pyramids:
+            self.play(FadeIn(pyramid, shift=IN), run_time=1.2)
+            self.wait(1)
+
+        self.wait()
+        desc_label = Text(
+            "reductionism: 부분의 합이 전체를 만든다", font="BM Hanna 11yrs Old"
+        ).scale(1.0)
+        desc_label.set_color_by_text("부분", ORANGE)
+        desc_label.fix_in_frame()
+        desc_label.move_to(DOWN * 2)
+        self.play(Write(desc_label))
+        self.wait(1.0)
+
+        back_pyramid = build_pyramid(
+            label="Spiritual",
+            layers=["힌두교/불교/기독교/도교", "창발/시스템", ""],
+            base_size=7,
+            base_pos=axes.c2p(diff * 1.5, 13, -3),
+            color=GREEN,
+            inverted=True,
+        )
+
+        self.play(
+            *[p.animate.set_opacity(0.1) for p in pyramids],
+            FadeOut(desc_label),
+            frame.animate.move_to(axes.c2p(7, 5, 1.5)),
+            FadeIn(back_pyramid, shift=IN),
+            run_time=1.5,
+        )
+
+        desc_label = Text(
+            "holism: 전체 안의 부분이 의미를 가진다", font="BM Hanna 11yrs Old"
+        ).scale(1.0)
+        desc_label.set_color_by_text("전체", GREEN)
+        desc_label.fix_in_frame()
+        desc_label.move_to(DOWN * 2)
+        self.play(Write(desc_label))
+        self.wait(3)
+
+
+class DomeScene(ThreeDScene):
+    def construct(self):
+        frame = self.camera.frame
+        frame.set_euler_angles(phi=75 * DEGREES, theta=30 * DEGREES)
+        frame.set_width(10)
+
+        def dome(u, v):
+            r = 3
+            return np.array(
+                [
+                    r * np.cos(u) * np.sin(v),
+                    r * np.sin(u) * np.sin(v),
+                    r * np.cos(v),
+                ]
+            )
+
+        surface = ParametricSurface(
+            dome,
+            u_range=[0, TAU],
+            v_range=[0, PI / 2],
+            resolution=(24, 12),
+            # fill_opacity=0.2,
+            # checkerboard_colors=[BLUE_E, BLUE_D],
+        )
+        surface.set_opacity(0.2)
+        self.add(surface)
+
+
+class SinglePyramidScene(ThreeDScene):
+    def construct(self):
+
+        phi = 75
+        theta = 0
+
+        frame = self.camera.frame
+        frame.save_state()
+
+        frame.set_euler_angles(phi=phi * DEGREES, theta=theta * DEGREES)
+        frame.set_width(20)
+
+        axes = ThreeDAxes(
+            x_range=[-3, 6, 1],
+            y_range=[-5, 10, 1],
+            z_range=[0, 5, 1],
+        )
+        # self.add(axes)
+        axes.add_coordinate_labels()
+        frame.move_to(axes.c2p(7, -1, 1.5))
+
+        def make_vertical_label(text_str, base_center, z_pos, z_dir):
+            txt = Text(text_str, font="BM Hanna 11yrs Old").scale(1)
+            txt.rotate(PI / 2, axis=RIGHT)
+            txt.move_to(base_center + z_dir * z_pos)
+            return txt
+
+        def build_pyramid(
+            label,
+            layers,
+            base_size=4,
+            base_pos=ORIGIN,
+            inverted=False,
+            color=GREY,
+            text_color=WHITE,
+        ):
+            height = base_size
+            base = (
+                Square(side_length=base_size)
+                .set_fill(color, opacity=0.1)
+                .set_stroke(color, 0.5)
+            )
+            base.move_to(base_pos)
+
+            z_dir = axes.c2p(0, 0, 1) - axes.c2p(0, 0, 0)
+            apex = base.get_center() + z_dir * height
+            corners = base.get_vertices()
+
+            # Create the faces of the pyramid
+            faces = VGroup(
+                *[
+                    Polygon(corners[i], corners[(i + 1) % 4], apex)
+                    .set_fill(color, opacity=0.1)
+                    .set_stroke(color, 0.5)
+                    for i in range(4)
+                ]
+            )
+
+            # Create the edge lines explicitly
+            edges = VGroup(
+                *[
+                    Line(
+                        corners[i], corners[(i + 1) % 4], color=color, stroke_width=1.5
+                    )
+                    for i in range(4)
+                ],
+                *[
+                    Line(corners[i], apex, color=color, stroke_width=1.5)
+                    for i in range(4)
+                ],
+            )
+
+            pyramid = VGroup(base, faces, edges)
+
+            if inverted:
+                pyramid.rotate(PI, axis=RIGHT)
+
+            base_center = base.get_center()
+            level_texts = VGroup()
+            for i, txt_src in enumerate(layers):
+                z = (i + 0.5) * (height / len(layers))
+                if inverted:
+                    z = -z
+
+                txt = make_vertical_label(txt_src, base_center, z, z_dir)
+                txt.set_color(GREY_B)
+                level_texts.add(txt)
+
+                if i == len(layers) - 1 and not inverted:
+                    txt.scale(1.5).set_color(text_color)
+                if inverted:
+                    if i == 0:
+                        txt.scale(2.5).set_color(text_color)
+                    else:
+                        txt.scale(2)
+
+            return VGroup(pyramid, level_texts)
+
+        diff = 5
+
+        text_color = WHITE
+        body_color = "#4682B4"
+
+        pyramids = [
+            build_pyramid(
+                "Math",
+                ["Set/논리", "Axiom", "수학"],
+                base_pos=axes.c2p(0, 0, 0),
+                color=body_color,
+                text_color=text_color,
+            ),
+            build_pyramid(
+                "Physics",
+                ["입자/에너지/정보", "최소단위", "물리"],
+                base_pos=axes.c2p(diff, 0, 0),
+                color=body_color,
+                text_color=text_color,
+            ),
+            build_pyramid(
+                "Darwin",
+                ["자연선택/변화/생존", "개체, 유전자", "진화"],
+                base_pos=axes.c2p(diff * 2, 0, 0),
+                color=body_color,
+                text_color=text_color,
+            ),
+            build_pyramid(
+                "Economics",
+                ["self interest/이익", "개인", "경제"],
+                base_pos=axes.c2p(diff * 3, 0, 0),
+                color=body_color,
+                text_color=text_color,
+            ),
+        ]
+
+        for pyramid in pyramids:
+            self.play(FadeIn(pyramid, shift=IN), run_time=1.2)
+            self.wait(1)
+
+        self.wait()
+        desc_label = Text(
+            "reductionism: 부분의 합이 전체를 만든다", font="BM Hanna 11yrs Old"
+        ).scale(1.0)
+        desc_label.set_color_by_text("부분", ORANGE)
+        desc_label.fix_in_frame()
+        desc_label.move_to(DOWN * 2)
+        self.play(Write(desc_label))
+        self.wait(1.0)
+
+        body_color = "#7B68EE"
+        back_pyramid = build_pyramid(
+            label="Spiritual",
+            layers=["힌두교/불교/기독교/도교", "창발/시스템", ""],
+            base_size=7,
+            base_pos=axes.c2p(diff * 1.5, 13, -3),
+            color=body_color,
+            text_color=GREY_A,
+            inverted=True,
+        )
+
+        self.play(
+            *[p.animate.set_opacity(0.05) for p in pyramids],
+            FadeOut(desc_label),
+            frame.animate.move_to(axes.c2p(7, 5, 1.5)),
+            FadeIn(back_pyramid, shift=IN),
+            run_time=1.5,
+        )
+
+        desc_label = Text(
+            "holism: 전체 안의 부분이 의미를 가진다", font="BM Hanna 11yrs Old"
+        ).scale(1.0)
+        desc_label.set_color_by_text("전체", GREEN)
+        desc_label.fix_in_frame()
+        desc_label.move_to(DOWN * 2)
+        self.play(Write(desc_label))
+        self.wait(3)

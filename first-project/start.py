@@ -4,6 +4,7 @@ from manimlib import *
 from src.mobject.clock import Clock
 from functools import partial
 import math
+import random
 
 
 class Test(Scene):
@@ -2408,6 +2409,7 @@ class RotatingDiskAnt(Scene):
             run_time=move_time,
             rate_func=linear,
         )
+        self.wait(1)
         self.remove(up_arrow)
         self.remove(right_arrow)
         # show equation
@@ -3471,9 +3473,9 @@ class DateScene(Scene):
         text1 = Text(
             "여러번의 구체적인 경험 ---> 이상적인 파트너",
             font="BM Hanna 11yrs Old",
-            font_size=36,
+            font_size=44,
         )
-        text1.next_to(pick, DOWN)
+        text1.next_to(pick, DOWN * 1.8)
         self.play(Write(text1))
         self.wait(2)
 
@@ -3488,7 +3490,7 @@ class DateScene(Scene):
         self.wait(1.5)
 
         # Step 6: New Text: "각인 → 여러번의 경험"
-        text2 = Text("각인 ---> 재경험", font="BM Hanna 11yrs Old", font_size=36)
+        text2 = Text("각인 ---> 재경험", font="BM Hanna 11yrs Old", font_size=44)
         text2.next_to(text1, DOWN)
         self.play(Write(text2))
         self.wait(3)
@@ -3505,7 +3507,7 @@ class CreateOrFoundScene(Scene):
 
         # Create glow circles for each number
         glows = [
-            Circle(radius=0.4, color=WHITE, fill_opacity=0.3, stroke_opacity=0).move_to(
+            Circle(radius=0.5, color=WHITE, fill_opacity=0.4, stroke_opacity=0).move_to(
                 int_expr[i].get_center()
             )
             for i in number_indices
@@ -3521,7 +3523,7 @@ class CreateOrFoundScene(Scene):
 
         # Create glow: white circle behind +
         glow = Circle(
-            radius=0.5, color=WHITE, fill_opacity=0.3, stroke_opacity=0
+            radius=0.5, color=WHITE, fill_opacity=0.4, stroke_opacity=0
         ).move_to(plus_part.get_center())
 
         self.play(Write(expr))
@@ -3533,16 +3535,16 @@ class CreateOrFoundScene(Scene):
         text1 = Text(
             "여러번의 경험을 개념화 ---> 발명",
             font="BM Hanna 11yrs Old",
-            font_size=40,
+            font_size=55,
         )
-        text1.next_to(expr, DOWN * 2)
+        text1.next_to(expr, DOWN * 2.5)
         text1.set_color_by_text("발명", GREEN)
 
         self.play(Write(text1))
         self.wait(2)
 
         # Step 6: New Text: "각인 → 여러번의 경험"
-        text2 = Text("원래 있던것 ---> 발견", font="BM Hanna 11yrs Old", font_size=40)
+        text2 = Text("원래 있던것 ---> 발견", font="BM Hanna 11yrs Old", font_size=55)
         text2.set_color_by_text("발견", ORANGE)
 
         text2.next_to(text1, DOWN)
@@ -3569,7 +3571,7 @@ class UniverseAndN(Scene):
         # self.play(FadeOut(q1))
 
         particle_text = Text(
-            "무한한 수의 입자가 존재할까?",
+            "입자의 수는 무한개인가?",
             font="BM Hanna 11yrs Old",
         ).scale(1.5)
         # particle_text.next_to(q1, DOWN)
@@ -3842,7 +3844,9 @@ class GaltonHistogram(Scene):
         max_height = 20
 
         # Animation loop: drop samples and grow bars
-        for i in range(200):
+        total = 2
+        num_iter = 200
+        for i in range(num_iter):
             sample = random.gauss(0, 1.5)  # Normal distribution
             # Bin it
             for j in range(num_bins):
@@ -3871,7 +3875,7 @@ class GaltonHistogram(Scene):
                 bar.move_to(axes.c2p(bin_centers[j], 0), DOWN)
                 updated_bars.add(bar)
 
-            self.play(Transform(bars, updated_bars), run_time=0.02)
+            self.play(Transform(bars, updated_bars), run_time=total / num_iter)
 
         self.wait(2)
         self.play(bars.animate.set_fill(opacity=0.2), run_time=1)
@@ -3885,14 +3889,17 @@ class GaltonHistogram(Scene):
 
         curve = VMobject(color=YELLOW)
         curve.set_points_smoothly(curve_points)
-        self.play(FadeIn(curve), run_time=2)
+        self.play(FadeIn(curve), run_time=1)
         self.wait(0.5)
 
         # Add explanation text
-        l5 = Text("확률 분포라는 것도", font="BM Hanna 11yrs Old", font_size=52)
+        l5 = Text("확률 분포라는 것도", font="BM Hanna 11yrs Old", font_size=55)
         l6 = Text(
-            "전체의 그림은 정해져 있다는 것", font="BM Hanna 11yrs Old", font_size=52
+            "전체의 그림은 정해져 있다는 것", font="BM Hanna 11yrs Old", font_size=55
         )
+
+        l6.set_color_by_text("정해져", ORANGE)
+
         l5.shift(UP)
         l6.next_to(l5, DOWN)
 
@@ -3900,23 +3907,28 @@ class GaltonHistogram(Scene):
         self.play(Write(l6))
         self.wait(2)
 
-        l5 = Text(
-            "확률 분포라는 것도",
+        self.play(FadeOut(l5), FadeOut(l6))
+
+        l7 = Text(
+            "random 하다는 것을 이야기하려면",
             font="BM Hanna 11yrs Old",
-            font_size=52,
+            font_size=55,
         )
 
-        l6 = Text(
-            "전체의 그림은 정해져 있다는 것",
+        l8 = Text(
+            "무언가 정해진 것을 먼저 이야기 해야한다",
             font="BM Hanna 11yrs Old",
-            font_size=52,
+            font_size=55,
         )
-        l5.shift(UP)
+        l7.shift(UP)
 
-        l6.next_to(l5, DOWN)
+        l8.next_to(l7, DOWN)
+        l8.set_color_by_text("정해진", ORANGE)
 
-        self.play(Write(l5))
-        self.play(Write(l6))
+        self.play(Write(l7))
+        self.play(Write(l8))
+
+        self.wait(2)
 
 
 class RiemannScene(Scene):
@@ -3937,6 +3949,7 @@ class RiemannScene(Scene):
         )
         self.add(plane)
 
+        self.wait()
         zeta_tex = (
             Tex(
                 r"""\begin{aligned}
@@ -3950,7 +3963,9 @@ class RiemannScene(Scene):
             .shift(DOWN * 0.3)
         )
 
-        self.add(zeta_tex)
+        # self.add(zeta_tex)
+        self.play(Write(zeta_tex), run_time=2)
+        self.wait()
 
         # 3. Prime number label (top-right)
         prime_tex = Tex("").to_corner(UR).shift(DOWN * 0.3)
@@ -3981,7 +3996,7 @@ class RiemannScene(Scene):
             new_prime_tex = Tex(",".join(str(p) for p in primes[: i + 1]) + ",\\dots")
             new_prime_tex.to_corner(UR).shift(DOWN * 0.3)
 
-            self.play(FadeIn(dot), Transform(prime_tex, new_prime_tex), run_time=0.5)
+            self.play(FadeIn(dot), Transform(prime_tex, new_prime_tex), run_time=0.7)
 
         # 6. Vertical yellow strip (optional, aesthetic)
         highlight_strip = Rectangle(
@@ -4028,7 +4043,7 @@ class RandomImpossible(Scene):
                 font="BM Hanna 11yrs Old",
             )
             .scale(1.3)
-            .shift(UP)
+            .shift(UP * 1.5)
         )
 
         t2 = Text(
@@ -4046,15 +4061,15 @@ class RandomImpossible(Scene):
         t3 = Text(
             "Random 은 발견했지만",
             font="BM Hanna 11yrs Old",
-        ).scale(1.4)
+        ).scale(1.3)
         t3.set_color_by_text("발견", GREEN)
 
-        t3.next_to(t2, DOWN * 2)
+        t3.next_to(t2, DOWN * 3)
 
         t4 = Text(
-            "표현할 수 없는 것인가?",
+            "표현할 수 없다?",
             font="BM Hanna 11yrs Old",
-        ).scale(1.4)
+        ).scale(1.3)
 
         t4.next_to(t3, DOWN)
 
@@ -4128,18 +4143,18 @@ class ZenoStep1(Scene):
         # self.play(FadeIn(dots))
         self.wait(1.5)
 
-        lp = Tex(r"L_p = 1.616\,199 \times 10^{-35} \ \mathrm{m}")
+        lp = Tex(r"L_p = 1.616\,199 \times 10^{-35} \ \mathrm{m}").scale(0.9)
         lp.shift(DOWN)
         self.play(Write(lp))
 
         t1 = (
             Text(
-                "물리적으로 이보다 짧은 거리는 이동불가",
+                "물리적으로 이보다 짧은 거리는 측정불가",
                 font="BM Hanna 11yrs Old",
             )
-            .scale(1.2)
+            .scale(1.1)
             .next_to(lp, DOWN)
-        )
+        ).set_color(GREY_A)
         self.play(Write(t1))
 
         self.wait(2)
@@ -4147,7 +4162,7 @@ class ZenoStep1(Scene):
         question = Text(
             "ℝ 은 발명 or 발견?",
             font="BM Hanna 11yrs Old",
-        ).scale(2.0)
+        ).scale(1.4)
         question.set_color_by_text("발명", GREEN)
         question.set_color_by_text("발견", ORANGE)
         question.set_color_by_text("ℝ", YELLOW)
@@ -4156,7 +4171,7 @@ class ZenoStep1(Scene):
         self.play(Write(question))
 
 
-class ShowCube(ThreeDScene):
+class NothingCube(ThreeDScene):
     def construct(self):
         # Camera
         frame = self.camera.frame
@@ -4192,7 +4207,7 @@ class ShowCube(ThreeDScene):
         # Vertex spheres (removed later)
         spheres = SGroup()
         for vert in verts:
-            sphere = Sphere(radius=0.1, resolution=(9, 9), color=GREY)
+            sphere = Sphere(radius=0.01, resolution=(9, 9), color=GREY, opacity=0)
             sphere.move_to(vert)
             spheres.add(sphere)
 
@@ -4218,9 +4233,9 @@ class ShowCube(ThreeDScene):
         # 2D cube
         frame.move_to(1.5 * UP)
         self.add(plane)
-        self.play(
-            LaggedStartMap(GrowFromCenter, edges[:4]),
-        )
+        # self.play(
+        #     LaggedStartMap(GrowFromCenter, edges[:4]),
+        # )
         self.wait()
 
         # Transition to 3D
@@ -4229,7 +4244,7 @@ class ShowCube(ThreeDScene):
         frame.target.move_to([1, 2, 0])
         frame.target.set_height(10)
 
-        to_grow = Group(*edges[4:], *spheres[4:])
+        to_grow = Group(*edges[0:], *spheres[0:])
         to_grow.save_state()
         to_grow.set_depth(0, about_edge=IN, stretch=True)
 
@@ -4240,15 +4255,6 @@ class ShowCube(ThreeDScene):
             Restore(to_grow, rate_func=rf),
             run_time=3,
         )
-
-        # Keep 3D camera rotating
-        # frame.start_time = self.time
-        # frame.scene = self
-        # frame.add_updater(
-        #     lambda m: m.set_theta(
-        #         -25 * DEGREES * math.cos((m.scene.time - m.start_time) * PI / 60)
-        #     )
-        # )
 
         self.add(axes)  # full coordinate axes
         self.remove(spheres)  # no corner vertex spheres
@@ -4266,7 +4272,15 @@ class ShowCube(ThreeDScene):
 
         self.play(LaggedStartMap(GrowFromCenter, particles, lag_ratio=0.1))
         self.wait(3)
-        self.play(LaggedStartMap(FadeOut, particles, lag_ratio=0.1))
+
+        t1 = Text("입자", font="BM Hanna 11yrs Old").scale(1.2)
+        t1.shift(LEFT * 3 + UP * 2)
+        t1.fix_in_frame()
+        self.play(Write(t1))
+
+        self.wait(1)
+
+        self.play(LaggedStartMap(FadeOut, particles, lag_ratio=0.1), FadeOut(t1))
         self.wait(2)
 
         # --- 3D vector field using Arrow (ManimGL-compatible)
@@ -4292,11 +4306,23 @@ class ShowCube(ThreeDScene):
         # vector_field.set_shade_in_3d(True)
 
         self.play(LaggedStartMap(GrowArrow, vector_field, lag_ratio=0.01), run_time=2)
+
+        t1 = Text("field, 힘", font="BM Hanna 11yrs Old").scale(1.2)
+        t1.shift(LEFT * 3 + UP * 2)
+        t1.fix_in_frame()
+        self.play(Write(t1))
+
         self.wait(2)
-        self.play(LaggedStartMap(FadeOut, vector_field, lag_ratio=0.3))
+        self.play(LaggedStartMap(FadeOut, vector_field, lag_ratio=0.3), FadeOut(t1))
         self.wait(2)
 
         # --- Collapse cube: animate height dropping to the plane
+
+        t1 = Text("공간", font="BM Hanna 11yrs Old").scale(1.2)
+        t1.shift(LEFT * 3 + UP * 2)
+        t1.fix_in_frame()
+        self.play(Write(t1))
+
         flatten_group = Group(*edges)
         self.play(
             flatten_group.animate.stretch(
@@ -4305,12 +4331,12 @@ class ShowCube(ThreeDScene):
             run_time=2,
         )
         self.wait(0.3)
-        self.play(FadeOut(flatten_group), run_time=1)
+        self.play(FadeOut(flatten_group), FadeOut(t1), run_time=1)
         self.wait(2)
 
-        self.play(Write(plane))
+        self.play(Write(plane), run_time=2)
 
-        self.wait(1)
+        self.wait(2)
 
         # --- Representing "nothingness" outside the universe
         nothing_pos = axes.c2p(0.5, 0.5, 0.4)
@@ -4320,10 +4346,22 @@ class ShowCube(ThreeDScene):
         # Arrow pointing to the dot (from the right side)
         arrow_start = axes.c2p(0.8, 0.8, 0.6)
         arrow = Arrow(
-            start=arrow_start, end=nothing_pos, buff=0.05, stroke_width=3, color=WHITE
+            start=arrow_start, end=nothing_pos, buff=0.3, stroke_width=4, color=WHITE
         )
 
         self.play(FadeIn(nothing_dot), GrowArrow(arrow))
+        self.wait()
+
+        self.play(FadeOut(arrow))
+
+        t1 = Text("나를 가리킬 가능성", font="BM Hanna 11yrs Old")
+        t1.next_to(nothing_dot, RIGHT, buff=0).shift(LEFT + DOWN * 0.5)
+        t1.fix_in_frame()
+        self.play(Write(t1))
+
+        self.wait(2)
+
+        self.play(FadeOut(nothing_dot), FadeOut(t1))
         self.wait()
 
 
@@ -4372,15 +4410,23 @@ class PhysicsScene(Scene):
         title.to_edge(UP)
 
         # Content lines
-        line1 = Text("빛은 입자이고 파동이다", font="BM Hanna 11yrs Old").scale(1)
-        line2 = Text("물질은 에너지이다", font="BM Hanna 11yrs Old").scale(1)
+        line1 = Text("빛은 입자이고 파동이다", font="BM Hanna 11yrs Old").scale(1.1)
+        line2 = (
+            Text("물질은 에너지이다", font="BM Hanna 11yrs Old")
+            .scale(1.1)
+            .set_color(GREY_B)
+        )
         line3 = Text(
             "고양이는 죽어있고 살아있다 (중첩)", font="BM Hanna 11yrs Old"
-        ).scale(1)
-        line4 = Text(
-            "수는 쪼개져있고 (quantum) 이어져있다 (continuous)",
-            font="BM Hanna 11yrs Old",
-        ).scale(1)
+        ).scale(1.1)
+        line4 = (
+            Text(
+                "수는 쪼개져있고 (quantum) 이어져있다 (continuous)",
+                font="BM Hanna 11yrs Old",
+            )
+            .scale(1.1)
+            .set_color(GREY_B)
+        )
 
         lines = [line1, line2, line3, line4]
 
@@ -4391,8 +4437,9 @@ class PhysicsScene(Scene):
 
         # Final sentence
         final = Text(
-            "물리적 세계는 이해하기 어려울정도로 이상하다.", font="BM Hanna 11yrs Old"
-        ).scale(1.2)
+            "물리적 세계는 이해하기 어려울정도로 이상하다.",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.1)
         final.next_to(line4, DOWN, aligned_edge=LEFT, buff=1.3)
 
         # Optional: image next to final sentence (e.g., 당황한 얼굴)
@@ -4402,14 +4449,14 @@ class PhysicsScene(Scene):
         face.next_to(final, RIGHT)
 
         # Animate
-        self.play(FadeIn(title))
+        self.play(Write(title))
         self.wait(1)
 
         for line in lines:
-            self.play(FadeIn(line))
+            self.play(Write(line))
             self.wait(1)
 
-        self.play(FadeIn(final))
+        self.play(Write(final))
         self.wait(0.5)
         self.play(FadeIn(face))
         self.wait(2)
@@ -4422,23 +4469,29 @@ class MathematicsScene(Scene):
         title.to_edge(UP)
 
         # Line 1
-        line1 = Text("0 은 있는 것의 그림자이다.", font="BM Hanna 11yrs Old").scale(1.2)
+        line1 = Text("0 은 있는 것의 그림자이다.", font="BM Hanna 11yrs Old").scale(1.1)
 
         # Line 2 (π만 Tex)
-        line2 = Text(
-            "random 은 불확실하지만, 이를 담는 그릇은 정해져있다",
-            font="BM Hanna 11yrs Old",
-        ).scale(1.2)
+        line2 = (
+            Text(
+                "random 은 불확실하지만, 이를 담는 그릇은 정해야한다",
+                font="BM Hanna 11yrs Old",
+            )
+            .scale(1.1)
+            .set_color(GREY_B)
+        )
 
         # Line 3
         line3 = Text(
             "무한한 것으로 유한한 것을 감쌀 수 없다.", font="BM Hanna 11yrs Old"
-        ).scale(1.2)
+        ).scale(1.1)
 
         # Line 4 (강조)
-        line4 = Text(
-            "N, R 이 발견인것도 같고 발명인것도 같다", font="BM Hanna 11yrs Old"
-        ).scale(1.2)
+        line4 = (
+            Text("N, R 이 발견인것도 같고 발명인것도 같다", font="BM Hanna 11yrs Old")
+            .scale(1.1)
+            .set_color(GREY_B)
+        )
         line4.set_color_by_text("발견", YELLOW)
         line4.set_color_by_text("발명", ORANGE)
 
@@ -4449,16 +4502,10 @@ class MathematicsScene(Scene):
         line4.next_to(line3, DOWN, aligned_edge=LEFT, buff=0.2)
 
         # Final two lines (centered + 강조)
-        final1 = (
-            Text("수학적 개념도, 이상하다.", font="BM Hanna 11yrs Old")
-            .scale(1.3)
-            .set_color(GREY_A)
-        )
-        final2 = (
-            Text("상반되는 A 와 B 가 함께 존재한다.", font="BM Hanna 11yrs Old")
-            .scale(1.3)
-            .set_color(GREY_A)
-        )
+        final1 = Text("수학적 개념도, 이상하다.", font="BM Hanna 11yrs Old").scale(1.2)
+        final2 = Text(
+            "상반되는 A 와 B 가 함께 존재한다.", font="BM Hanna 11yrs Old"
+        ).scale(1.2)
         # final
         final1.next_to(line4, DOWN, aligned_edge=LEFT, buff=1.3)
         final2.move_to(final1, aligned_edge=LEFT)
@@ -4469,14 +4516,15 @@ class MathematicsScene(Scene):
         face.next_to(final2, RIGHT)
 
         # Animation
-        self.play(FadeIn(title))
+        self.play(Write(title))
         self.wait(1)
 
         for line in [line1, line2, line3, line4]:
-            self.play(FadeIn(line))
+            self.play(Write(line))
             self.wait(1)
 
-        self.play(FadeIn(final1, run_time=1.5))
+        self.play(Write(final1), run_time=1.5)
+        self.wait(1)
 
         self.play(ReplacementTransform(final1, final2))
         self.wait(0.5)
@@ -4496,12 +4544,6 @@ class NegativeNegativeEueler(Scene):
         self.play(question.animate.shift(UP * 3))
         self.wait(0.5)
 
-        euler_label = Text("Euler", font="BM Hanna 11yrs Old").scale(0.8)
-        euler_label.set_color_by_text("Euler", GREY_A)
-
-        euler_label.next_to(question, RIGHT * 4)
-        self.play(FadeIn(euler_label))
-
         # Step 3: First explanation (Euler-like logic)
         step1 = Text(
             "-1 x -1 은 1 혹은 -1 일 수 있다", font="BM Hanna 11yrs Old"
@@ -4511,9 +4553,9 @@ class NegativeNegativeEueler(Scene):
             "따라서 -1 x -1 은 -1 일 수 없다", font="BM Hanna 11yrs Old"
         ).scale(1.2)
         step4 = (
-            Text("결국, -1 x -1 = 1 이다", font="BM Hanna 11yrs Old")
+            Text("그래서, -1 x -1 = 1 이다", font="BM Hanna 11yrs Old")
             .scale(1.2)
-            .set_color(YELLOW)
+            .set_color(GOLD)
         )
 
         # Positioning steps under the question
@@ -4532,8 +4574,15 @@ class NegativeNegativeEueler(Scene):
         self.play(FadeIn(step4))
         self.wait(2)
 
+        euler_label = Text("by Euler", font="BM Hanna 11yrs Old").scale(0.8)
+        euler_label.set_color_by_text("Euler", GREY_A)
 
-class DeriveNegative(Scene):
+        euler_label.next_to(step4, RIGHT * 3)
+        self.play(FadeIn(euler_label))
+        self.wait(2)
+
+
+class NegativeNegativeDistributive(Scene):
     def construct(self):
         # Step 1
         step1 = Tex(r"-1 \times (1 - 1) = -1 \times 1 + (-1) \times (-1)").scale(1.2)
@@ -4589,13 +4638,13 @@ class DeriveNegative(Scene):
         self.wait(1)
 
         # Step 5: final form (-1) × (-1) = 1
-        final_eq = Tex(r"(-1) \times (-1) = 1").scale(1.4).set_color(YELLOW)
+        final_eq = Tex(r"(-1) \times (-1) = 1").scale(1.4).set_color(GOLD)
         final_eq.next_to(step4, DOWN, aligned_edge=LEFT, buff=0.8)
         self.play(Write(final_eq))
         self.wait(2)
 
 
-class MultiplyNegativeOneTwice(Scene):
+class MultiplyNegativeRotation(Scene):
     def construct(self):
         # --- Number plane
         plane = (
@@ -4623,7 +4672,7 @@ class MultiplyNegativeOneTwice(Scene):
         # --- Copy to right side (reference +1 arrow)
         base_copy = arrow.copy()
         base_copy.next_to(plane, LEFT, aligned_edge=LEFT).shift(LEFT * 3 + UP * 2)
-        base_label = Tex("+1").scale(0.8).next_to(base_copy.get_end(), RIGHT)
+        base_label = Tex("+1").scale(1).next_to(base_copy.get_end(), RIGHT)
 
         self.play(GrowArrow(base_copy), FadeIn(base_label))
         self.wait(1)
@@ -4639,27 +4688,29 @@ class MultiplyNegativeOneTwice(Scene):
         arrow.set_fill(ORANGE)
         neg_arrow = arrow.copy()
         neg_arrow.next_to(base_copy, DOWN)
-        label_minus1 = (
-            Tex(r"1 \times (-1)").scale(0.8).next_to(neg_arrow.get_end(), LEFT)
-        )
+        label_minus1 = Tex(r"1 \times (-1)").scale(1).next_to(neg_arrow.get_end(), LEFT)
 
         self.play(
-            GrowArrow(neg_arrow), FadeIn(label_minus1), arrow.animate.set_fill(GREEN)
+            GrowArrow(neg_arrow),
+            FadeIn(label_minus1),
         )
-        arrow.set_fill(GREEN)
 
         self.wait(1)
 
         # --- Step 3: Show title × (-1) again
 
         # --- Rotate again (× -1)
-        self.play(Rotate(arrow, angle=PI, about_point=origin), run_time=1)
+        self.play(
+            Rotate(arrow, angle=PI, about_point=origin),
+            arrow.animate.set_fill(GREEN),
+            run_time=1,
+        )
 
         # --- Final: Copy downward with label (-1) × (-1) = 1
         pos_arrow = arrow.copy()
         pos_arrow.next_to(neg_arrow, DOWN)
         label_result = (
-            Tex(r"(-1) \times (-1) = 1").scale(0.8).next_to(pos_arrow.get_end(), RIGHT)
+            Tex(r"(-1) \times (-1) = 1").scale(1).next_to(pos_arrow.get_end(), RIGHT)
         )
 
         self.play(GrowArrow(pos_arrow), FadeIn(label_result))
@@ -4673,23 +4724,26 @@ class WhichExplanation(Scene):
         title.shift(UP * 2.5)
 
         # Lines of thought
-        line1 = Text("다 맞다고 볼 수도 있지 않나?", font="BM Hanna 11yrs Old").scale(
-            1.2
-        )
-        line2 = Text("그럴듯한 story 가 있으니까", font="BM Hanna 11yrs Old").scale(1.2)
-        line3 = (
-            Text(
-                "이해한다는 것은, story 를 만들어내는 것 아닐까",
-                font="BM Hanna 11yrs Old",
-            )
+        line1 = Text("다 맞다고 볼 수도 있나?", font="BM Hanna 11yrs Old").scale(1.2)
+        line2 = (
+            Text("그럴듯한 story 가 있으니까", font="BM Hanna 11yrs Old")
             .scale(1.2)
-            .set_color(GREY_A)
+            .set_color(GREY_B)
         )
+
+        line2.set_color_by_text("story", GREEN)
+
+        line3 = Text(
+            "이해한다는 것은, story 를 만들어내는 것 아닐까",
+            font="BM Hanna 11yrs Old",
+        ).scale(1.2)
+
+        line3.set_color_by_text("story", GREEN)
 
         # Align lines left under each other
         line1.shift(LEFT * 2.5 + UP)
         line2.next_to(line1, DOWN, aligned_edge=LEFT, buff=0.5)
-        line3.next_to(line2, DOWN, aligned_edge=LEFT, buff=0.5)
+        line3.next_to(line2, DOWN * 2, aligned_edge=LEFT, buff=0.5)
 
         # Animation
         self.play(FadeIn(title))
@@ -4709,6 +4763,11 @@ class EntropyBoxExpansion(Scene):
         height = 4
         expanded_width = 5.5
         num_particles = 15
+
+        title = Text("Entropy", font="BM Hanna 11yrs Old").scale(1.5)
+        title.shift(UP * 2.9)
+
+        self.play(Write(title))
 
         # --- 왼쪽 박스
         box_left = Rectangle(width=init_width, height=height, color=WHITE)
@@ -4905,20 +4964,26 @@ class StoryPerspectiveQuestion(Scene):
 
         # 문장 2
         line2 = Text(
-            "공간을 바라봐야만 스토리에, 시간의 방향이 생긴다.",
+            "공간을 바라보면 스토리에, 시간의 방향이 생긴다.",
             font="BM Hanna 11yrs Old",
         ).scale(1.2)
-        line2.set_fill(GREY)
+        line2.set_color_by_text("방향이 생긴다", GREEN)
+
+        line2.set_fill(GREY_B)
 
         # 문장 3 (질문)
-        line3 = Text(
-            "그렇다면, 중요한 질문은,", font="BM Hanna 11yrs Old", color=WHITE
-        ).scale(1.2)
+        line3 = (
+            Text("그렇다면, 중요한 질문은..", font="BM Hanna 11yrs Old", color=WHITE)
+            .scale(1)
+            .shift(LEFT * 2)
+        )
         line3_2 = Text(
-            "하나의 story 에서, 다른 스토리로", font="BM Hanna 11yrs Old", color=WHITE
-        ).scale(1.2)
+            "하나의 story 에서, 다른 story로", font="BM Hanna 11yrs Old", color=WHITE
+        ).scale(1)
+        line3_2.set_fill(GREY_B)
+
         line3_3 = Text(
-            "어떻게 우리가 관점을 이동할 수 있는가 이다.",
+            "어떻게 우리가 관점을 이동할 수 있는가? 아닐까",
             font="BM Hanna 11yrs Old",
         ).scale(1.2)
         line3_3.set_color_by_text("관점을 이동", ORANGE)
@@ -4927,29 +4992,31 @@ class StoryPerspectiveQuestion(Scene):
         line1.move_to(UP * 2.5)
         line1_2.next_to(line1, DOWN, buff=0.3)
         line2.next_to(line1_2, DOWN, buff=0.7)
-        line3.next_to(line2, DOWN, buff=1)
-        line3_2.next_to(line3, DOWN, buff=0.3)
-        line3_3.next_to(line3_2, DOWN, buff=0.3)
+        line3.next_to(line2, DOWN, buff=1, aligned_edge=LEFT)
+
+        line3_2.next_to(line3, DOWN, buff=0.3, aligned_edge=LEFT)
+        line3_3.next_to(line3_2, DOWN, buff=0.3, aligned_edge=LEFT)
 
         # 애니메이션
-        self.play(FadeIn(line1))
-        self.play(FadeIn(line1_2))
+        self.play(Write(line1))
+        self.play(Write(line1_2))
         self.wait(1)
 
-        self.play(FadeIn(line2))
+        self.play(Write(line2))
         self.wait(1.5)
 
-        self.play(FadeIn(line3))
-        self.play(FadeIn(line3_2))
-        self.play(FadeIn(line3_3))
+        self.play(Write(line3), run_time=2)
+        self.wait(0.5)
+        self.play(Write(line3_2))
+        self.play(Write(line3_3))
         self.wait(2)
 
 
-class ZenoStep2(Scene):
+class ZenoStepPerspective(Scene):
     def construct(self):
         # Define points
         title = Text(
-            "Zeno 역설",
+            "Zeno (다른 시각)",
             font="BM Hanna 11yrs Old",
         ).scale(1.5)
         title.shift(UP * 3)
@@ -4994,9 +5061,8 @@ class ZenoStep2(Scene):
             line_seg = Line(start_pt, end_pt)
             brace = Brace(line_seg, DOWN)
             label = brace.get_text(label_text)
-            self.play(GrowFromCenter(brace), Write(label))
-            self.play(character.animate.move_to(end_pt + up_s), run_time=1)
-            self.wait(0.3)
+            self.play(GrowFromCenter(brace), Write(label), run_time=0.3)
+            self.play(character.animate.move_to(end_pt + up_s), run_time=0.7)
 
         # Do four steps: 1/2, 1/4, 1/8, 1/16
         do_step(start, halfway, "1/2")
@@ -5008,24 +5074,25 @@ class ZenoStep2(Scene):
         # Add "..." to imply infinity
         # dots = Text("...", font_size=60).move_to((sixteenth + end) / 2 )
         # self.play(FadeIn(dots))
-        self.wait(1.5)
+        self.wait(1)
 
-        t1 = Text(
-            "이동하는 입장이 아니라 밖에서 바라보면",
-            font="BM Hanna 11yrs Old",
-        ).scale(1.2)
-        t1.shift(DOWN)
-        self.play(Write(t1))
+        # t1 = Text(
+        #     "다른 관점에서 바라보면",
+        #     font="BM Hanna 11yrs Old",
+        # ).scale(1)
+        # t1.shift(DOWN)
+        # self.play(Write(t1))
 
-        self.wait(2)
+        # self.wait(2)
 
         t2 = Text(
-            "몇번을 가든, 시간도 그만큼 잘게 쪼개 보겠다는 것이다",
+            "시간도 그만큼 잘게 쪼개 보겠다는 것이다",
             font="BM Hanna 11yrs Old",
         ).scale(1)
         t2.set_fill(GREY)
 
-        t2.next_to(t1, DOWN * 1.3)
+        t2.shift(DOWN)
+        # t2.next_to(t1, DOWN * 1.3)
 
         self.play(Write(t2))
         self.wait(1)
@@ -5035,14 +5102,14 @@ class ZenoStep2(Scene):
             font="BM Hanna 11yrs Old",
         ).scale(1.2)
 
-        t3.next_to(t2, DOWN * 1.3)
+        t3.next_to(t2, DOWN * 1.5)
         t3.set_color_by_text("전체 시간", BLUE)
 
         self.play(Write(t3))
         self.wait(1)
 
 
-class Scene01_MathAndPhysicsSplit(Scene):
+class MathAndPhysicsSplit(Scene):
 
     def construct(self):
         math_b = ImageMobject(
@@ -5091,7 +5158,8 @@ class CircleNetwork(Scene):
 
         # Circle base
         circle = Circle(radius=radius, color=GREY)
-        self.add(circle)
+
+        self.play(FadeIn(circle))
 
         # Dot positions
         outer_dots = []
@@ -5113,7 +5181,10 @@ class CircleNetwork(Scene):
             inner_dots.append(dot)
 
         all_dots = outer_dots + inner_dots
-        self.add(*all_dots)
+
+        self.play(
+            LaggedStart(*[FadeIn(dot) for dot in all_dots], lag_ratio=0.01), run_time=3
+        )
 
         # Connect close dots
         # Connect all pairs (complete graph)
@@ -5128,7 +5199,9 @@ class CircleNetwork(Scene):
                 lines.add(line)
                 dot_pairs.append((i, j))  # Store the pair for updates
 
-        self.add(lines)
+        self.play(
+            LaggedStart(*[FadeIn(line) for line in lines], lag_ratio=0.01), run_time=4
+        )
 
         # --- Jitter animation
         def jitter_update(mobj, dt):
@@ -5162,7 +5235,7 @@ class CircleNetwork(Scene):
         self.add(dummy)
 
         dummy.add_updater(jitter_update)
-        self.wait(6)
+        self.wait(2)
         dummy.remove_updater(jitter_update)
 
 
@@ -5172,7 +5245,12 @@ class SiddharthaScene(Scene):
         def make_wave_curve():
             # Simple sinusoidal wave line
             points = []
-            for x in np.linspace(-7, 7, 200):
+            x_start = -7
+            x_end = 20
+            num_points = int((x_end - x_start) * 20)  # ~20 points per unit
+
+            for x in np.linspace(x_start, x_end, num_points):
+
                 y = 0.2 * math.sin(x * 2)
                 points.append(np.array([x, y, 0]))
 
@@ -5183,20 +5261,23 @@ class SiddharthaScene(Scene):
             Text("강은 어디에나 동시에 존재한다.", font="BM Hanna 11yrs Old")
             .scale(1.4)
             .set_color(BLUE_A)
-        )
+        ).shift(UP * 2)
 
         # --- 물결형 라인 (곡선 흐름 애니메이션)
         wave = make_wave_curve()
         wave.set_color(BLUE_D).set_opacity(0.5)
-        wave.shift(DOWN * 2)
+        wave.shift(DOWN)
 
         # --- 애니메이션
+        # --- 이름: 싯다르타
+        name = Text("– 싯다르타", font="BM Hanna 11yrs Old").scale(1.1)
+        name.next_to(quote, DOWN, buff=0.4).set_color(GREY_B)
+
         self.add(quote)
+        self.play(Write(name), run_time=1)
 
         self.add(wave)
         self.play(wave.animate.shift(LEFT * 1), run_time=10, rate_func=linear)
-
-        self.wait(3)
 
 
 class SurvivalOfFittest(Scene):
@@ -5324,40 +5405,76 @@ class PrisonerDilemmaWithHighlight(Scene):
 
         # Case 1: A 배신 — dim other row (row 1), highlight payoff on row 0
         self.wait(1)
-        self.play(row_highlights[1].animate.set_fill(opacity=0.7))
+        self.play(
+            row_highlights[1].animate.set_fill(opacity=0.7),
+            a_texts[0].animate.set_fill(opacity=0.3),
+            a_texts[1].animate.set_fill(opacity=0.3),
+        )
         highlight_b0 = SurroundingRectangle(b_texts[0], color=GREEN, buff=0.15)
         self.play(FadeIn(highlight_b0))
-        self.wait(1)
-        self.play(FadeOut(highlight_b0), row_highlights[1].animate.set_fill(opacity=0))
+        self.wait(2)
+        self.play(
+            FadeOut(highlight_b0),
+            row_highlights[1].animate.set_fill(opacity=0),
+            a_texts[0].animate.set_fill(opacity=1),
+            a_texts[1].animate.set_fill(opacity=1),
+        )
 
         # Case 2: A 협력 — dim other row (row 0), highlight payoff on row 1
         self.wait(1)
-        self.play(row_highlights[0].animate.set_fill(opacity=0.7))
+        self.play(
+            row_highlights[0].animate.set_fill(opacity=0.7),
+            a_texts[2].animate.set_fill(opacity=0.3),
+            a_texts[3].animate.set_fill(opacity=0.3),
+        )
         highlight_b3 = SurroundingRectangle(b_texts[2], color=GREEN, buff=0.15)
         self.play(FadeIn(highlight_b3))
-        self.wait(1)
-        self.play(FadeOut(highlight_b3), row_highlights[0].animate.set_fill(opacity=0))
+        self.wait(2)
+        self.play(
+            FadeOut(highlight_b3),
+            row_highlights[0].animate.set_fill(opacity=0),
+            a_texts[2].animate.set_fill(opacity=1),
+            a_texts[3].animate.set_fill(opacity=1),
+        )
 
         highlight_b = SurroundingRectangle(b_actions[0], color=GREEN, buff=0.15)
         self.play(FadeIn(highlight_b))
 
-        # --- Player A's best response animation
+        # # --- Player A's best response animation
 
         # Case 1: B 배신 — dim other col (col 1), highlight payoff on col 0
         self.wait(1)
-        self.play(col_highlights[1].animate.set_fill(opacity=0.7))
+        self.play(
+            col_highlights[1].animate.set_fill(opacity=0.7),
+            b_texts[0].animate.set_fill(opacity=0.3),
+            b_texts[2].animate.set_fill(opacity=0.3),
+        )
         highlight_a0 = SurroundingRectangle(a_texts[0], color=YELLOW, buff=0.15)
         self.play(FadeIn(highlight_a0))
-        self.wait(1)
-        self.play(FadeOut(highlight_a0), col_highlights[1].animate.set_fill(opacity=0))
+        self.wait(2)
+        self.play(
+            FadeOut(highlight_a0),
+            col_highlights[1].animate.set_fill(opacity=0),
+            b_texts[0].animate.set_fill(opacity=1),
+            b_texts[2].animate.set_fill(opacity=1),
+        )
 
         # Case 2: B 협력 — dim other col (col 0), highlight payoff on col 1
         self.wait(1)
-        self.play(col_highlights[0].animate.set_fill(opacity=0.7))
+        self.play(
+            col_highlights[0].animate.set_fill(opacity=0.7),
+            b_texts[1].animate.set_fill(opacity=0.3),
+            b_texts[3].animate.set_fill(opacity=0.3),
+        )
         highlight_a3 = SurroundingRectangle(a_texts[1], color=YELLOW, buff=0.15)
         self.play(FadeIn(highlight_a3))
-        self.wait(1)
-        self.play(FadeOut(highlight_a3), col_highlights[0].animate.set_fill(opacity=0))
+        self.wait(2)
+        self.play(
+            FadeOut(highlight_a3),
+            col_highlights[0].animate.set_fill(opacity=0),
+            b_texts[1].animate.set_fill(opacity=1),
+            b_texts[3].animate.set_fill(opacity=1),
+        )
 
         highlight_a = SurroundingRectangle(a_actions[0], color=YELLOW, buff=0.15)
         self.play(FadeIn(highlight_a))
@@ -5379,7 +5496,7 @@ class PrisonerDilemmaWithHighlight(Scene):
         for m in self.mobjects:
             m.set_opacity(0.1)
 
-        eq = Tex(r"1 + 1 = -1").scale(2)
+        eq = Tex(r"1 + 1 = -1").scale(2.5)
         self.play(Write(eq))
         self.wait(2)
 
@@ -5387,10 +5504,10 @@ class PrisonerDilemmaWithHighlight(Scene):
 class DilemmaTopics(Scene):
     def construct(self):
         # Title
-        title = Tex(r"1 + 1 = -1").scale(1.5)
+        title = Tex(r"1 + 1 = -1").scale(2)
         title[4:7].set_color(RED)
-        title.to_edge(UP)
-        self.play(FadeIn(title))
+        title.shift(UP * 3.2)
+        self.play(Write(title))
 
         # Items list
         items = [
@@ -5461,7 +5578,7 @@ class DilemmaTopics(Scene):
         # Step 4: Final quotes
         quotes = [
             "문제를 예방하는 건 돈이 안되고",
-            "문제를 커지면, 오히려 돈이 되곤 한다.",
+            "문제를 키우면, 오히려 돈이 되곤 한다.",
             "문제가 커질때까지는 대응을 못한다.",
         ]
 
@@ -5473,13 +5590,16 @@ class DilemmaTopics(Scene):
             elif i == 2:
                 quote.set_color(YELLOW_E)
                 quote.scale(1.2)
+
             quote_texts.add(quote)
 
         quote_texts.arrange(DOWN, aligned_edge=LEFT, buff=0.4)
         quote_texts.shift(UP + RIGHT * 2)
 
-        for qt in quote_texts:
-            self.play(FadeIn(qt), run_time=2)
+        for i, qt in enumerate(quote_texts):
+            if i == 2:
+                qt.shift(DOWN * 0.5)
+            self.play(Write(qt), run_time=2)
 
         self.wait(2)
 
@@ -5513,7 +5633,7 @@ class FinalScene(Scene):
         # 🧠 5. Text animations
         # text1 = Text("Don't look up", font="BM Hanna 11yrs Old").scale(1.2).move_to(UP * 2)
         # text2 = Text("Don't add up", font="BM Hanna 11yrs Old").scale(1.2).move_to(text1)
-        text3 = Tex("1 + 1 = -1").scale(1.5)
+        text3 = Tex("1 + 1 = -1").scale(2)
         text3.shift(UP * 1.5)
 
         # self.play(FadeIn(text1, run_time=2))
@@ -5533,7 +5653,7 @@ class FinalScene(Scene):
 
         self.wait(2)
         # Let wave move while we show final text
-        final_text = Tex("1 + 1 = 2").scale(1.5).shift(DOWN * 1.5)
+        final_text = Tex("1 + 1 = 2").scale(2).shift(DOWN * 1.5)
         self.play(Write(final_text), run_time=2)
 
         self.wait(9)
@@ -5581,6 +5701,7 @@ class GabrielHorn(ThreeDScene):
             theta=0, phi=PI / 2.5
         )  # φ = π/2.5 ≈ 72° (slightly tilted)
         frame.move_to(axes.c2p(6, 0, 0))  # center on curve
+        frame.save_state()
 
         # === 3. 2D Curve y = 1/x from x = 1 to 15 ===
         curve = Graph1OverX(axes)
@@ -5588,12 +5709,6 @@ class GabrielHorn(ThreeDScene):
 
         self.play(ShowCreation(curve), run_time=2)
         self.wait(0.5)
-
-        # === 4. Rotate camera for 3D view ===
-        # self.play(
-        #     frame.animate.set_euler_angles(theta=-PI/4, phi=PI/6).move_to(axes.c2p(6, 0, 0)),
-        #     run_time=2
-        # )
 
         # === 5. Animate surface sweep (rotation) ===
         sweep = ValueTracker(0)
@@ -5637,42 +5752,56 @@ class GabrielHorn(ThreeDScene):
         # for m in self.mobjects:
         #     self.remove(m)
 
-        self.play(FadeOut(curve), FadeOut(axes))
+        self.play(FadeOut(curve), FadeOut(axes), run_time=0.2)
 
         # Axes
 
         max_x = 15
-        axes = ThreeDAxes(
-            x_range=[0, max_x, 1],
-            y_range=[-1.5, 1.5, 0.5],
-            z_range=[-1.5, 1.5, 0.5],
-        )
-        axes.shift(LEFT)
+        # axes = ThreeDAxes(
+        #     x_range=[0, max_x, 1],
+        #     y_range=[-1.5, 1.5, 0.5],
+        #     z_range=[-1.5, 1.5, 0.5],
+        # )
+        # axes.shift(LEFT)
         # axes.add_coordinate_labels()
 
         # self.add(axes)
 
         # Horn surface using .c2p()
-        horn = ParametricSurface(
-            lambda u, v: axes.c2p(u, (1 / u) * np.cos(v), (1 / u) * np.sin(v)),
-            u_range=[1, max_x + 2],
-            v_range=[0, TAU],
-            resolution=(100, 30),
-        )
-        horn.set_color(BLUE_A)
-        horn.set_opacity(0.7)
-        self.play(ReplacementTransform(full_horn, horn), run_time=1.5)
+        # horn = ParametricSurface(
+        #     lambda u, v: axes.c2p(u, (1 / u) * np.cos(v), (1 / u) * np.sin(v)),
+        #     u_range=[1, max_x + 2],
+        #     v_range=[0, TAU],
+        #     resolution=(100, 30),
+        # )
+        # horn.set_color(BLUE_A)
+        # horn.set_opacity(0.7)
+        # horn.move_to(full_horn)
+
+        # self.play(FadeOut(full_horn))
+        horn = full_horn
+
+        # self.play(ReplacementTransform(full_horn, horn), run_time=1.5)
         # self.add(horn)
 
         # Camera setup
         frame = self.camera.frame
-        frame.move_to(axes.c2p(2, 0, 0))  # move camera focus near horn base
 
-        frame.save_state()
+        self.play(
+            frame.animate.move_to(
+                axes.c2p(2, 0, 0)
+            ),  # move camera focus near horn base
+            run_time=1,
+        )
 
         self.play(
             frame.animate.set_euler_angles(theta=-PI / 6, gamma=PI / 2), run_time=1
         )
+        self.play(
+            frame.animate.scale(1.3),
+        )
+        frame.save_state()
+
         # frame.set_euler_angles(theta=-PI / 6, gamma=PI / 2)
 
         self.camera.light_source.move_to([-10, -10, 20])
@@ -5688,6 +5817,7 @@ class GabrielHorn(ThreeDScene):
         new_eq.move_to(eq.get_center())  # or wherever you want
 
         self.play(ReplacementTransform(eq, new_eq), run_time=1)
+        self.wait()
 
         # Start filling
         for i in reversed(range(num_disks)):
@@ -5774,10 +5904,15 @@ class GabrielHorn(ThreeDScene):
             self.wait(0.03)
 
         self.wait(1)
+        frame.restore()
 
 
 class NormalCurveScene(ThreeDScene):
     def construct(self):
+        frame = self.camera.frame
+        frame.set_euler_angles(
+            theta=0, phi=0, gamma=0
+        )  # φ = π/2.5 ≈ 72° (slightly tilted)
 
         plane_g = VGroup()
 
@@ -6057,7 +6192,7 @@ class StickManWalkScene(ThreeDScene):
         )
 
         axes.rotate(
-            angle=PI / 12,  # rotation angle
+            angle=PI / 9,  # rotation angle
             axis=RIGHT,  # rotation axis: RIGHT = x-axis, UP = y-axis, OUT = z-axis
             about_point=axes.c2p(0, 0, 0),  # pivot point
         )
@@ -6072,6 +6207,7 @@ class StickManWalkScene(ThreeDScene):
         # frame.set_euler_angles(
         #     theta=0, phi=PI / 12, gamma=0
         # )  # φ = π/2.5 ≈ 72° (slightly tilted)
+        frame.scale(2.5)
 
         man.walk_to(self, point=(6, 0, 5), duration=2)
         self.wait(0.1)
@@ -6139,7 +6275,8 @@ class StickManWalkScene(ThreeDScene):
         world_g_z2.shift(shift_z2)
         self.play(Write(world_g_z2), run_time=0.5)
 
-        self.wait(1)
+        self.wait(2)
+        # frame.restore()
 
 
 class GeometricSeriesVisualizationZero(Scene):
@@ -6322,7 +6459,7 @@ class GeometricSeriesVisualizationZero(Scene):
 class InfinityNumberLine(Scene):
     def construct(self):
         # Title
-        title = Text("큰 수 놀이", font="BM Hanna 11yrs Old").scale(1.4)
+        title = Text("엄청 큰수", font="BM Hanna 11yrs Old").scale(1.4)
         title.shift(UP * 2.6)
         title.fix_in_frame()
         self.play(Write(title))
@@ -6482,6 +6619,7 @@ class InfinityNumberLine(Scene):
         for quote in quote_texts:
             quote.next_to(author_texts, DOWN * 2, buff=0.3)
             quote.set_x(0)
+            quote.set_color(GREY_B)
 
         # Animate author + quote one by one
         for i in range(len(authors)):
@@ -6552,8 +6690,9 @@ class MountainOnSphereScene(ThreeDScene):
         self.add(earth)
 
         # 여러 랜덤 산 생성
-        num_mountains = 40
+        num_mountains = 30
         mountains = Group()
+        colors = [TEAL_E, BLUE_E]
         for i in range(num_mountains):
 
             sigma = np.random.uniform(0.6, 0.8)
@@ -6575,12 +6714,12 @@ class MountainOnSphereScene(ThreeDScene):
                 resolution=(50, 20),
             )
 
-            color = interpolate_color(BLUE_D, BLACK, 1 / num_mountains)
+            color = random.choice(colors)
 
             mountain.set_color(color)
             mountain.set_opacity(0.9)
 
-            self.play(FadeIn(mountain), run_time=2 / num_mountains)
+            self.play(FadeIn(mountain), run_time=3 / num_mountains)
 
             self.play(
                 earth.animate.set_color(
@@ -6590,7 +6729,184 @@ class MountainOnSphereScene(ThreeDScene):
             )
             mountains.add(mountain)
 
-        self.wait(1)
+        self.wait(2)
 
         for mountain in mountains:
             self.play(mountain.animate.set_color(GREY_C), run_time=4 / num_mountains)
+
+
+class SinglePyramidScene(ThreeDScene):
+    def construct(self):
+
+        phi = 75
+        theta = 0
+
+        frame = self.camera.frame
+        frame.save_state()
+
+        frame.set_euler_angles(phi=phi * DEGREES, theta=theta * DEGREES)
+        frame.set_width(20)
+
+        axes = ThreeDAxes(
+            x_range=[-3, 6, 1],
+            y_range=[-5, 10, 1],
+            z_range=[0, 5, 1],
+        )
+        # self.add(axes)
+        axes.add_coordinate_labels()
+        frame.move_to(axes.c2p(7, -1, 1.5))
+
+        def make_vertical_label(text_str, base_center, z_pos, z_dir):
+            txt = Text(text_str, font="BM Hanna 11yrs Old").scale(1)
+            txt.rotate(PI / 2, axis=RIGHT)
+            txt.move_to(base_center + z_dir * z_pos)
+            return txt
+
+        def build_pyramid(
+            label,
+            layers,
+            base_size=4,
+            base_pos=ORIGIN,
+            inverted=False,
+            color=GREY,
+            text_color=WHITE,
+        ):
+            height = base_size
+            base = (
+                Square(side_length=base_size)
+                .set_fill(color, opacity=0.1)
+                .set_stroke(color, 0.5)
+            )
+            base.move_to(base_pos)
+
+            z_dir = axes.c2p(0, 0, 1) - axes.c2p(0, 0, 0)
+            apex = base.get_center() + z_dir * height
+            corners = base.get_vertices()
+
+            # Create the faces of the pyramid
+            faces = VGroup(
+                *[
+                    Polygon(corners[i], corners[(i + 1) % 4], apex)
+                    .set_fill(color, opacity=0.1)
+                    .set_stroke(color, 0.5)
+                    for i in range(4)
+                ]
+            )
+
+            # Create the edge lines explicitly
+            edges = VGroup(
+                *[
+                    Line(
+                        corners[i], corners[(i + 1) % 4], color=color, stroke_width=1.5
+                    )
+                    for i in range(4)
+                ],
+                *[
+                    Line(corners[i], apex, color=color, stroke_width=1.5)
+                    for i in range(4)
+                ],
+            )
+
+            pyramid = VGroup(base, faces, edges)
+
+            if inverted:
+                pyramid.rotate(PI, axis=RIGHT)
+
+            base_center = base.get_center()
+            level_texts = VGroup()
+            for i, txt_src in enumerate(layers):
+                z = (i + 0.5) * (height / len(layers))
+                if inverted:
+                    z = -z
+
+                txt = make_vertical_label(txt_src, base_center, z, z_dir)
+                txt.set_color(GREY_B)
+                level_texts.add(txt)
+
+                if i == len(layers) - 1 and not inverted:
+                    txt.scale(1.5).set_color(text_color)
+                if inverted:
+                    if i == 0:
+                        txt.scale(2.5).set_color(text_color)
+                    else:
+                        txt.scale(2)
+
+            return VGroup(pyramid, level_texts)
+
+        diff = 5
+
+        text_color = WHITE
+        body_color = "#4682B4"
+
+        pyramids = [
+            build_pyramid(
+                "Math",
+                ["Set/논리", "Axiom", "수학"],
+                base_pos=axes.c2p(0, 0, 0),
+                color=body_color,
+                text_color=text_color,
+            ),
+            build_pyramid(
+                "Physics",
+                ["입자/에너지/정보", "최소단위", "물리"],
+                base_pos=axes.c2p(diff, 0, 0),
+                color=body_color,
+                text_color=text_color,
+            ),
+            build_pyramid(
+                "Darwin",
+                ["자연선택/변화/생존", "개체, 유전자", "진화"],
+                base_pos=axes.c2p(diff * 2, 0, 0),
+                color=body_color,
+                text_color=text_color,
+            ),
+            build_pyramid(
+                "Economics",
+                ["self interest/이익", "개인", "경제"],
+                base_pos=axes.c2p(diff * 3, 0, 0),
+                color=body_color,
+                text_color=text_color,
+            ),
+        ]
+
+        for pyramid in pyramids:
+            self.play(FadeIn(pyramid, shift=IN), run_time=1.2)
+            self.wait(1)
+
+        self.wait()
+        desc_label = Text(
+            "reductionism: 부분의 합이 전체를 만든다", font="BM Hanna 11yrs Old"
+        ).scale(1.0)
+        desc_label.set_color_by_text("부분", ORANGE)
+        desc_label.fix_in_frame()
+        desc_label.move_to(DOWN * 2)
+        self.play(Write(desc_label))
+        self.wait(1.0)
+
+        body_color = "#7B68EE"
+        back_pyramid = build_pyramid(
+            label="Spiritual",
+            layers=["힌두교/불교/기독교/도교", "창발/시스템", ""],
+            base_size=7,
+            base_pos=axes.c2p(diff * 1.5, 13, -3),
+            color=body_color,
+            text_color=GREY_A,
+            inverted=True,
+        )
+
+        self.play(
+            *[p.animate.set_opacity(0.05) for p in pyramids],
+            FadeOut(desc_label),
+            frame.animate.move_to(axes.c2p(7, 5, 1.5)),
+            FadeIn(back_pyramid, shift=IN),
+            run_time=1.5,
+        )
+
+        desc_label = Text(
+            "holism: 전체 안의 부분이 의미를 가진다", font="BM Hanna 11yrs Old"
+        ).scale(1.0)
+        desc_label.set_color_by_text("전체", GREEN)
+        desc_label.fix_in_frame()
+        desc_label.move_to(DOWN * 2)
+        self.play(Write(desc_label))
+        self.wait(3)
